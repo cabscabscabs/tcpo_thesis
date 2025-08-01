@@ -61,7 +61,25 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				ustp: {
+					'dark-blue': 'hsl(var(--ustp-dark-blue))',
+					'gold': 'hsl(var(--ustp-gold))',
+					'light-blue': 'hsl(var(--ustp-light-blue))',
+					'gray': 'hsl(var(--ustp-gray))'
 				}
+			},
+			fontFamily: {
+				'roboto': ['Roboto', 'sans-serif'],
+				'open-sans': ['Open Sans', 'sans-serif']
+			},
+			backgroundImage: {
+				'gradient-ustp': 'var(--gradient-ustp)',
+				'gradient-gold': 'var(--gradient-gold)'
+			},
+			boxShadow: {
+				'card': 'var(--shadow-card)',
+				'gold': 'var(--shadow-gold)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
