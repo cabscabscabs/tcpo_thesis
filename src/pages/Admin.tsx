@@ -21,6 +21,18 @@ const Admin = () => {
     { id: 3, title: "Food Preservation Method", status: "Granted", field: "Food Technology" }
   ]);
 
+  const [news] = useState([
+    { id: 1, title: "TPCO-CET Convergence 2025 Announced", status: "Published", date: "2024-01-15", category: "Events" },
+    { id: 2, title: "New Patent Filing Workshop Series", status: "Draft", date: "2024-01-10", category: "Education" },
+    { id: 3, title: "Industry Partnership with ABC Corp", status: "Published", date: "2024-01-08", category: "Partnerships" }
+  ]);
+
+  const [events] = useState([
+    { id: 1, title: "Morning with IP Workshop", date: "2024-02-15", status: "Upcoming", attendees: 45 },
+    { id: 2, title: "Technology Showcase 2024", date: "2024-03-20", status: "Planning", attendees: 120 },
+    { id: 3, title: "Innovation Forum", date: "2024-01-20", status: "Completed", attendees: 85 }
+  ]);
+
   const [services] = useState([
     { id: 1, name: "IP Protection", requests: 15 },
     { id: 2, name: "Technology Licensing", requests: 8 },
@@ -104,16 +116,18 @@ const Admin = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="content">Content</TabsTrigger>
+            <TabsTrigger value="news">News</TabsTrigger>
+            <TabsTrigger value="events">Events</TabsTrigger>
             <TabsTrigger value="patents">Patents</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="resources">Resources</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">Total Patents</CardTitle>
@@ -125,6 +139,24 @@ const Admin = () => {
               </Card>
               <Card>
                 <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Published News</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-ustp-blue">18</div>
+                  <p className="text-sm text-muted-foreground">+5 this week</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Upcoming Events</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-ustp-blue">6</div>
+                  <p className="text-sm text-muted-foreground">Next: Feb 15</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
                   <CardTitle className="text-lg">Service Requests</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -132,16 +164,330 @@ const Admin = () => {
                   <p className="text-sm text-muted-foreground">+8 pending</p>
                 </CardContent>
               </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 p-3 border rounded-lg">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div>
+                      <p className="font-medium">New patent application submitted</p>
+                      <p className="text-sm text-muted-foreground">Smart Water Management System - 2 hours ago</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 p-3 border rounded-lg">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div>
+                      <p className="font-medium">News article published</p>
+                      <p className="text-sm text-muted-foreground">Innovation Workshop announcement - 5 hours ago</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 p-3 border rounded-lg">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <div>
+                      <p className="font-medium">New service request</p>
+                      <p className="text-sm text-muted-foreground">Technology licensing inquiry - 1 day ago</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="content" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Content Management</h2>
+              <Button variant="ustp">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Content
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Active Users</CardTitle>
+                <CardHeader>
+                  <CardTitle>Homepage Content</CardTitle>
+                  <CardDescription>Manage hero section and featured content</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-ustp-blue">156</div>
-                  <p className="text-sm text-muted-foreground">+12 this week</p>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="hero-title">Hero Section Title</Label>
+                    <Input id="hero-title" placeholder="Main headline" defaultValue="Accelerating Innovation Through Technology Transfer" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="hero-subtitle">Hero Section Subtitle</Label>
+                    <Textarea id="hero-subtitle" placeholder="Supporting text" defaultValue="Bridging the gap between research and commercialization..." />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="hero-image">Hero Image</Label>
+                    <Input id="hero-image" type="file" accept="image/*" />
+                  </div>
+                  <Button variant="ustp">Update Homepage</Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Featured Technologies</CardTitle>
+                  <CardDescription>Highlight key innovations</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">Smart Irrigation System</p>
+                        <p className="text-sm text-muted-foreground">Currently featured</p>
+                      </div>
+                      <Button variant="outline" size="sm">Edit</Button>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">Bio-plastic Innovation</p>
+                        <p className="text-sm text-muted-foreground">Currently featured</p>
+                      </div>
+                      <Button variant="outline" size="sm">Edit</Button>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">Food Processing Tech</p>
+                        <p className="text-sm text-muted-foreground">Currently featured</p>
+                      </div>
+                      <Button variant="outline" size="sm">Edit</Button>
+                    </div>
+                  </div>
+                  <Button variant="ustp" className="w-full">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Featured Technology
+                  </Button>
                 </CardContent>
               </Card>
             </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Impact Statistics</CardTitle>
+                <CardDescription>Update key metrics displayed on homepage</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="patents-count">Patents Granted</Label>
+                    <Input id="patents-count" type="number" defaultValue="24" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="partnerships-count">Industry Partners</Label>
+                    <Input id="partnerships-count" type="number" defaultValue="50" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="startups-count">Startups Incubated</Label>
+                    <Input id="startups-count" type="number" defaultValue="15" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="technologies-count">Technologies Licensed</Label>
+                    <Input id="technologies-count" type="number" defaultValue="8" />
+                  </div>
+                </div>
+                <Button variant="ustp" className="mt-4">Update Statistics</Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="news" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">News Management</h2>
+              <Button variant="ustp">
+                <Plus className="mr-2 h-4 w-4" />
+                Create News Article
+              </Button>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Create News Article</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="news-title">Article Title</Label>
+                    <Input id="news-title" placeholder="Enter article title" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="news-category">Category</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="events">Events</SelectItem>
+                        <SelectItem value="partnerships">Partnerships</SelectItem>
+                        <SelectItem value="education">Education</SelectItem>
+                        <SelectItem value="innovation">Innovation</SelectItem>
+                        <SelectItem value="announcements">Announcements</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="news-author">Author</Label>
+                    <Input id="news-author" placeholder="Article author" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="news-date">Publication Date</Label>
+                    <Input id="news-date" type="date" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="news-excerpt">Excerpt</Label>
+                  <Textarea id="news-excerpt" placeholder="Brief summary of the article" rows={2} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="news-content">Article Content</Label>
+                  <Textarea id="news-content" placeholder="Full article content" rows={8} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="news-image">Featured Image</Label>
+                  <Input id="news-image" type="file" accept="image/*" />
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="ustp">Publish Article</Button>
+                  <Button variant="outline">Save as Draft</Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Published Articles</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {news.map((article) => (
+                    <div key={article.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <h3 className="font-semibold">{article.title}</h3>
+                        <div className="flex gap-2 mt-2">
+                          <Badge variant={article.status === "Published" ? "default" : "secondary"}>
+                            {article.status}
+                          </Badge>
+                          <Badge variant="outline">{article.category}</Badge>
+                          <span className="text-sm text-muted-foreground">{article.date}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="events" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Event Management</h2>
+              <Button variant="ustp">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Event
+              </Button>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Create New Event</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="event-title">Event Title</Label>
+                    <Input id="event-title" placeholder="Enter event title" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-type">Event Type</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="workshop">Workshop</SelectItem>
+                        <SelectItem value="seminar">Seminar</SelectItem>
+                        <SelectItem value="conference">Conference</SelectItem>
+                        <SelectItem value="networking">Networking</SelectItem>
+                        <SelectItem value="showcase">Showcase</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-date">Event Date</Label>
+                    <Input id="event-date" type="date" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-time">Event Time</Label>
+                    <Input id="event-time" type="time" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-location">Location</Label>
+                    <Input id="event-location" placeholder="Event venue" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-capacity">Capacity</Label>
+                    <Input id="event-capacity" type="number" placeholder="Maximum attendees" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="event-description">Event Description</Label>
+                  <Textarea id="event-description" placeholder="Detailed description of the event" rows={4} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="event-image">Event Image</Label>
+                  <Input id="event-image" type="file" accept="image/*" />
+                </div>
+                <Button variant="ustp">Create Event</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Upcoming Events</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {events.map((event) => (
+                    <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <h3 className="font-semibold">{event.title}</h3>
+                        <div className="flex gap-2 mt-2">
+                          <Badge variant={event.status === "Upcoming" ? "default" : event.status === "Planning" ? "secondary" : "outline"}>
+                            {event.status}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">{event.date}</span>
+                          <span className="text-sm text-muted-foreground">{event.attendees} attendees</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          View Registrations
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="patents" className="space-y-6">
@@ -336,6 +682,40 @@ const Admin = () => {
                     <div className="text-sm text-muted-foreground">Admins</div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>Manage user accounts and permissions</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-username">Username</Label>
+                    <Input id="new-username" placeholder="Enter username" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-email">Email</Label>
+                    <Input id="new-email" type="email" placeholder="Enter email" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="user-role">Role</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="researcher">Researcher</SelectItem>
+                        <SelectItem value="industry">Industry Partner</SelectItem>
+                        <SelectItem value="student">Student</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Button variant="ustp">Create User</Button>
               </CardContent>
             </Card>
           </TabsContent>
