@@ -118,10 +118,10 @@ const LatestNews = () => {
           >
             <CarouselContent className="-ml-2 md:-ml-4">
               {newsItems.map((item) => (
-                <CarouselItem key={item.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                  <Card className="h-full bg-white/95 backdrop-blur-sm border-white/20 hover:bg-white transition-all duration-300 hover:shadow-xl group overflow-hidden">
+                <CarouselItem key={item.id} className="pl-2 md:pl-4">
+                  <Card className="h-full bg-white/95 backdrop-blur-sm border-white/20 hover:bg-white transition-all duration-300 hover:shadow-xl group overflow-hidden max-w-4xl mx-auto">
                     {/* Banner Image */}
-                    <div className="relative h-48 overflow-hidden">
+                    <div className="relative h-64 md:h-80 overflow-hidden">
                       <img 
                         src={item.image} 
                         alt={item.title}
