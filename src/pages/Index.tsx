@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import FeaturedTechnologies from "@/components/FeaturedTechnologies";
 import ServicesOverview from "@/components/ServicesOverview";
 import ImpactStats from "@/components/ImpactStats";
+import LatestNews from "@/components/LatestNews";
 import Footer from "@/components/Footer";
 
 const Index = () => {
@@ -13,6 +14,7 @@ const Index = () => {
       <FeaturedTechnologies />
       <ServicesOverview />
       <ImpactStats />
+      <LatestNews />
       <Footer />
     </div>
   );
