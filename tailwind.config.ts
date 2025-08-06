@@ -66,7 +66,10 @@ export default {
 					'dark-blue': 'hsl(var(--ustp-dark-blue))',
 					'gold': 'hsl(var(--ustp-gold))',
 					'light-blue': 'hsl(var(--ustp-light-blue))',
-					'gray': 'hsl(var(--ustp-gray))'
+					'gray': 'hsl(var(--ustp-gray))',
+					'blue': 'hsl(var(--ustp-blue))',
+					'orange': 'hsl(var(--ustp-orange))',
+					'yellow': 'hsl(var(--ustp-yellow))'
 				}
 			},
 			fontFamily: {

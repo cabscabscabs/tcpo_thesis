@@ -103,6 +103,11 @@
 
 /* Custom Design System Extensions */
 :root {
+  /* Additional USTP Brand Colors */
+  --ustp-blue: 210 100% 15%;         /* USTP Dark Blue */
+  --ustp-orange: 25 95% 53%;         /* Orange accent */
+  --ustp-yellow: 45 100% 39%;        /* USTP Gold */
+  
   /* Gradients */
   --gradient-ustp: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
   --gradient-gold: linear-gradient(135deg, hsl(var(--secondary)), hsl(45 100% 50%));
@@ -127,5 +132,14 @@
   
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Roboto', sans-serif;
+  }
+}
+
+@layer utilities {
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 }
