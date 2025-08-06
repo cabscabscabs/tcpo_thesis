@@ -1,8 +1,12 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 const LatestNews = () => {
+  const [visibleCount, setVisibleCount] = useState(5);
+  
   // Mock data - in real app this would come from admin/database
-  const newsItems = [
+  const allNewsItems = [
     {
       id: 1,
       title: "Revolutionary AI Technology Patent Approved for USTP Innovation Lab",
@@ -48,6 +52,33 @@ const LatestNews = () => {
       category: "Copyright",
       author: "Prof. Lisa Chen",
       image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop&q=80"
+    },
+    {
+      id: 6,
+      title: "Smart Campus Infrastructure Development",
+      excerpt: "New IoT-enabled campus infrastructure enhances student experience and operational efficiency.",
+      date: "2024-01-03",
+      category: "Innovation",
+      author: "Dr. Michael Torres",
+      image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=300&fit=crop&q=80"
+    },
+    {
+      id: 7,
+      title: "Research Collaboration with Tech Giants",
+      excerpt: "USTP partners with leading technology companies for advanced research initiatives.",
+      date: "2024-01-01",
+      category: "Research",
+      author: "Prof. Sarah Johnson",
+      image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop&q=80"
+    },
+    {
+      id: 8,
+      title: "Patent Protection for Medical Devices",
+      excerpt: "University's innovative medical technology receives comprehensive patent protection.",
+      date: "2023-12-28",
+      category: "Patent",
+      author: "Dr. Elena Vasquez",
+      image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&q=80"
     }
   ];
 
@@ -71,8 +102,15 @@ const LatestNews = () => {
     return colors[category as keyof typeof colors] || 'bg-muted text-white';
   };
 
+  const newsItems = allNewsItems.slice(0, visibleCount);
   const featuredArticle = newsItems.find(item => item.featured);
   const regularArticles = newsItems.filter(item => !item.featured);
+  
+  const loadMore = () => {
+    setVisibleCount(prev => Math.min(prev + 4, allNewsItems.length));
+  };
+  
+  const hasMore = visibleCount < allNewsItems.length;
 
   return (
     <section className="py-20 bg-gradient-to-br from-background via-background/95 to-ustp-blue/5">
@@ -141,10 +179,26 @@ const LatestNews = () => {
           ))}
         </div>
 
-        <div className="text-center mt-12">
-          <p className="text-sm text-muted-foreground">
-            Want to stay updated? Subscribe to our newsletter or follow our social media channels for real-time updates.
-          </p>
+        <div className="text-center mt-12 space-y-6">
+          {hasMore && (
+            <Button 
+              onClick={loadMore}
+              variant="outline"
+              size="lg"
+              className="px-8"
+            >
+              Load More News
+            </Button>
+          )}
+          
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button variant="default" size="lg" className="px-8">
+              View All News
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              Subscribe to our newsletter for real-time updates
+            </p>
+          </div>
         </div>
       </div>
     </section>
