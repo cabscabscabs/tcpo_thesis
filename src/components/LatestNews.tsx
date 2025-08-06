@@ -1,58 +1,53 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock } from "lucide-react";
 
 const LatestNews = () => {
   // Mock data - in real app this would come from admin/database
   const newsItems = [
     {
       id: 1,
-      title: "New Patent Filing Guidelines Released",
-      excerpt: "Updated guidelines for patent filing procedures now available for all USTP researchers and faculty members.",
+      title: "Revolutionary AI Technology Patent Approved for USTP Innovation Lab",
+      excerpt: "Breakthrough artificial intelligence system receives patent approval, marking a significant milestone for university research.",
       date: "2024-01-15",
       category: "Patent",
-      readTime: "3 min read"
+      author: "Dr. Maria Santos",
+      image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=600&fit=crop&q=80",
+      featured: true
     },
     {
       id: 2,
-      title: "Technology Transfer Workshop Scheduled",
-      excerpt: "Join us for a comprehensive workshop on technology transfer processes and commercialization strategies.",
+      title: "Smart Agriculture IoT System Wins Innovation Award",
+      excerpt: "USTP's precision farming technology recognized at national innovation competition.",
       date: "2024-01-12",
-      category: "Event",
-      readTime: "2 min read"
+      category: "Innovation",
+      author: "Prof. Juan Cruz",
+      image: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&h=300&fit=crop&q=80"
     },
     {
       id: 3,
-      title: "IP Portfolio Expansion Initiative",
-      excerpt: "USTP TPCO announces new initiative to expand intellectual property portfolio across all academic departments.",
+      title: "Green Energy Research Collaboration Established",
+      excerpt: "New partnership focuses on sustainable renewable energy solutions for rural communities.",
       date: "2024-01-10",
-      category: "News",
-      readTime: "4 min read"
+      category: "Research",
+      author: "Dr. Ana Rodriguez",
+      image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&h=300&fit=crop&q=80"
     },
     {
       id: 4,
-      title: "Research Collaboration Agreement Signed",
-      excerpt: "New partnership established with leading industry partners for joint research and development projects.",
+      title: "Biotech Startup Licensing USTP Technology",
+      excerpt: "Local biotechnology company acquires licensing rights for university-developed medical device.",
       date: "2024-01-08",
-      category: "Partnership",
-      readTime: "3 min read"
+      category: "Licensing",
+      author: "Dr. Roberto Kim",
+      image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&q=80"
     },
     {
       id: 5,
-      title: "Innovation Awards Program Launched",
-      excerpt: "Annual innovation awards program now accepting nominations for outstanding technological achievements.",
+      title: "Digital Learning Platform Copyright Protected",
+      excerpt: "University's innovative e-learning system receives comprehensive copyright protection.",
       date: "2024-01-05",
-      category: "Award",
-      readTime: "2 min read"
-    },
-    {
-      id: 6,
-      title: "Copyright Registration Made Easier",
-      excerpt: "Streamlined copyright registration process now available through our online portal system.",
-      date: "2024-01-03",
       category: "Copyright",
-      readTime: "3 min read"
+      author: "Prof. Lisa Chen",
+      image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop&q=80"
     }
   ];
 
@@ -67,15 +62,17 @@ const LatestNews = () => {
 
   const getCategoryColor = (category: string) => {
     const colors = {
-      'Patent': 'bg-ustp-blue/10 text-ustp-blue border-ustp-blue/20',
-      'Event': 'bg-ustp-orange/10 text-ustp-orange border-ustp-orange/20',
-      'News': 'bg-primary/10 text-primary border-primary/20',
-      'Partnership': 'bg-secondary/10 text-secondary-foreground border-secondary/20',
-      'Award': 'bg-ustp-yellow/10 text-ustp-yellow border-ustp-yellow/20',
-      'Copyright': 'bg-muted/10 text-muted-foreground border-muted/20'
+      'Patent': 'bg-ustp-blue text-white',
+      'Innovation': 'bg-ustp-orange text-white',
+      'Research': 'bg-primary text-white',
+      'Licensing': 'bg-secondary text-white',
+      'Copyright': 'bg-muted text-white'
     };
-    return colors[category as keyof typeof colors] || 'bg-muted/10 text-muted-foreground border-muted/20';
+    return colors[category as keyof typeof colors] || 'bg-muted text-white';
   };
+
+  const featuredArticle = newsItems.find(item => item.featured);
+  const regularArticles = newsItems.filter(item => !item.featured);
 
   return (
     <section className="py-20 bg-gradient-to-br from-background via-background/95 to-ustp-blue/5">
@@ -89,48 +86,62 @@ const LatestNews = () => {
           </p>
         </div>
 
-        <div className="max-w-4xl mx-auto">
-          <ScrollArea className="h-[600px] w-full rounded-lg border bg-card/50 backdrop-blur-sm">
-            <div className="p-6 space-y-6">
-              {newsItems.map((item) => (
-                <Card key={item.id} className="group hover:shadow-lg transition-all duration-300 hover:bg-card/80 border-border/50">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge 
-                            variant="outline" 
-                            className={`text-xs ${getCategoryColor(item.category)}`}
-                          >
-                            {item.category}
-                          </Badge>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            {item.readTime}
-                          </div>
-                        </div>
-                        <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                          {item.title}
-                        </CardTitle>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(item.date)}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-sm leading-relaxed">
-                      {item.excerpt}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-              ))}
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Featured Article - Large */}
+          {featuredArticle && (
+            <div className="lg:col-span-2 lg:row-span-2">
+              <div 
+                className="relative h-[500px] rounded-lg overflow-hidden bg-cover bg-center group cursor-pointer"
+                style={{ backgroundImage: `url(${featuredArticle.image})` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-8">
+                  <Badge className={`mb-4 px-3 py-1 text-sm font-medium ${getCategoryColor(featuredArticle.category)}`}>
+                    {featuredArticle.category.toUpperCase()}
+                  </Badge>
+                  <h3 className="text-2xl lg:text-3xl font-bold text-white mb-3 leading-tight">
+                    {featuredArticle.title}
+                  </h3>
+                  <p className="text-white/90 text-sm mb-4 line-clamp-2">
+                    {featuredArticle.excerpt}
+                  </p>
+                  <div className="flex items-center gap-4 text-white/80 text-sm">
+                    <span>{featuredArticle.author}</span>
+                    <span>•</span>
+                    <span>{formatDate(featuredArticle.date)}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </ScrollArea>
+          )}
+
+          {/* Regular Articles - Grid */}
+          {regularArticles.map((item) => (
+            <div key={item.id} className="lg:col-span-1">
+              <div 
+                className="relative h-[240px] rounded-lg overflow-hidden bg-cover bg-center group cursor-pointer"
+                style={{ backgroundImage: `url(${item.image})` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <Badge className={`mb-3 px-2 py-1 text-xs font-medium ${getCategoryColor(item.category)}`}>
+                    {item.category.toUpperCase()}
+                  </Badge>
+                  <h4 className="text-lg font-bold text-white mb-2 leading-tight line-clamp-2">
+                    {item.title}
+                  </h4>
+                  <div className="flex items-center gap-2 text-white/80 text-xs">
+                    <span>{item.author}</span>
+                    <span>•</span>
+                    <span>{formatDate(item.date)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
-        <div className="text-center mt-8">
+        <div className="text-center mt-12">
           <p className="text-sm text-muted-foreground">
             Want to stay updated? Subscribe to our newsletter or follow our social media channels for real-time updates.
           </p>
