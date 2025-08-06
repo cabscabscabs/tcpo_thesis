@@ -119,48 +119,59 @@ const LatestNews = () => {
             <CarouselContent className="-ml-2 md:-ml-4">
               {newsItems.map((item) => (
                 <CarouselItem key={item.id} className="pl-2 md:pl-4">
-                  <Card className="h-full bg-white/95 backdrop-blur-sm border-white/20 hover:bg-white transition-all duration-300 hover:shadow-xl group overflow-hidden max-w-4xl mx-auto">
-                    {/* Banner Image */}
-                    <div className="relative h-64 md:h-80 overflow-hidden">
+                  <Card className="relative h-96 md:h-[500px] bg-transparent border-none overflow-hidden max-w-4xl mx-auto group cursor-pointer">
+                    {/* Background Image with Overlay */}
+                    <div className="absolute inset-0">
                       <img 
                         src={item.image} 
                         alt={item.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                      <div className="absolute top-4 left-4">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
+                    </div>
+                    
+                    {/* Content Overlay */}
+                    <div className="relative z-10 p-6 md:p-8 h-full flex flex-col">
+                      {/* Category Badge */}
+                      <div className="mb-4">
                         <Badge 
                           variant="outline" 
-                          className={`text-xs bg-white/90 ${getCategoryColor(item.category)}`}
+                          className="text-xs font-semibold bg-white/90 text-gray-900 border-white/20 uppercase tracking-wider"
                         >
                           {item.category}
                         </Badge>
                       </div>
-                      <div className="absolute top-4 right-4 flex items-center gap-1 text-xs text-white bg-black/30 px-2 py-1 rounded-full">
-                        <Clock className="h-3 w-3" />
-                        {item.readTime}
+                      
+                      {/* Main Content */}
+                      <div className="mt-auto">
+                        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight line-clamp-3">
+                          {item.title}
+                        </h2>
+                        
+                        <p className="text-white/90 text-sm md:text-base mb-4 line-clamp-2 leading-relaxed">
+                          {item.excerpt}
+                        </p>
+                        
+                        {/* Meta Information */}
+                        <div className="flex items-center justify-between text-white/80">
+                          <div className="flex items-center gap-4 text-xs md:text-sm">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3 md:h-4 md:w-4" />
+                              {formatDate(item.date)}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3 md:h-4 md:w-4" />
+                              {item.readTime}
+                            </div>
+                          </div>
+                          
+                          <button className="flex items-center gap-2 text-white hover:text-white/80 transition-colors group/btn">
+                            <span className="text-xs md:text-sm font-medium">Read more</span>
+                            <ArrowRight className="h-3 w-3 md:h-4 md:w-4 transition-transform group-hover/btn:translate-x-1" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(item.date)}
-                      </div>
-                      <CardTitle className="text-xl group-hover:text-ustp-blue transition-colors line-clamp-2 leading-tight">
-                        {item.title}
-                      </CardTitle>
-                    </CardHeader>
-                    
-                    <CardContent className="pt-0">
-                      <CardDescription className="text-sm leading-relaxed line-clamp-3 mb-4">
-                        {item.excerpt}
-                      </CardDescription>
-                      <button className="flex items-center gap-2 text-ustp-blue hover:text-ustp-blue/80 transition-colors group/btn">
-                        <span className="text-sm font-medium">Read more</span>
-                        <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
-                      </button>
-                    </CardContent>
                   </Card>
                 </CarouselItem>
               ))}
