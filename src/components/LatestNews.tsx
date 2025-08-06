@@ -90,7 +90,7 @@ const LatestNews = () => {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-br from-ustp-blue via-ustp-blue/95 to-ustp-blue/80 relative overflow-hidden">
+    <section className="py-8 bg-gradient-to-br from-ustp-blue via-ustp-blue/95 to-ustp-blue/80 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-30">
         <div className="w-full h-full bg-repeat" style={{
@@ -99,12 +99,12 @@ const LatestNews = () => {
       </div>
       
       <div className="container mx-auto px-4 relative">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
             Latest News & Updates
           </h1>
-          <p className="text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
-            Stay informed with the latest developments, announcements, and achievements from USTP Technology & Product Commercialization Office
+          <p className="text-base text-white/90 max-w-2xl mx-auto">
+            Stay informed with the latest developments and achievements from USTP TPCO
           </p>
         </div>
 
