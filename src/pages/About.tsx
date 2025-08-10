@@ -139,7 +139,7 @@ const About = () => {
               <h1 className="text-4xl md:text-5xl font-roboto font-bold text-white mb-6">
                 About USTP TPCO
               </h1>
-              <p className="text-xl text-gray-200 mb-8">
+              <p className="text-xl text-primary-foreground/80 mb-8">
                 Leading technology transfer and innovation in Northern Mindanao through 
                 strategic partnerships between academia and industry.
               </p>
@@ -160,28 +160,28 @@ const About = () => {
                 <CardContent className="p-6 text-center">
                   <Award className="text-secondary mx-auto mb-3" size={32} />
                   <div className="text-2xl font-roboto font-bold text-white mb-1">6</div>
-                  <div className="text-gray-200 text-sm">Years of Excellence</div>
+                  <div className="text-primary-foreground/80 text-sm">Years of Excellence</div>
                 </CardContent>
               </Card>
               <Card className="bg-white/10 backdrop-blur-sm border-white/20">
                 <CardContent className="p-6 text-center">
                   <Users className="text-secondary mx-auto mb-3" size={32} />
                   <div className="text-2xl font-roboto font-bold text-white mb-1">12</div>
-                  <div className="text-gray-200 text-sm">Expert Team Members</div>
+                  <div className="text-primary-foreground/80 text-sm">Expert Team Members</div>
                 </CardContent>
               </Card>
               <Card className="bg-white/10 backdrop-blur-sm border-white/20">
                 <CardContent className="p-6 text-center">
                   <Target className="text-secondary mx-auto mb-3" size={32} />
                   <div className="text-2xl font-roboto font-bold text-white mb-1">95%</div>
-                  <div className="text-gray-200 text-sm">Success Rate</div>
+                  <div className="text-primary-foreground/80 text-sm">Success Rate</div>
                 </CardContent>
               </Card>
               <Card className="bg-white/10 backdrop-blur-sm border-white/20">
                 <CardContent className="p-6 text-center">
                   <Heart className="text-secondary mx-auto mb-3" size={32} />
                   <div className="text-2xl font-roboto font-bold text-white mb-1">24/7</div>
-                  <div className="text-gray-200 text-sm">Support Available</div>
+                  <div className="text-primary-foreground/80 text-sm">Support Available</div>
                 </CardContent>
               </Card>
             </div>
@@ -199,7 +199,7 @@ const About = () => {
                   <Target className="text-secondary" size={32} />
                 </div>
                 <h3 className="text-2xl font-roboto font-bold text-primary mb-4">Our Mission</h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   To accelerate the translation of USTP research innovations into market-ready 
                   technologies that address regional and national development needs while fostering 
                   sustainable industry-academe partnerships.
@@ -213,7 +213,7 @@ const About = () => {
                   <Award className="text-secondary" size={32} />
                 </div>
                 <h3 className="text-2xl font-roboto font-bold text-primary mb-4">Our Vision</h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   To be the premier technology transfer office in the Philippines, recognized for 
                   excellence in innovation commercialization and as the catalyst for economic 
                   development in Northern Mindanao.
@@ -227,7 +227,7 @@ const About = () => {
                   <Heart className="text-secondary" size={32} />
                 </div>
                 <h3 className="text-2xl font-roboto font-bold text-primary mb-4">Our Values</h3>
-                <div className="text-gray-600 leading-relaxed space-y-2">
+                <div className="text-muted-foreground leading-relaxed space-y-2">
                   <div><strong>Innovation:</strong> Fostering creativity and breakthrough thinking</div>
                   <div><strong>Integrity:</strong> Ethical practices in all partnerships</div>
                   <div><strong>Excellence:</strong> Commitment to quality and continuous improvement</div>
@@ -240,13 +240,13 @@ const About = () => {
       </section>
 
       {/* Team Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4">
               Our Expert Team
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
               Meet the dedicated professionals driving innovation and technology transfer at USTP TPCO.
             </p>
           </div>
@@ -265,9 +265,9 @@ const About = () => {
                     {member.name}
                   </h3>
                   <p className="text-secondary font-semibold mb-2">{member.position}</p>
-                  <p className="text-sm text-gray-600 mb-3">{member.expertise}</p>
-                  <p className="text-xs text-gray-500 mb-3">{member.education}</p>
-                  <p className="text-sm text-gray-600 mb-4">{member.bio}</p>
+                  <p className="text-sm text-muted-foreground mb-3">{member.expertise}</p>
+                  <p className="text-xs text-muted-foreground mb-3">{member.education}</p>
+                  <p className="text-sm text-muted-foreground mb-4">{member.bio}</p>
                   
                   <div className="flex justify-center space-x-2">
                     <Button variant="ghost" size="sm" className="text-secondary hover:text-primary">
@@ -291,7 +291,7 @@ const About = () => {
             <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4">
               Our Journey
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-muted-foreground">
               Key milestones in USTP TPCO's evolution as a leading technology transfer office
             </p>
           </div>
@@ -318,7 +318,7 @@ const About = () => {
                             <p className="text-secondary text-sm">{milestone.year}</p>
                           </div>
                         </div>
-                        <p className="text-gray-600">{milestone.description}</p>
+                        <p className="text-muted-foreground">{milestone.description}</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -332,13 +332,13 @@ const About = () => {
       </section>
 
       {/* Partners Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4">
               Our Strategic Partners
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-muted-foreground">
               Collaborating with leading organizations to drive innovation and economic development
             </p>
           </div>
@@ -353,7 +353,7 @@ const About = () => {
                       {partner.type}
                     </span>
                   </div>
-                  <p className="text-gray-600 text-sm">{partner.description}</p>
+                  <p className="text-muted-foreground text-sm">{partner.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -366,7 +366,7 @@ const About = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-roboto font-bold mb-4">Visit Us</h2>
-            <p className="text-xl text-gray-200">
+            <p className="text-xl text-primary-foreground/80">
               We're located at the heart of USTP's innovation ecosystem
             </p>
           </div>
@@ -375,7 +375,7 @@ const About = () => {
             <div className="text-center">
               <MapPin className="text-secondary mx-auto mb-3" size={32} />
               <h3 className="font-roboto font-semibold mb-2">Address</h3>
-              <p className="text-gray-200">
+              <p className="text-primary-foreground/80">
                 USTP Technology Transfer Office<br />
                 Cagayan de Oro Campus<br />
                 Cagayan de Oro City, Philippines 9000
@@ -385,7 +385,7 @@ const About = () => {
             <div className="text-center">
               <Phone className="text-secondary mx-auto mb-3" size={32} />
               <h3 className="font-roboto font-semibold mb-2">Phone</h3>
-              <p className="text-gray-200">
+              <p className="text-primary-foreground/80">
                 +63 (088) 856-1738<br />
                 +63 (088) 856-1739
               </p>
@@ -394,7 +394,7 @@ const About = () => {
             <div className="text-center">
               <Mail className="text-secondary mx-auto mb-3" size={32} />
               <h3 className="font-roboto font-semibold mb-2">Email</h3>
-              <p className="text-gray-200">
+              <p className="text-primary-foreground/80">
                 tpco@ustp.edu.ph<br />
                 info@ustp.edu.ph
               </p>
@@ -402,7 +402,7 @@ const About = () => {
           </div>
 
           <div className="text-center">
-            <p className="text-gray-200 mb-6">
+            <p className="text-primary-foreground/80 mb-6">
               Office Hours: Monday - Friday, 8:00 AM - 5:00 PM<br />
               Walk-in consultations welcome, appointments recommended
             </p>

@@ -36,21 +36,21 @@ const FeaturedTechnologies = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Licensed": return "bg-green-100 text-green-800";
-      case "Available": return "bg-blue-100 text-blue-800";
-      case "Pending": return "bg-yellow-100 text-yellow-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "Licensed": return "bg-accent/10 text-accent-foreground border-accent/20";
+      case "Available": return "bg-secondary/10 text-secondary-foreground border-secondary/20";
+      case "Pending": return "bg-muted text-muted-foreground border-muted-foreground/20";
+      default: return "bg-muted text-muted-foreground border-muted-foreground/20";
     }
   };
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-20 bg-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4">
             Featured Technologies
           </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             Discover groundbreaking innovations from USTP researchers, ready for commercialization 
             and industry partnership opportunities.
           </p>
@@ -69,22 +69,22 @@ const FeaturedTechnologies = () => {
                 <CardTitle className="text-lg font-roboto group-hover:text-secondary transition-colors">
                   {tech.title}
                 </CardTitle>
-                <CardDescription className="text-gray-200">
+                <CardDescription className="text-primary-foreground/80">
                   {tech.description}
                 </CardDescription>
               </CardHeader>
               
               <CardContent className="p-6">
-                <p className="text-gray-600 mb-4 text-sm leading-relaxed">
+                <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
                   {tech.abstract}
                 </p>
                 
                 <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-sm text-gray-500">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <Users size={16} className="mr-2" />
                     <span>{tech.inventors}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-500">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <Calendar size={16} className="mr-2" />
                     <span>{tech.year}</span>
                   </div>

@@ -17,13 +17,13 @@
     
     /* Semantic Design Tokens */
     --background: 0 0% 100%;           /* Crisp White */
-    --foreground: 0 0% 20%;            /* Charcoal Gray */
+    --foreground: 0 0% 15%;            /* Darker for better contrast */
 
     --card: 0 0% 100%;                 /* Crisp White */
-    --card-foreground: 0 0% 20%;       /* Charcoal Gray */
+    --card-foreground: 0 0% 15%;       /* Darker for better contrast */
 
     --popover: 0 0% 100%;              /* Crisp White */
-    --popover-foreground: 0 0% 20%;    /* Charcoal Gray */
+    --popover-foreground: 0 0% 15%;    /* Darker for better contrast */
 
     --primary: 210 100% 20%;           /* Deep Navy Blue */
     --primary-foreground: 0 0% 100%;   /* Crisp White */
@@ -32,7 +32,7 @@
     --secondary-foreground: 210 100% 20%; /* Deep Navy Blue */
 
     --muted: 210 67% 94%;              /* Light Sky Blue */
-    --muted-foreground: 0 0% 20%;      /* Charcoal Gray */
+    --muted-foreground: 0 0% 30%;      /* Darker for better readability */
 
     --accent: 32 61% 46%;              /* Warm Bronze */
     --accent-foreground: 0 0% 100%;    /* Crisp White */

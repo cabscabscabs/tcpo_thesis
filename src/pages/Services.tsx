@@ -166,7 +166,7 @@ const Services = () => {
           <h1 className="text-4xl md:text-5xl font-roboto font-bold text-white mb-6">
             Our Services
           </h1>
-          <p className="text-xl text-gray-200 max-w-3xl mx-auto mb-8">
+          <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto mb-8">
             Comprehensive technology transfer and commercialization services to bridge 
             the gap between research innovation and market success.
           </p>
@@ -184,7 +184,7 @@ const Services = () => {
             <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4">
               Core Services
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
               From ideation to commercialization, we provide end-to-end support 
               for technology transfer and innovation partnerships.
             </p>
