@@ -67,6 +67,7 @@ export default {
 					'gold': 'hsl(var(--ustp-gold))',
 					'light-blue': 'hsl(var(--ustp-light-blue))',
 					'gray': 'hsl(var(--ustp-gray))',
+					'bronze': 'hsl(var(--ustp-bronze))',
 					'blue': 'hsl(var(--ustp-blue))',
 					'orange': 'hsl(var(--ustp-orange))',
 					'yellow': 'hsl(var(--ustp-yellow))'
@@ -78,11 +79,13 @@ export default {
 			},
 			backgroundImage: {
 				'gradient-ustp': 'var(--gradient-ustp)',
-				'gradient-gold': 'var(--gradient-gold)'
+				'gradient-gold': 'var(--gradient-gold)',
+				'gradient-navy': 'var(--gradient-navy)'
 			},
 			boxShadow: {
 				'card': 'var(--shadow-card)',
-				'gold': 'var(--shadow-gold)'
+				'gold': 'var(--shadow-gold)',
+				'bronze': 'var(--shadow-bronze)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

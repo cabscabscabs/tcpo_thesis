@@ -8,33 +8,34 @@
 
 @layer base {
   :root {
-    /* USTP Brand Colors */
-    --ustp-dark-blue: 210 100% 15%;    /* #0C2340 */
-    --ustp-gold: 45 100% 39%;          /* #C99700 */
-    --ustp-light-blue: 195 100% 44%;   /* #00A9E0 */
-    --ustp-gray: 210 9% 45%;           /* #6C757D */
+    /* USTP Strategic Communication Office Brand Colors */
+    --ustp-dark-blue: 210 100% 20%;    /* #003366 - Deep Navy Blue */
+    --ustp-gold: 51 100% 50%;          /* #FFD700 - Vibrant Gold */
+    --ustp-light-blue: 210 67% 94%;    /* #E6F0FA - Light Sky Blue */
+    --ustp-gray: 0 0% 20%;             /* #333333 - Charcoal Gray */
+    --ustp-bronze: 32 61% 46%;         /* #CD7F32 - Warm Bronze */
     
     /* Semantic Design Tokens */
-    --background: 0 0% 100%;
-    --foreground: 210 100% 15%;
+    --background: 0 0% 100%;           /* Crisp White */
+    --foreground: 0 0% 20%;            /* Charcoal Gray */
 
-    --card: 0 0% 100%;
-    --card-foreground: 210 100% 15%;
+    --card: 0 0% 100%;                 /* Crisp White */
+    --card-foreground: 0 0% 20%;       /* Charcoal Gray */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 100% 15%;
+    --popover: 0 0% 100%;              /* Crisp White */
+    --popover-foreground: 0 0% 20%;    /* Charcoal Gray */
 
-    --primary: 210 100% 15%;           /* USTP Dark Blue */
-    --primary-foreground: 0 0% 100%;
+    --primary: 210 100% 20%;           /* Deep Navy Blue */
+    --primary-foreground: 0 0% 100%;   /* Crisp White */
 
-    --secondary: 45 100% 39%;          /* USTP Gold */
-    --secondary-foreground: 210 100% 15%;
+    --secondary: 51 100% 50%;          /* Vibrant Gold */
+    --secondary-foreground: 210 100% 20%; /* Deep Navy Blue */
 
-    --muted: 210 20% 95%;
-    --muted-foreground: 210 9% 45%;
+    --muted: 210 67% 94%;              /* Light Sky Blue */
+    --muted-foreground: 0 0% 20%;      /* Charcoal Gray */
 
-    --accent: 195 100% 44%;            /* USTP Light Blue */
-    --accent-foreground: 0 0% 100%;
+    --accent: 32 61% 46%;              /* Warm Bronze */
+    --accent-foreground: 0 0% 100%;    /* Crisp White */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
@@ -103,20 +104,22 @@
 
 /* Custom Design System Extensions */
 :root {
-  /* Additional USTP Brand Colors */
-  --ustp-blue: 210 100% 15%;         /* USTP Dark Blue */
-  --ustp-orange: 25 95% 53%;         /* Orange accent */
-  --ustp-yellow: 45 100% 39%;        /* USTP Gold */
+  /* Additional USTP Strategic Communication Brand Colors */
+  --ustp-blue: 210 100% 20%;         /* Deep Navy Blue */
+  --ustp-orange: 32 61% 46%;         /* Warm Bronze */
+  --ustp-yellow: 51 100% 50%;        /* Vibrant Gold */
   
-  /* Gradients */
+  /* Professional Gradients */
   --gradient-ustp: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
-  --gradient-gold: linear-gradient(135deg, hsl(var(--secondary)), hsl(45 100% 50%));
+  --gradient-gold: linear-gradient(135deg, hsl(var(--secondary)), hsl(51 100% 60%));
+  --gradient-navy: linear-gradient(135deg, hsl(210 100% 20%), hsl(210 100% 25%));
   
-  /* Shadows */
+  /* Professional Shadows */
   --shadow-card: 0 4px 20px hsl(var(--primary) / 0.1);
   --shadow-gold: 0 4px 20px hsl(var(--secondary) / 0.2);
+  --shadow-bronze: 0 4px 20px hsl(var(--accent) / 0.15);
   
-  /* Animations */
+  /* Smooth Animations */
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
