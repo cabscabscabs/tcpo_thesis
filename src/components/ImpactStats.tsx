@@ -29,7 +29,7 @@ const ImpactStats = () => {
       value: "100+",
       label: "Technologies Developed",
       trend: "+25 this year",
-      color: "text-yellow-600"
+      color: "text-primary"
     },
     {
       icon: DollarSign,
@@ -43,7 +43,7 @@ const ImpactStats = () => {
       value: "85%",
       label: "Success Rate",
       trend: "Industry partnerships",
-      color: "text-secondary"
+      color: "text-primary"
     }
   ];
 

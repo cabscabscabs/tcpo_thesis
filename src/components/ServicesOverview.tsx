@@ -51,9 +51,9 @@ const ServicesOverview = () => {
                   <CardHeader className="pb-3">
                     <div className="flex items-center space-x-3 mb-2">
                       <div className="p-2 bg-secondary/10 rounded-lg">
-                        <service.icon className="text-secondary" size={24} />
+                        <service.icon className="text-primary" size={24} />
                       </div>
-                      <CardTitle className="text-lg font-roboto text-primary group-hover:text-secondary transition-colors">
+                      <CardTitle className="text-lg font-roboto text-primary group-hover:text-primary transition-colors">
                         {service.title}
                       </CardTitle>
                     </div>

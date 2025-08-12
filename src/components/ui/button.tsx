@@ -19,7 +19,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         gold: "bg-secondary text-primary hover:bg-secondary/90 shadow-gold font-semibold",
-        "gold-outline": "border-2 border-secondary bg-background text-secondary hover:bg-secondary hover:text-primary font-semibold",
+        "gold-outline": "border-2 border-secondary bg-background text-primary hover:bg-secondary hover:text-primary font-semibold",
         ustp: "bg-gradient-ustp text-white hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-semibold",
       },
       size: {

@@ -264,16 +264,16 @@ const About = () => {
                   <h3 className="text-xl font-roboto font-bold text-primary mb-1">
                     {member.name}
                   </h3>
-                  <p className="text-secondary font-semibold mb-2">{member.position}</p>
+                  <p className="text-primary font-semibold mb-2">{member.position}</p>
                   <p className="text-sm text-muted-foreground mb-3">{member.expertise}</p>
                   <p className="text-xs text-muted-foreground mb-3">{member.education}</p>
                   <p className="text-sm text-muted-foreground mb-4">{member.bio}</p>
                   
                   <div className="flex justify-center space-x-2">
-                    <Button variant="ghost" size="sm" className="text-secondary hover:text-primary">
+                    <Button variant="ghost" size="sm" className="text-primary hover:text-primary">
                       <Mail size={16} />
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-secondary hover:text-primary">
+                    <Button variant="ghost" size="sm" className="text-primary hover:text-primary">
                       <Linkedin size={16} />
                     </Button>
                   </div>
@@ -315,7 +315,7 @@ const About = () => {
                           </div>
                           <div>
                             <h3 className="font-roboto font-bold text-primary">{milestone.title}</h3>
-                            <p className="text-secondary text-sm">{milestone.year}</p>
+                            <p className="text-primary text-sm">{milestone.year}</p>
                           </div>
                         </div>
                         <p className="text-muted-foreground">{milestone.description}</p>

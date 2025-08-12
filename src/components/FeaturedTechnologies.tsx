@@ -66,7 +66,7 @@ const FeaturedTechnologies = () => {
                   </Badge>
                   <span className="text-secondary text-sm font-semibold">{tech.field}</span>
                 </div>
-                <CardTitle className="text-lg font-roboto group-hover:text-secondary transition-colors">
+                <CardTitle className="text-lg font-roboto group-hover:text-primary transition-colors">
                   {tech.title}
                 </CardTitle>
                 <CardDescription className="text-primary-foreground/80">
