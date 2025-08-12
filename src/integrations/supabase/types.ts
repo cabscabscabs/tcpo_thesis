@@ -14,6 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
+      // Legacy table (keep for compatibility)
       tpco_main: {
         Row: {
           created_at: string
@@ -29,6 +30,437 @@ export type Database = {
         }
         Relationships: []
       }
+      
+      // User roles and authentication
+      user_roles: {
+        Row: {
+          id: string
+          user_id: string
+          role: 'admin' | 'editor' | 'user'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          role: 'admin' | 'editor' | 'user'
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          role?: 'admin' | 'editor' | 'user'
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      
+      // Content tables
+      news_articles: {
+        Row: {
+          id: string
+          title: string
+          slug: string
+          excerpt: string | null
+          content: string | null
+          cover_image_url: string | null
+          tags: string[]
+          published: boolean
+          published_at: string | null
+          author_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          slug: string
+          excerpt?: string | null
+          content?: string | null
+          cover_image_url?: string | null
+          tags?: string[]
+          published?: boolean
+          published_at?: string | null
+          author_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          slug?: string
+          excerpt?: string | null
+          content?: string | null
+          cover_image_url?: string | null
+          tags?: string[]
+          published?: boolean
+          published_at?: string | null
+          author_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      
+      services: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          description: string | null
+          icon: string | null
+          order_num: number
+          published: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          description?: string | null
+          icon?: string | null
+          order_num?: number
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          description?: string | null
+          icon?: string | null
+          order_num?: number
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      
+      technologies: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          description: string | null
+          website_url: string | null
+          logo_url: string | null
+          featured: boolean
+          order_num: number
+          published: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          description?: string | null
+          website_url?: string | null
+          logo_url?: string | null
+          featured?: boolean
+          order_num?: number
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          description?: string | null
+          website_url?: string | null
+          logo_url?: string | null
+          featured?: boolean
+          order_num?: number
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      
+      partners: {
+        Row: {
+          id: string
+          name: string
+          website_url: string | null
+          logo_url: string | null
+          description: string | null
+          order_num: number
+          published: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          website_url?: string | null
+          logo_url?: string | null
+          description?: string | null
+          order_num?: number
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          website_url?: string | null
+          logo_url?: string | null
+          description?: string | null
+          order_num?: number
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      
+      team_members: {
+        Row: {
+          id: string
+          full_name: string
+          role_title: string | null
+          bio: string | null
+          avatar_url: string | null
+          email: string | null
+          linkedin_url: string | null
+          order_num: number
+          published: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          full_name: string
+          role_title?: string | null
+          bio?: string | null
+          avatar_url?: string | null
+          email?: string | null
+          linkedin_url?: string | null
+          order_num?: number
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          full_name?: string
+          role_title?: string | null
+          bio?: string | null
+          avatar_url?: string | null
+          email?: string | null
+          linkedin_url?: string | null
+          order_num?: number
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      
+      portfolio_items: {
+        Row: {
+          id: string
+          title: string
+          slug: string
+          description: string | null
+          image_url: string | null
+          link_url: string | null
+          category: string | null
+          tags: string[]
+          published: boolean
+          published_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          slug: string
+          description?: string | null
+          image_url?: string | null
+          link_url?: string | null
+          category?: string | null
+          tags?: string[]
+          published?: boolean
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          slug?: string
+          description?: string | null
+          image_url?: string | null
+          link_url?: string | null
+          category?: string | null
+          tags?: string[]
+          published?: boolean
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      
+      resources: {
+        Row: {
+          id: string
+          title: string
+          slug: string
+          type: 'article' | 'guide' | 'video' | 'download' | 'link'
+          url: string | null
+          content: string | null
+          file_url: string | null
+          tags: string[]
+          published: boolean
+          published_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          slug: string
+          type?: 'article' | 'guide' | 'video' | 'download' | 'link'
+          url?: string | null
+          content?: string | null
+          file_url?: string | null
+          tags?: string[]
+          published?: boolean
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          slug?: string
+          type?: 'article' | 'guide' | 'video' | 'download' | 'link'
+          url?: string | null
+          content?: string | null
+          file_url?: string | null
+          tags?: string[]
+          published?: boolean
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      
+      impact_stats: {
+        Row: {
+          id: string
+          metric_key: string
+          metric_name: string
+          value: number
+          trend: number | null
+          period_start: string | null
+          period_end: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          metric_key: string
+          metric_name: string
+          value: number
+          trend?: number | null
+          period_start?: string | null
+          period_end?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          metric_key?: string
+          metric_name?: string
+          value?: number
+          trend?: number | null
+          period_start?: string | null
+          period_end?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      
+      milestones: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          milestone_date: string
+          icon: string | null
+          order_num: number
+          published: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          milestone_date: string
+          icon?: string | null
+          order_num?: number
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          milestone_date?: string
+          icon?: string | null
+          order_num?: number
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      
+      site_settings: {
+        Row: {
+          key: string
+          value: Json
+          updated_at: string
+        }
+        Insert: {
+          key: string
+          value: Json
+          updated_at?: string
+        }
+        Update: {
+          key?: string
+          value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -37,7 +469,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      app_role: 'admin' | 'editor' | 'user'
+      resource_type: 'article' | 'guide' | 'video' | 'download' | 'link'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -57,24 +490,25 @@ export type Tables<
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+        DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
-    }
-    ? R
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+      DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
         Row: infer R
       }
       ? R
+      : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+          Row: infer R
+        }
+        ? R
+        : never
       : never
     : never
 
@@ -96,10 +530,11 @@ export type TablesInsert<
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
         Insert: infer I
       }
-      ? I
+        ? I
+        : never
       : never
     : never
 
@@ -121,10 +556,11 @@ export type TablesUpdate<
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
         Update: infer U
       }
-      ? U
+        ? U
+        : never
       : never
     : never
 
@@ -135,14 +571,14 @@ export type Enums<
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DefaultSchema["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  ? DefaultSchema["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    ? DefaultSchema["Enums"][EnumName]
     : never
 
 export type CompositeTypes<
@@ -152,18 +588,21 @@ export type CompositeTypes<
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DefaultSchema["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  ? DefaultSchema["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    ? DefaultSchema["CompositeTypes"][CompositeTypeName]
     : never
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ['admin', 'editor', 'user'] as const,
+      resource_type: ['article', 'guide', 'video', 'download', 'link'] as const,
+    },
   },
 } as const

@@ -5,10 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Download, ExternalLink, Calendar, Users, FileText } from "lucide-react";
+import { Search, Filter, Download, ExternalLink, Calendar, Users, FileText, X } from "lucide-react";
 import ipBgImage from "@/assets/ip-portfolio-bg.jpg";
+import { useState, useMemo } from "react";
 
 const IPPortfolio = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedField, setSelectedField] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+
   const patents = [
     {
       id: "PH-2024-001",
@@ -84,6 +89,38 @@ const IPPortfolio = () => {
     }
   ];
 
+  // Filter patents based on search term, field, and status
+  const filteredPatents = useMemo(() => {
+    return patents.filter((patent) => {
+      // Search filter - check title, inventors, abstract, and applications
+      const searchMatch = searchTerm === "" || 
+        patent.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patent.inventors.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patent.abstract.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patent.applications.some(app => app.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      // Field filter
+      const fieldMatch = selectedField === "all" || 
+        patent.field.toLowerCase().includes(selectedField.toLowerCase());
+
+      // Status filter
+      const statusMatch = selectedStatus === "all" || 
+        patent.status.toLowerCase().includes(selectedStatus.toLowerCase());
+
+      return searchMatch && fieldMatch && statusMatch;
+    });
+  }, [searchTerm, selectedField, selectedStatus]);
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedField("all");
+    setSelectedStatus("all");
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = searchTerm !== "" || selectedField !== "all" || selectedStatus !== "all";
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Granted": return "bg-green-100 text-green-800";
@@ -146,10 +183,12 @@ const IPPortfolio = () => {
               <Input 
                 placeholder="Search patents, technologies, or inventors..." 
                 className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="flex gap-2">
-              <Select>
+              <Select value={selectedField} onValueChange={setSelectedField}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Filter by Field" />
                 </SelectTrigger>
@@ -158,12 +197,12 @@ const IPPortfolio = () => {
                   <SelectItem value="agriculture">Agriculture</SelectItem>
                   <SelectItem value="materials">Materials Science</SelectItem>
                   <SelectItem value="food">Food Technology</SelectItem>
-                  <SelectItem value="environmental">Environmental</SelectItem>
+                  <SelectItem value="environmental">Environmental Technology</SelectItem>
                   <SelectItem value="energy">Energy Technology</SelectItem>
-                  <SelectItem value="aquaculture">Aquaculture</SelectItem>
+                  <SelectItem value="aquaculture">Aquaculture Technology</SelectItem>
                 </SelectContent>
               </Select>
-              <Select>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Filter by Status" />
                 </SelectTrigger>
@@ -172,9 +211,67 @@ const IPPortfolio = () => {
                   <SelectItem value="granted">Granted</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="licensed">Licensed</SelectItem>
+                  <SelectItem value="under review">Under Review</SelectItem>
                 </SelectContent>
               </Select>
+              {hasActiveFilters && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={clearFilters}
+                  className="flex items-center gap-2"
+                >
+                  <X size={16} />
+                  Clear
+                </Button>
+              )}
             </div>
+          </div>
+          
+          {/* Active Filters Display */}
+          {hasActiveFilters && (
+            <div className="mt-4 flex flex-wrap gap-2 items-center">
+              <span className="text-sm text-gray-600">Active filters:</span>
+              {searchTerm && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  Search: "{searchTerm}"
+                  <button 
+                    onClick={() => setSearchTerm("")}
+                    className="ml-1 hover:text-red-600"
+                  >
+                    <X size={12} />
+                  </button>
+                </Badge>
+              )}
+              {selectedField !== "all" && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  Field: {selectedField}
+                  <button 
+                    onClick={() => setSelectedField("all")}
+                    className="ml-1 hover:text-red-600"
+                  >
+                    <X size={12} />
+                  </button>
+                </Badge>
+              )}
+              {selectedStatus !== "all" && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  Status: {selectedStatus}
+                  <button 
+                    onClick={() => setSelectedStatus("all")}
+                    className="ml-1 hover:text-red-600"
+                  >
+                    <X size={12} />
+                  </button>
+                </Badge>
+              )}
+            </div>
+          )}
+          
+          {/* Results Count */}
+          <div className="mt-4 text-sm text-gray-600">
+            Showing {filteredPatents.length} of {patents.length} patents
+            {hasActiveFilters && " (filtered)"}
           </div>
         </div>
       </section>
@@ -182,72 +279,85 @@ const IPPortfolio = () => {
       {/* Patent Portfolio Grid */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {patents.map((patent, index) => (
-              <Card key={index} className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="bg-gradient-to-r from-primary to-accent text-white">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex gap-2">
-                      <Badge className={`${getStatusColor(patent.status)} text-xs`}>
-                        {patent.status}
-                      </Badge>
-                      <Badge className={`${getFieldColor(patent.field)} text-xs`}>
-                        {patent.field}
-                      </Badge>
+          {filteredPatents.length === 0 ? (
+            <div className="text-center py-16">
+              <Filter className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No patents found</h3>
+              <p className="text-gray-500 mb-6">
+                Try adjusting your search terms or filters to find what you're looking for.
+              </p>
+              <Button variant="outline" onClick={clearFilters}>
+                Clear all filters
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {filteredPatents.map((patent, index) => (
+                <Card key={index} className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1">
+                  <CardHeader className="bg-gradient-to-r from-primary to-accent text-white">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex gap-2">
+                        <Badge className={`${getStatusColor(patent.status)} text-xs`}>
+                          {patent.status}
+                        </Badge>
+                        <Badge className={`${getFieldColor(patent.field)} text-xs`}>
+                          {patent.field}
+                        </Badge>
+                      </div>
+                      <span className="text-secondary text-sm font-mono">{patent.id}</span>
                     </div>
-                    <span className="text-secondary text-sm font-mono">{patent.id}</span>
-                  </div>
-                  <CardTitle className="text-xl font-roboto group-hover:text-secondary transition-colors">
-                    {patent.title}
-                  </CardTitle>
-                  <CardDescription className="text-gray-200">
-                    {patent.abstract}
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-primary mb-2">Inventors</h4>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Users size={16} className="mr-2" />
-                        <span>{patent.inventors}</span>
+                    <CardTitle className="text-xl font-roboto group-hover:text-secondary transition-colors">
+                      {patent.title}
+                    </CardTitle>
+                    <CardDescription className="text-gray-200">
+                      {patent.abstract}
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-semibold text-primary mb-2">Inventors</h4>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Users size={16} className="mr-2" />
+                          <span>{patent.inventors}</span>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-semibold text-primary mb-2">Applications</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {patent.applications.map((app, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {app}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between items-center text-sm text-gray-500">
+                        <div className="flex items-center">
+                          <Calendar size={16} className="mr-1" />
+                          <span>{patent.year}</span>
+                        </div>
+                        <span className="font-medium text-secondary">{patent.licensing}</span>
+                      </div>
+                      
+                      <div className="flex gap-2 pt-4">
+                        <Button variant="gold" size="sm" className="flex-1">
+                          Contact for Licensing
+                          <ExternalLink size={16} className="ml-2" />
+                        </Button>
+                        <Button variant="gold-outline" size="sm">
+                          <Download size={16} />
+                        </Button>
                       </div>
                     </div>
-                    
-                    <div>
-                      <h4 className="font-semibold text-primary mb-2">Applications</h4>
-                      <div className="flex flex-wrap gap-1">
-                        {patent.applications.map((app, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {app}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <Calendar size={16} className="mr-1" />
-                        <span>{patent.year}</span>
-                      </div>
-                      <span className="font-medium text-secondary">{patent.licensing}</span>
-                    </div>
-                    
-                    <div className="flex gap-2 pt-4">
-                      <Button variant="gold" size="sm" className="flex-1">
-                        Contact for Licensing
-                        <ExternalLink size={16} className="ml-2" />
-                      </Button>
-                      <Button variant="gold-outline" size="sm">
-                        <Download size={16} />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

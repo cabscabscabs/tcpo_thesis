@@ -61,6 +61,39 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Theme System CSS Variables */
+    --color-primary-main: 210 100% 20%;
+    --color-primary-light: 210 100% 30%;
+    --color-primary-dark: 210 100% 15%;
+    --color-primary-contrast: 0 0% 100%;
+    
+    --color-secondary-main: 51 100% 50%;
+    --color-secondary-light: 51 100% 60%;
+    --color-secondary-dark: 51 100% 40%;
+    --color-secondary-contrast: 210 100% 20%;
+    
+    --color-accent-main: 32 61% 46%;
+    --color-accent-light: 32 61% 56%;
+    --color-accent-dark: 32 61% 36%;
+    --color-accent-contrast: 0 0% 100%;
+    
+    --color-neutral-white: 0 0% 100%;
+    --color-neutral-light: 210 67% 94%;
+    --color-neutral-gray: 0 0% 20%;
+    --color-neutral-dark: 0 0% 15%;
+    
+    --color-success: 142 76% 36%;
+    --color-warning: 38 92% 50%;
+    --color-error: 0 84% 60%;
+    --color-info: 210 100% 50%;
+    
+    --font-primary: 'Roboto, sans-serif';
+    --font-secondary: 'Open Sans, sans-serif';
+    --transition-normal: all 0.3s ease-in-out;
+    --shadow-primary: 0 4px 20px hsl(210 100% 20% / 0.1);
+    --shadow-secondary: 0 4px 20px hsl(51 100% 50% / 0.2);
+    --shadow-accent: 0 4px 20px hsl(32 61% 46% / 0.15);
   }
 
   .dark {

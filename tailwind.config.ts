@@ -71,6 +71,29 @@ export default {
 					'blue': 'hsl(var(--ustp-blue))',
 					'orange': 'hsl(var(--ustp-orange))',
 					'yellow': 'hsl(var(--ustp-yellow))'
+				},
+				// Theme system colors
+				theme: {
+					'primary-main': 'var(--color-primary-main)',
+					'primary-light': 'var(--color-primary-light)',
+					'primary-dark': 'var(--color-primary-dark)',
+					'primary-contrast': 'var(--color-primary-contrast)',
+					'secondary-main': 'var(--color-secondary-main)',
+					'secondary-light': 'var(--color-secondary-light)',
+					'secondary-dark': 'var(--color-secondary-dark)',
+					'secondary-contrast': 'var(--color-secondary-contrast)',
+					'accent-main': 'var(--color-accent-main)',
+					'accent-light': 'var(--color-accent-light)',
+					'accent-dark': 'var(--color-accent-dark)',
+					'accent-contrast': 'var(--color-accent-contrast)',
+					'neutral-white': 'var(--color-neutral-white)',
+					'neutral-light': 'var(--color-neutral-light)',
+					'neutral-gray': 'var(--color-neutral-gray)',
+					'neutral-dark': 'var(--color-neutral-dark)',
+					'success': 'var(--color-success)',
+					'warning': 'var(--color-warning)',
+					'error': 'var(--color-error)',
+					'info': 'var(--color-info)',
 				}
 			},
 			fontFamily: {
@@ -80,12 +103,18 @@ export default {
 			backgroundImage: {
 				'gradient-ustp': 'var(--gradient-ustp)',
 				'gradient-gold': 'var(--gradient-gold)',
-				'gradient-navy': 'var(--gradient-navy)'
+				'gradient-navy': 'var(--gradient-navy)',
+				'gradient-primary': 'linear-gradient(135deg, var(--color-primary-main), var(--color-primary-light))',
+				'gradient-secondary': 'linear-gradient(135deg, var(--color-secondary-main), var(--color-secondary-light))',
+				'gradient-accent': 'linear-gradient(135deg, var(--color-accent-main), var(--color-accent-light))',
 			},
 			boxShadow: {
 				'card': 'var(--shadow-card)',
 				'gold': 'var(--shadow-gold)',
-				'bronze': 'var(--shadow-bronze)'
+				'bronze': 'var(--shadow-bronze)',
+				'theme-primary': 'var(--shadow-primary)',
+				'theme-secondary': 'var(--shadow-secondary)',
+				'theme-accent': 'var(--shadow-accent)',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
