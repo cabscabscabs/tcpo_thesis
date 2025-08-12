@@ -317,159 +317,159 @@ What specific aspect would you like help with?`;
   };
 
   const positionClasses = {
-    'bottom-right': 'bottom-4 right-4',
-    'bottom-left': 'bottom-4 left-4',
-    'top-right': 'top-4 right-4',
-    'top-left': 'top-4 left-4',
+    'bottom-right': 'bottom-2 right-2 md:bottom-4 md:right-4',
+    'bottom-left': 'bottom-2 left-2 md:bottom-4 md:left-4',
+    'top-right': 'top-2 right-2 md:top-4 md:right-4',
+    'top-left': 'top-2 left-2 md:top-4 md:left-4',
   };
 
   return (
     <div className={cn('fixed z-50 chat-widget', positionClasses[position], className)}>
-      {/* Floating Button */}
-      <Button
-        onClick={toggleChat}
-        className={cn(
-          'h-14 w-14 rounded-full shadow-lg transition-all duration-300 hover:scale-110',
-          'bg-theme-primary-main hover:bg-theme-primary-dark text-white'
-        )}
-        aria-label={isOpen ? "Close chat widget" : "Open chat widget"}
-        title={isOpen ? "Close chat" : "Open chat"}
-      >
-        {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-      </Button>
+             {/* Floating Button */}
+       <Button
+         onClick={toggleChat}
+         className={cn(
+           'h-12 w-12 md:h-14 md:w-14 rounded-full shadow-lg transition-all duration-300 hover:scale-110',
+           'bg-theme-primary-main hover:bg-theme-primary-dark text-white'
+         )}
+         aria-label={isOpen ? "Close chat widget" : "Open chat widget"}
+         title={isOpen ? "Close chat" : "Open chat"}
+       >
+         {isOpen ? <X className="h-5 w-5 md:h-6 md:w-6" /> : <MessageCircle className="h-5 w-5 md:h-6 md:w-6" />}
+       </Button>
 
-      {/* Chat Window */}
-      {isOpen && (
-        <Card className="absolute bottom-16 right-0 w-96 h-[500px] shadow-2xl border-0 bg-white dark:bg-gray-900">
-          <CardHeader className="pb-3 bg-theme-primary-main text-white rounded-t-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Bot className="h-5 w-5" />
-                <CardTitle className="text-lg">AI Assistant</CardTitle>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Badge variant="secondary" className="text-xs bg-white/20 text-white">
-                  {appName}
-                </Badge>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearChat}
-                  className="h-6 w-6 p-0 text-white hover:bg-white/20"
-                  aria-label="Clear chat history"
-                  title="Clear chat history"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleChat}
-                  className="h-6 w-6 p-0 text-white hover:bg-white/20"
-                  aria-label="Close chat"
-                  title="Close chat"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
+             {/* Chat Window */}
+       {isOpen && (
+         <Card className="absolute bottom-16 right-0 w-[calc(100vw-2rem)] max-w-sm h-[calc(100vh-8rem)] max-h-[500px] shadow-2xl border-0 bg-white dark:bg-gray-900 md:w-96 md:h-[500px] md:bottom-16 md:right-0">
+                     <CardHeader className="pb-3 bg-theme-primary-main text-white rounded-t-lg">
+             <div className="flex items-center justify-between">
+               <div className="flex items-center space-x-2">
+                 <Bot className="h-4 w-4 md:h-5 md:w-5" />
+                 <CardTitle className="text-base md:text-lg">AI Assistant</CardTitle>
+               </div>
+               <div className="flex items-center space-x-1 md:space-x-2">
+                 <Badge variant="secondary" className="text-xs bg-white/20 text-white hidden sm:block">
+                   {appName}
+                 </Badge>
+                 <Button
+                   variant="ghost"
+                   size="sm"
+                   onClick={clearChat}
+                   className="h-8 w-8 md:h-6 md:w-6 p-0 text-white hover:bg-white/20"
+                   aria-label="Clear chat history"
+                   title="Clear chat history"
+                 >
+                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                   </svg>
+                 </Button>
+                 <Button
+                   variant="ghost"
+                   size="sm"
+                   onClick={toggleChat}
+                   className="h-8 w-8 md:h-6 md:w-6 p-0 text-white hover:bg-white/20"
+                   aria-label="Close chat"
+                   title="Close chat"
+                 >
+                   <X className="h-4 w-4" />
+                 </Button>
+               </div>
+             </div>
+           </CardHeader>
 
           <CardContent className="p-0 h-full flex flex-col">
-            {/* Messages Area */}
-            <ScrollArea className="flex-1 p-4 space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    'flex',
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  )}
-                >
-                  <div
-                    className={cn(
-                      'max-w-[80%] rounded-lg px-3 py-2 text-sm',
-                      message.role === 'user'
-                        ? 'bg-theme-primary-main text-white'
-                        : message.isError
-                        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                    )}
-                  >
-                    <div className="flex items-center space-x-2 mb-1">
-                      {message.role === 'user' ? (
-                        <User className="h-3 w-3" />
-                      ) : (
-                        <Bot className="h-3 w-3" />
-                      )}
-                      <span className="text-xs opacity-70">
-                        {message.timestamp.toLocaleTimeString([], { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
-                      </span>
-                    </div>
-                    <div className="whitespace-pre-wrap">{message.content}</div>
-                  </div>
-                </div>
-              ))}
+                         {/* Messages Area */}
+             <ScrollArea className="flex-1 p-2 md:p-4 space-y-3 md:space-y-4">
+               {messages.map((message) => (
+                 <div
+                   key={message.id}
+                   className={cn(
+                     'flex',
+                     message.role === 'user' ? 'justify-end' : 'justify-start'
+                   )}
+                 >
+                   <div
+                     className={cn(
+                       'max-w-[85%] md:max-w-[80%] rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-xs md:text-sm',
+                       message.role === 'user'
+                         ? 'bg-theme-primary-main text-white'
+                         : message.isError
+                         ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                         : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+                     )}
+                   >
+                     <div className="flex items-center space-x-1 md:space-x-2 mb-1">
+                       {message.role === 'user' ? (
+                         <User className="h-2.5 w-2.5 md:h-3 md:w-3" />
+                       ) : (
+                         <Bot className="h-2.5 w-2.5 md:h-3 md:w-3" />
+                       )}
+                       <span className="text-xs opacity-70">
+                         {message.timestamp.toLocaleTimeString([], { 
+                           hour: '2-digit', 
+                           minute: '2-digit' 
+                         })}
+                       </span>
+                     </div>
+                     <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
+                   </div>
+                 </div>
+               ))}
               
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <Bot className="h-3 w-3" />
-                      <span className="text-xs opacity-70">Typing...</span>
-                    </div>
-                    <div className="flex space-x-1 mt-2">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                  </div>
-                </div>
-              )}
+                             {isLoading && (
+                 <div className="flex justify-start">
+                   <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-xs md:text-sm">
+                     <div className="flex items-center space-x-1 md:space-x-2">
+                       <Bot className="h-2.5 w-2.5 md:h-3 md:w-3" />
+                       <span className="text-xs opacity-70">Typing...</span>
+                     </div>
+                     <div className="flex space-x-1 mt-1.5 md:mt-2">
+                       <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                       <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                       <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                     </div>
+                   </div>
+                 </div>
+               )}
               
               <div ref={messagesEndRef} />
             </ScrollArea>
 
-            {/* Error Display */}
-            {error && (
-              <div className="px-4 py-2 bg-red-50 dark:bg-red-900/20 border-t border-red-200 dark:border-red-800">
-                <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 text-sm">
-                  <AlertCircle className="h-4 w-4" />
-                  <span>{error}</span>
-                </div>
-              </div>
-            )}
+                         {/* Error Display */}
+             {error && (
+               <div className="px-2 py-1.5 md:px-4 md:py-2 bg-red-50 dark:bg-red-900/20 border-t border-red-200 dark:border-red-800">
+                 <div className="flex items-center space-x-1 md:space-x-2 text-red-600 dark:text-red-400 text-xs md:text-sm">
+                   <AlertCircle className="h-3 w-3 md:h-4 md:w-4" />
+                   <span>{error}</span>
+                 </div>
+               </div>
+             )}
 
-            {/* Input Area */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex space-x-2">
-                <Input
-                  ref={inputRef}
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Type your message..."
-                  className="flex-1"
-                  disabled={isLoading}
-                />
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || isLoading}
-                  className="bg-theme-primary-main hover:bg-theme-primary-dark text-white"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
+                         {/* Input Area */}
+             <div className="p-2 md:p-4 border-t border-gray-200 dark:border-gray-700">
+               <div className="flex space-x-2">
+                 <Input
+                   ref={inputRef}
+                   value={inputValue}
+                   onChange={(e) => setInputValue(e.target.value)}
+                   onKeyPress={handleKeyPress}
+                   placeholder="Type your message..."
+                   className="flex-1 text-xs md:text-sm h-8 md:h-10"
+                   disabled={isLoading}
+                 />
+                 <Button
+                   onClick={handleSendMessage}
+                   disabled={!inputValue.trim() || isLoading}
+                   className="bg-theme-primary-main hover:bg-theme-primary-dark text-white h-8 w-8 md:h-10 md:w-10 p-0"
+                 >
+                   {isLoading ? (
+                     <Loader2 className="h-3 w-3 md:h-4 md:w-4 animate-spin" />
+                   ) : (
+                     <Send className="h-3 w-3 md:h-4 md:w-4" />
+                   )}
+                 </Button>
+               </div>
+             </div>
           </CardContent>
         </Card>
       )}
