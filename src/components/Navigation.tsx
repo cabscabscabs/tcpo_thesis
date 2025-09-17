@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, FileText, Users, BookOpen, Info } from "lucide-react";
+import { Menu, X, FileText, Users, BookOpen, Info, Newspaper } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 const Navigation = () => {
@@ -11,6 +11,7 @@ const Navigation = () => {
     { name: "Our IP", href: "/ip-portfolio", icon: FileText },
     { name: "Services", href: "/services", icon: Users },
     { name: "Resources", href: "/resources", icon: BookOpen },
+    { name: "Latest News", href: "/latest-news", icon: Newspaper },
     { name: "About", href: "/about", icon: Info },
   ];
 

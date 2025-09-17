@@ -6,18 +6,18 @@ export const theme = {
   colors: {
     // Primary Brand Colors
     primary: {
-      main: 'hsl(210 100% 20%)',      // Deep Navy Blue
-      light: 'hsl(210 100% 30%)',     // Lighter Navy
-      dark: 'hsl(210 100% 15%)',      // Darker Navy
+      main: 'hsl(240 80% 15%)',      // Deep Blue - Changed to #120b44 equivalent
+      light: 'hsl(240 80% 20%)',     // Lighter Blue
+      dark: 'hsl(240 80% 10%)',      // Darker Blue
       contrast: 'hsl(0 0% 100%)',     // White text
     },
     
     // Secondary Brand Colors
     secondary: {
-      main: 'hsl(51 100% 50%)',       // Vibrant Gold
-      light: 'hsl(51 100% 60%)',      // Lighter Gold
-      dark: 'hsl(51 100% 40%)',       // Darker Gold
-      contrast: 'hsl(210 100% 20%)',  // Navy text
+      main: 'hsl(40 70% 58%)',       // Yellow - Changed to #e7b841 equivalent
+      light: 'hsl(40 70% 68%)',      // Lighter Yellow
+      dark: 'hsl(40 70% 48%)',       // Darker Yellow
+      contrast: 'hsl(240 80% 15%)',  // Deep Blue text
     },
     
     // Accent Colors
@@ -111,18 +111,18 @@ export const theme = {
     xl: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
     
     // Custom brand shadows
-    primary: '0 4px 20px hsl(210 100% 20% / 0.1)',
-    secondary: '0 4px 20px hsl(51 100% 50% / 0.2)',
+    primary: '0 4px 20px hsl(240 80% 15% / 0.1)',
+    secondary: '0 4px 20px hsl(40 70% 58% / 0.2)',
     accent: '0 4px 20px hsl(32 61% 46% / 0.15)',
   },
 
   // Gradients
   gradients: {
-    primary: 'linear-gradient(135deg, hsl(210 100% 20%), hsl(210 100% 25%))',
-    secondary: 'linear-gradient(135deg, hsl(51 100% 50%), hsl(51 100% 60%))',
+    primary: 'linear-gradient(135deg, hsl(240 80% 15%), hsl(240 80% 20%))',
+    secondary: 'linear-gradient(135deg, hsl(40 70% 58%), hsl(40 70% 68%))',
     accent: 'linear-gradient(135deg, hsl(32 61% 46%), hsl(32 61% 56%))',
-    ustp: 'linear-gradient(135deg, hsl(210 100% 20%), hsl(32 61% 46%))',
-    hero: 'linear-gradient(135deg, hsl(210 100% 20% / 0.8), hsl(210 100% 25% / 0.8))',
+    ustp: 'linear-gradient(135deg, hsl(240 80% 15%), hsl(32 61% 46%))',
+    hero: 'linear-gradient(135deg, hsl(240 80% 15% / 0.8), hsl(240 80% 20% / 0.8))',
   },
 
   // Transitions

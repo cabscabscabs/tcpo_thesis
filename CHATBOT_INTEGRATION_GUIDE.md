@@ -187,8 +187,8 @@ The widget uses your theme system. Customize via CSS variables:
 ```css
 /* src/index.css */
 :root {
-  --color-primary-main: 210 100% 20%; /* Chat button color */
-  --color-primary-dark: 210 100% 15%; /* Hover state */
+  --color-primary-main: 240 80% 15%; /* Chat button color */
+  --color-primary-dark: 240 80% 10%; /* Hover state */
 }
 ```
 
@@ -306,8 +306,8 @@ curl http://localhost:3001/api/health
 ```css
 /* Ensure theme variables are defined */
 :root {
-  --color-primary-main: 210 100% 20%;
-  --color-primary-dark: 210 100% 15%;
+  --color-primary-main: 240 80% 15%;
+  --color-primary-dark: 240 80% 10%;
 }
 ```
 

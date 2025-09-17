@@ -13,18 +13,18 @@ export const themeConfig = {
   colors: {
     // Primary Brand Color (Main brand color used throughout the app)
     primary: {
-      main: '#003366',        // Deep Navy Blue - Change this for main brand color
-      light: '#004080',       // Lighter shade
-      dark: '#002040',        // Darker shade
+      main: '#120b44',        // Deep Blue - Changed to #120b44
+      light: '#1a1366',       // Lighter shade
+      dark: '#0d0833',        // Darker shade
       contrast: '#FFFFFF',    // Text color on primary background
     },
     
     // Secondary Brand Color (Accent color for highlights and CTAs)
     secondary: {
-      main: '#FFD700',        // Vibrant Gold - Change this for accent color
-      light: '#FFE44D',       // Lighter shade
-      dark: '#E6C200',        // Darker shade
-      contrast: '#003366',    // Text color on secondary background
+      main: '#e7b841',        // Yellow - Changed to #e7b841
+      light: '#f0c96e',       // Lighter shade
+      dark: '#d1a53a',        // Darker shade
+      contrast: '#120b44',    // Text color on secondary background
     },
     
     // Accent Color (Third color for variety)

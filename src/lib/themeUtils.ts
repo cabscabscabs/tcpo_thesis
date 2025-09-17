@@ -232,6 +232,18 @@ export const hexToHSL = (hex: string): string => {
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 };
 
+// Pre-calculated HSL values for our new brand colors
+const brandColors = {
+  primary: '#120b44',
+  secondary: '#e7b841'
+};
+
+// Export the HSL values for easy use
+export const brandHSL = {
+  primary: '240 80% 15%',      // #120b44
+  secondary: '40 70% 58%'      // #e7b841
+};
+
 /**
  * Convert hex color to RGB
  * @param hex - Hex color string

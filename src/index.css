@@ -9,9 +9,9 @@
 @layer base {
   :root {
     /* USTP Strategic Communication Office Brand Colors */
-    --ustp-dark-blue: 210 100% 20%;    /* #003366 - Deep Navy Blue */
-    --ustp-gold: 51 100% 50%;          /* #FFD700 - Vibrant Gold */
-    --ustp-light-blue: 210 67% 94%;    /* #E6F0FA - Light Sky Blue */
+    --ustp-dark-blue: 240 80% 15%;    /* #120b44 - Deep Blue */
+    --ustp-gold: 40 70% 58%;          /* #e7b841 - Yellow */
+    --ustp-light-blue: 240 80% 20%;    /* Lighter Blue */
     --ustp-gray: 0 0% 20%;             /* #333333 - Charcoal Gray */
     --ustp-bronze: 32 61% 46%;         /* #CD7F32 - Warm Bronze */
     
@@ -25,13 +25,13 @@
     --popover: 0 0% 100%;              /* Crisp White */
     --popover-foreground: 0 0% 15%;    /* Darker for better contrast */
 
-    --primary: 210 100% 20%;           /* Deep Navy Blue */
+    --primary: 240 80% 15%;           /* Deep Blue */
     --primary-foreground: 0 0% 100%;   /* Crisp White */
 
-    --secondary: 51 100% 50%;          /* Vibrant Gold */
-    --secondary-foreground: 210 100% 20%; /* Deep Navy Blue */
+    --secondary: 40 70% 58%;          /* Yellow */
+    --secondary-foreground: 240 80% 15%; /* Deep Blue */
 
-    --muted: 210 67% 94%;              /* Light Sky Blue */
+    --muted: 240 80% 20%;              /* Lighter Blue */
     --muted-foreground: 0 0% 30%;      /* Darker for better readability */
 
     --accent: 32 61% 46%;              /* Warm Bronze */
@@ -42,7 +42,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 210 100% 15%;
+    --ring: 240 80% 10%;
 
     --radius: 0.5rem;
 
@@ -63,15 +63,15 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Theme System CSS Variables */
-    --color-primary-main: 210 100% 20%;
-    --color-primary-light: 210 100% 30%;
-    --color-primary-dark: 210 100% 15%;
+    --color-primary-main: 240 80% 15%;
+    --color-primary-light: 240 80% 20%;
+    --color-primary-dark: 240 80% 10%;
     --color-primary-contrast: 0 0% 100%;
     
-    --color-secondary-main: 51 100% 50%;
-    --color-secondary-light: 51 100% 60%;
-    --color-secondary-dark: 51 100% 40%;
-    --color-secondary-contrast: 210 100% 20%;
+    --color-secondary-main: 40 70% 58%;
+    --color-secondary-light: 40 70% 68%;
+    --color-secondary-dark: 40 70% 48%;
+    --color-secondary-contrast: 240 80% 15%;
     
     --color-accent-main: 32 61% 46%;
     --color-accent-light: 32 61% 56%;
@@ -79,7 +79,7 @@
     --color-accent-contrast: 0 0% 100%;
     
     --color-neutral-white: 0 0% 100%;
-    --color-neutral-light: 210 67% 94%;
+    --color-neutral-light: 240 80% 20%;
     --color-neutral-gray: 0 0% 20%;
     --color-neutral-dark: 0 0% 15%;
     
@@ -91,8 +91,8 @@
     --font-primary: 'Roboto, sans-serif';
     --font-secondary: 'Open Sans, sans-serif';
     --transition-normal: all 0.3s ease-in-out;
-    --shadow-primary: 0 4px 20px hsl(210 100% 20% / 0.1);
-    --shadow-secondary: 0 4px 20px hsl(51 100% 50% / 0.2);
+    --shadow-primary: 0 4px 20px hsl(240 80% 15% / 0.1);
+    --shadow-secondary: 0 4px 20px hsl(40 70% 58% / 0.2);
     --shadow-accent: 0 4px 20px hsl(32 61% 46% / 0.15);
   }
 
@@ -138,14 +138,14 @@
 /* Custom Design System Extensions */
 :root {
   /* Additional USTP Strategic Communication Brand Colors */
-  --ustp-blue: 210 100% 20%;         /* Deep Navy Blue */
+  --ustp-blue: 240 80% 15%;         /* Deep Blue */
   --ustp-orange: 32 61% 46%;         /* Warm Bronze */
-  --ustp-yellow: 51 100% 50%;        /* Vibrant Gold */
+  --ustp-yellow: 40 70% 58%;        /* Yellow */
   
   /* Professional Gradients */
   --gradient-ustp: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
-  --gradient-gold: linear-gradient(135deg, hsl(var(--secondary)), hsl(51 100% 60%));
-  --gradient-navy: linear-gradient(135deg, hsl(210 100% 20%), hsl(210 100% 25%));
+  --gradient-gold: linear-gradient(135deg, hsl(var(--secondary)), hsl(40 70% 68%));
+  --gradient-navy: linear-gradient(135deg, hsl(240 80% 15%), hsl(240 80% 20%));
   
   /* Professional Shadows */
   --shadow-card: 0 4px 20px hsl(var(--primary) / 0.1);

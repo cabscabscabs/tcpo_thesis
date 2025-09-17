@@ -73,7 +73,7 @@ I've successfully created a comprehensive theme system for your USTP TPCO web ap
 
 To change your app's main color from navy blue to purple:
 
-```typescript
+```
 // In src/lib/themeConfig.ts
 colors: {
   primary: {
@@ -96,7 +96,7 @@ This single change will update:
 
 To change fonts:
 
-```typescript
+```
 // In src/lib/themeConfig.ts
 typography: {
   fonts: {

@@ -7,52 +7,84 @@ import { Mail, Phone, MapPin, Linkedin, Award, Users, Target, Heart } from "luci
 const About = () => {
   const team = [
     {
-      name: "Dr. Elena Rodriguez",
-      position: "Director, TPCO",
-      expertise: "Technology Transfer, IP Strategy",
-      education: "Ph.D. Technology Management, MBA",
-      email: "elena.rodriguez@ustp.edu.ph",
-      bio: "15+ years experience in technology commercialization and university-industry partnerships"
+      name: "Dr. Venessa Garcia",
+      position: "Director – Technology Promotions and Commercialization Office",
+      expertise: "",
+      education: "",
+      email: "",
+      bio: ""
     },
     {
-      name: "Dr. Michael Chen",
-      position: "Senior Technology Transfer Officer",
-      expertise: "Patent Analysis, Technology Valuation",
-      education: "Ph.D. Engineering, J.D. IP Law",
-      email: "michael.chen@ustp.edu.ph",
-      bio: "Former industry R&D manager with extensive patent portfolio experience"
+      name: "Engr. Gladdy Christie Compasan",
+      position: "Manager, TPCO – Innovation and Technology Support Unit",
+      expertise: "",
+      education: "",
+      email: "",
+      bio: ""
     },
     {
-      name: "Atty. Maria Santos",
-      position: "Legal Counsel & IP Manager",
-      expertise: "IP Law, Contract Negotiation",
-      education: "J.D., LL.M. Intellectual Property",
-      email: "maria.santos@ustp.edu.ph",
-      bio: "Specialized in IP litigation and technology licensing agreements"
+      name: "Ms. Flora Monica Mabaylan",
+      position: "Manager, TPCO – Promotions Management Unit",
+      expertise: "",
+      education: "",
+      email: "",
+      bio: ""
     },
     {
-      name: "Dr. Roberto Mendez",
-      position: "Industry Partnerships Manager",
-      expertise: "Business Development, Market Analysis",
-      education: "Ph.D. Business Administration",
-      email: "roberto.mendez@ustp.edu.ph",
-      bio: "Former entrepreneur with successful tech startup exits and industry connections"
+      name: "Ms. Rhea Suzette Haguisan",
+      position: "Manager, TPCO – Business Development Unit",
+      expertise: "",
+      education: "",
+      email: "",
+      bio: ""
     },
     {
-      name: "Engr. Carmen Garcia",
-      position: "Technology Assessment Specialist",
-      expertise: "Engineering Analysis, Product Development",
-      education: "M.S. Engineering, PMP Certified",
-      email: "carmen.garcia@ustp.edu.ph",
-      bio: "20+ years in product development and technology readiness assessment"
+      name: "Engr. Jodie Rey Fernandez",
+      position: "Technology Promotions Officer, TPCO – Promotions Management Unit",
+      expertise: "",
+      education: "",
+      email: "",
+      bio: ""
     },
     {
-      name: "Dr. Patricia Lim",
-      position: "Startup Incubation Manager",
-      expertise: "Entrepreneurship, Business Mentoring",
-      education: "Ph.D. Entrepreneurship, CPA",
-      email: "patricia.lim@ustp.edu.ph",
-      bio: "Serial entrepreneur and mentor with expertise in tech startup development"
+      name: "Engr. Clark Darwin Gozon",
+      position: "Technical Expert, TPCO – Innovation and Technology Support Unit",
+      expertise: "",
+      education: "",
+      email: "",
+      bio: ""
+    },
+    {
+      name: "Engr. Mark Lister Nalupa",
+      position: "Technical Expert, TPCO – Innovation and Technology Support Unit",
+      expertise: "",
+      education: "",
+      email: "",
+      bio: ""
+    },
+    {
+      name: "Noreza P. Aleno",
+      position: "Administrative Staff, TPCO – Innovation and Technology Support Unit",
+      expertise: "",
+      education: "",
+      email: "",
+      bio: ""
+    },
+    {
+      name: "Krystia Ces G. Napili",
+      position: "Science Research Specialist, Technology Promotions and Commercialization Office",
+      expertise: "",
+      education: "",
+      email: "",
+      bio: ""
+    },
+    {
+      name: "Michael J. Cerbito",
+      position: "Administrative Assistant, Technology Promotions and Commercialization Office",
+      expertise: "",
+      education: "",
+      email: "",
+      bio: ""
     }
   ];
 
