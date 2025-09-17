@@ -20,7 +20,7 @@ const Hero = () => {
             Accelerating <span className="text-secondary">Innovation</span> Through 
             <br />Technology Transfer
           </h1>
-          <p className="text-xl md:text-2xl text-primary-foreground/80 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
             USTP Technology and Partnership Commercialization Office - Your gateway to cutting-edge 
             research, intellectual property protection, and industry collaboration in Northern Mindanao.
           </p>
@@ -43,7 +43,7 @@ const Hero = () => {
               <Award className="text-secondary" size={40} />
             </div>
             <div className="text-3xl font-roboto font-bold text-white mb-2">24+</div>
-            <div className="text-primary-foreground/80">Patents Granted</div>
+            <div className="text-white/90">Patents Granted</div>
           </div>
           
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
@@ -51,7 +51,7 @@ const Hero = () => {
               <Users className="text-secondary" size={40} />
             </div>
             <div className="text-3xl font-roboto font-bold text-white mb-2">50+</div>
-            <div className="text-primary-foreground/80">Industry Partners</div>
+            <div className="text-white/90">Industry Partners</div>
           </div>
           
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
@@ -59,7 +59,7 @@ const Hero = () => {
               <Lightbulb className="text-secondary" size={40} />
             </div>
             <div className="text-3xl font-roboto font-bold text-white mb-2">100+</div>
-            <div className="text-primary-foreground/80">Technologies Developed</div>
+            <div className="text-white/90">Technologies Developed</div>
           </div>
         </div>
       </div>

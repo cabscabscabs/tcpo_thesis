@@ -38,7 +38,7 @@ const Footer = () => {
           {/* Organization Info */}
           <div className="lg:col-span-2">
             <h3 className="text-xl font-roboto font-bold mb-4">USTP TPCO</h3>
-            <p className="text-gray-300 mb-4 leading-relaxed">
+            <p className="text-white/80 mb-4 leading-relaxed">
               University of Science and Technology of Southern Philippines - Technology and 
               Partnership Commercialization Office. Leading innovation and technology transfer 
               in Northern Mindanao.
@@ -80,7 +80,7 @@ const Footer = () => {
                 <li key={index}>
                   <a 
                     href={link.href} 
-                    className="text-gray-300 hover:text-secondary transition-colors text-sm"
+                    className="text-white/70 hover:text-secondary transition-colors text-sm"
                   >
                     {link.name}
                   </a>
@@ -97,7 +97,7 @@ const Footer = () => {
                 <li key={index}>
                   <a 
                     href={service.href} 
-                    className="text-gray-300 hover:text-secondary transition-colors text-sm"
+                    className="text-white/70 hover:text-secondary transition-colors text-sm"
                   >
                     {service.name}
                   </a>
@@ -114,7 +114,7 @@ const Footer = () => {
                 <li key={index}>
                   <a 
                     href={resource.href} 
-                    className="text-gray-300 hover:text-secondary transition-colors text-sm"
+                    className="text-white/70 hover:text-secondary transition-colors text-sm"
                   >
                     {resource.name}
                   </a>
@@ -129,7 +129,7 @@ const Footer = () => {
           <h4 className="font-roboto font-semibold mb-4 text-center">Our Partners</h4>
           <div className="flex flex-wrap justify-center gap-4 mb-6">
             {partners.map((partner, index) => (
-              <span key={index} className="text-sm text-gray-300 bg-white/5 px-3 py-1 rounded-full">
+              <span key={index} className="text-sm text-white/80 bg-white/5 px-3 py-1 rounded-full">
                 {partner}
               </span>
             ))}
@@ -138,18 +138,18 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-gray-600 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-gray-400 mb-4 md:mb-0">
+          <p className="text-sm text-white/60 mb-4 md:mb-0">
             © 2024 USTP Technology and Partnership Commercialization Office. All rights reserved.
           </p>
           
           <div className="flex space-x-6 text-sm">
-            <a href="/privacy" className="text-gray-400 hover:text-secondary transition-colors">
+            <a href="/privacy" className="text-white/60 hover:text-secondary transition-colors">
               Privacy Policy
             </a>
-            <a href="/terms" className="text-gray-400 hover:text-secondary transition-colors">
+            <a href="/terms" className="text-white/60 hover:text-secondary transition-colors">
               Terms of Use
             </a>
-            <a href="/accessibility" className="text-gray-400 hover:text-secondary transition-colors">
+            <a href="/accessibility" className="text-white/60 hover:text-secondary transition-colors">
               Accessibility
             </a>
           </div>
@@ -162,7 +162,7 @@ const Footer = () => {
               <h5 className="font-roboto font-semibold text-secondary mb-1">
                 Upcoming: TPCO-CET Convergence 2025
               </h5>
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-white/80">
                 Join us for the premier technology commercialization event in Northern Mindanao
               </p>
             </div>
