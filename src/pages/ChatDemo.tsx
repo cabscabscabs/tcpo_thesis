@@ -3,9 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageCircle, Bot, Shield, Zap, Smartphone, Globe, Database } from 'lucide-react';
+import { MessageCircle, Bot, Shield, Zap, Smartphone, Globe } from 'lucide-react';
 import ChatWidget from '@/components/ChatWidget';
-import { DatabaseTest } from '@/components/DatabaseTest';
 
 const ChatDemo: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -331,16 +330,14 @@ const ChatDemo: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-theme-primary-main">
-                  <Database className="h-5 w-5" />
+                  <Globe className="h-5 w-5" />
                   Database Connection & Schema Test
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-theme-neutral-gray dark:text-theme-neutral-light mb-6">
-                  Test your Supabase database connection, verify table structure, and validate CRUD operations. 
-                  This helps ensure your database is properly configured and accessible.
+                  Database test component is not available. Please check your installation or contact support.
                 </p>
-                <DatabaseTest />
               </CardContent>
             </Card>
           </TabsContent>

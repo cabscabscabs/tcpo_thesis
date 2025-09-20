@@ -32,8 +32,8 @@ export const theme = {
     neutral: {
       white: 'hsl(0 0% 100%)',
       light: 'hsl(210 67% 94%)',      // Light Sky Blue
-      gray: 'hsl(0 0% 20%)',          // Charcoal Gray
-      dark: 'hsl(0 0% 15%)',
+      gray: 'hsl(0 0% 15%)',          // Darkened from 20% to 15% for better contrast
+      dark: 'hsl(0 0% 10%)',          // Darkened from 15% to 10% for better contrast
     },
     
     // Semantic Colors
@@ -158,11 +158,11 @@ export const theme = {
 // Helper function to get theme values
 export const getThemeValue = (path: string) => {
   const keys = path.split('.');
-  let value: any = theme;
+  let value: unknown = theme;
   
   for (const key of keys) {
-    if (value && typeof value === 'object' && key in value) {
-      value = value[key];
+    if (value && typeof value === 'object' && key in (value as Record<string, unknown>)) {
+      value = (value as Record<string, unknown>)[key];
     } else {
       return undefined;
     }

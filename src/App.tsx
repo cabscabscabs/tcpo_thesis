@@ -14,6 +14,7 @@ import Admin from "./pages/Admin";
 import ChatDemo from "./pages/ChatDemo";
 import NotFound from "./pages/NotFound";
 import LatestNewsPage from "./pages/LatestNewsPage";
+import TechnologyDetails from "./pages/TechnologyDetails";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/ip-portfolio" element={<IPPortfolio />} />
+            <Route path="/technology/:slug" element={<TechnologyDetails />} />
             <Route path="/services" element={<Services />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/about" element={<About />} />

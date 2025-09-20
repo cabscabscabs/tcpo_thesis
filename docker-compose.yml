@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - SERVE_FRONTEND=true
+      # Add your environment variables here
+      # - OPENAI_API_KEY=your_openai_api_key
+      # - ALLOWED_ORIGINS=http://localhost:3001
+    # volumes:
+      # If you need to persist data, uncomment the following line
+      # - ./data:/app/data
+    restart: unless-stopped

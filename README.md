@@ -64,6 +64,10 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/8da29973-edc9-4d08-85b7-d8b3bfdf86a2) and click on Share -> Publish.
 
+## How can I deploy this project with Docker?
+
+This project includes Docker support for easy deployment. See [DOCKER_INSTRUCTIONS.md](DOCKER_INSTRUCTIONS.md) for detailed instructions on how to build and run the application with Docker. If you encounter issues, refer to [DOCKER_TROUBLESHOOTING.md](DOCKER_TROUBLESHOOTING.md) for troubleshooting common Windows Docker problems.
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!

@@ -32,7 +32,7 @@
     --secondary-foreground: 240 80% 15%; /* Deep Blue */
 
     --muted: 240 80% 20%;              /* Lighter Blue */
-    --muted-foreground: 0 0% 30%;      /* Darker for better readability */
+    --muted-foreground: 0 0% 25%;      /* Darkened from 0 0% 30% for better readability */
 
     --accent: 32 61% 46%;              /* Warm Bronze */
     --accent-foreground: 0 0% 100%;    /* Crisp White */
@@ -109,14 +109,14 @@
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 40 70% 58%; /* Changed from 217.2 32.6% 17.5% to match the yellow color */
+    --secondary-foreground: 240 80% 15%; /* Changed from 210 40% 98% to dark blue for better contrast */
 
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 210 40% 85%; /* Lightened from 215 20.2% 65.1% for better readability */
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 32 61% 46%; /* Changed from 217.2 32.6% 17.5% to match the bronze color */
+    --accent-foreground: 0 0% 100%; /* Kept white for good contrast */
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
@@ -126,11 +126,11 @@
     --ring: 212.7 26.8% 83.9%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-primary: 40 70% 58%; /* Changed from 224.3 76.3% 48% to match the yellow color */
+    --sidebar-primary-foreground: 240 80% 15%; /* Changed from 0 0% 100% to dark blue for better contrast */
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }

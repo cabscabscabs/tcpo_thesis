@@ -169,7 +169,7 @@ export const themeConfig = {
     // Navigation styles
     navigation: {
       height: '4rem',
-      background: 'rgba(0, 51, 102, 0.95)',
+      background: 'rgba(18 11 68, 0.95)', /* Changed from rgba(0, 51, 102, 0.95) to match new primary color */
       backdropBlur: '10px',
     },
   },

@@ -9,17 +9,17 @@ import { themeConfig } from './themeConfig';
  */
 export const getColor = (path: string): string | undefined => {
   const keys = path.split('.');
-  let value: any = themeConfig.colors;
+  let value: unknown = themeConfig.colors;
   
   for (const key of keys) {
-    if (value && typeof value === 'object' && key in value) {
-      value = value[key];
+    if (value && typeof value === 'object' && key in (value as Record<string, unknown>)) {
+      value = (value as Record<string, unknown>)[key];
     } else {
       return undefined;
     }
   }
   
-  return value;
+  return value as string | undefined;
 };
 
 /**
@@ -29,17 +29,17 @@ export const getColor = (path: string): string | undefined => {
  */
 export const getTypography = (path: string): string | undefined => {
   const keys = path.split('.');
-  let value: any = themeConfig.typography;
+  let value: unknown = themeConfig.typography;
   
   for (const key of keys) {
-    if (value && typeof value === 'object' && key in value) {
-      value = value[key];
+    if (value && typeof value === 'object' && key in (value as Record<string, unknown>)) {
+      value = (value as Record<string, unknown>)[key];
     } else {
       return undefined;
     }
   }
   
-  return value;
+  return value as string | undefined;
 };
 
 /**
@@ -183,10 +183,10 @@ export const createThemeClass = (
  * @param property - The property to get
  * @returns The component theme value or undefined if not found
  */
-export const getComponentTheme = (component: string, property: string): any => {
+export const getComponentTheme = (component: string, property: string): unknown => {
   const componentConfig = themeConfig.components[component as keyof typeof themeConfig.components];
   if (componentConfig && typeof componentConfig === 'object') {
-    return componentConfig[property as keyof typeof componentConfig];
+    return (componentConfig as Record<string, unknown>)[property];
   }
   return undefined;
 };
