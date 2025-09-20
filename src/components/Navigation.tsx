@@ -23,7 +23,7 @@ const Navigation = () => {
           <div className="flex items-center">
             <div className="flex-shrink-0 text-white">
               <h1 className="text-xl font-roboto font-bold">USTP TPCO</h1>
-              <p className="text-xs text-primary-foreground/70">Technology Transfer Office</p>
+              <p className="text-xs text-secondary/90">Technology Transfer Office</p>
             </div>
           </div>
 
