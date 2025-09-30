@@ -114,9 +114,9 @@ const Admin = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+      <main className="container mx-auto px-4 py-8 ">
+        <Tabs defaultValue="dashboard" className="space-y-6 ">
+          <TabsList className="grid w-full grid-cols-7 text-[#f7f7f7]">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="news">News</TabsTrigger>
