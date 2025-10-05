@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -39,12 +39,125 @@ const Admin = () => {
     { id: 3, name: "Industry Matching", requests: 12 }
   ]);
 
+  // Homepage content management
+  const [homepageContent, setHomepageContent] = useState({
+    heroTitle: "Accelerating Innovation Through Technology Transfer",
+    heroSubtitle: "Bridging the gap between research and commercialization...",
+    heroImage: null as string | null,
+    patentsCount: 24,
+    partnersCount: 50,
+    startupsCount: 15,
+    technologiesCount: 8
+  });
+
+  // Load saved homepage content on component mount
+  useEffect(() => {
+    const savedContent = localStorage.getItem('homepageContent');
+    if (savedContent) {
+      try {
+        const parsedContent = JSON.parse(savedContent);
+        setHomepageContent(parsedContent);
+      } catch (error) {
+        console.error('Failed to load saved homepage content:', error);
+      }
+    }
+  }, []);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     // Mock login - in real app, this would validate against backend
     if (loginData.username === "admin" && loginData.password === "admin123") {
       setIsLoggedIn(true);
     }
+  };
+
+  // Handle homepage content update
+  const handleHomepageUpdate = async () => {
+    const heroTitle = (document.getElementById('hero-title') as HTMLInputElement)?.value;
+    const heroSubtitle = (document.getElementById('hero-subtitle') as HTMLTextAreaElement)?.value;
+    const heroImageInput = document.getElementById('hero-image') as HTMLInputElement;
+    
+    if (heroTitle && heroSubtitle) {
+      let heroImageUrl = homepageContent.heroImage; // Keep existing image if no new one
+      
+      // Handle image upload if a new file is selected
+      if (heroImageInput?.files && heroImageInput.files[0]) {
+        const file = heroImageInput.files[0];
+        
+        // Convert image to base64 for storage
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          heroImageUrl = e.target?.result as string;
+          
+          // Update content with new image
+          const updatedContent = {
+            ...homepageContent,
+            heroTitle,
+            heroSubtitle,
+            heroImage: heroImageUrl
+          };
+          
+          setHomepageContent(updatedContent);
+          
+          // Store in localStorage to persist across sessions
+          localStorage.setItem('homepageContent', JSON.stringify(updatedContent));
+          
+          // Trigger a custom event to notify other components
+          window.dispatchEvent(new Event('storage'));
+          
+          // Show success message
+          alert('✅ Homepage content and image updated successfully! The changes are now live on the homepage.');
+        };
+        reader.readAsDataURL(file);
+      } else {
+        // Update content without new image
+        const updatedContent = {
+          ...homepageContent,
+          heroTitle,
+          heroSubtitle
+        };
+        
+        setHomepageContent(updatedContent);
+        
+        // Store in localStorage to persist across sessions
+        localStorage.setItem('homepageContent', JSON.stringify(updatedContent));
+        
+        // Trigger a custom event to notify other components
+        window.dispatchEvent(new Event('storage'));
+        
+        // Show success message
+        alert('✅ Homepage content updated successfully! The changes are now live on the homepage.');
+      }
+    } else {
+      alert('❌ Please fill in both title and subtitle fields.');
+    }
+  };
+
+  // Handle statistics update
+  const handleStatisticsUpdate = () => {
+    const patentsCount = parseInt((document.getElementById('patents-count') as HTMLInputElement)?.value) || 24;
+    const partnersCount = parseInt((document.getElementById('partnerships-count') as HTMLInputElement)?.value) || 50;
+    const startupsCount = parseInt((document.getElementById('startups-count') as HTMLInputElement)?.value) || 15;
+    const technologiesCount = parseInt((document.getElementById('technologies-count') as HTMLInputElement)?.value) || 8;
+    
+    const updatedContent = {
+      ...homepageContent,
+      patentsCount,
+      partnersCount,
+      startupsCount,
+      technologiesCount
+    };
+    
+    setHomepageContent(updatedContent);
+    
+    // Store in localStorage to persist across sessions
+    localStorage.setItem('homepageContent', JSON.stringify(updatedContent));
+    
+    // Trigger a custom event to notify other components
+    window.dispatchEvent(new Event('storage'));
+    
+    // Show success message
+    alert('✅ Statistics updated successfully! The changes are now live on the homepage.');
   };
 
   if (!isLoggedIn) {
@@ -216,17 +329,28 @@ const Admin = () => {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="hero-title">Hero Section Title</Label>
-                    <Input id="hero-title" placeholder="Main headline" defaultValue="Accelerating Innovation Through Technology Transfer" />
+                    <Input id="hero-title" placeholder="Main headline" defaultValue={homepageContent.heroTitle} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="hero-subtitle">Hero Section Subtitle</Label>
-                    <Textarea id="hero-subtitle" placeholder="Supporting text" defaultValue="Bridging the gap between research and commercialization..." />
+                    <Textarea id="hero-subtitle" placeholder="Supporting text" defaultValue={homepageContent.heroSubtitle} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="hero-image">Hero Image</Label>
+                    {homepageContent.heroImage && (
+                      <div className="mb-2">
+                        <p className="text-sm text-muted-foreground mb-1">Current Image:</p>
+                        <img 
+                          src={homepageContent.heroImage} 
+                          alt="Current hero image" 
+                          className="w-full h-32 object-cover rounded-md border"
+                        />
+                      </div>
+                    )}
                     <Input id="hero-image" type="file" accept="image/*" />
+                    <p className="text-xs text-muted-foreground">Upload a new image to replace the current hero background</p>
                   </div>
-                  <Button variant="ustp">Update Homepage</Button>
+                  <Button variant="ustp" onClick={handleHomepageUpdate}>Update Homepage</Button>
                 </CardContent>
               </Card>
 
@@ -276,22 +400,22 @@ const Admin = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="patents-count">Patents Granted</Label>
-                    <Input id="patents-count" type="number" defaultValue="24" />
+                    <Input id="patents-count" type="number" defaultValue={homepageContent.patentsCount} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="partnerships-count">Industry Partners</Label>
-                    <Input id="partnerships-count" type="number" defaultValue="50" />
+                    <Input id="partnerships-count" type="number" defaultValue={homepageContent.partnersCount} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="startups-count">Startups Incubated</Label>
-                    <Input id="startups-count" type="number" defaultValue="15" />
+                    <Input id="startups-count" type="number" defaultValue={homepageContent.startupsCount} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="technologies-count">Technologies Licensed</Label>
-                    <Input id="technologies-count" type="number" defaultValue="8" />
+                    <Input id="technologies-count" type="number" defaultValue={homepageContent.technologiesCount} />
                   </div>
                 </div>
-                <Button variant="ustp" className="mt-4">Update Statistics</Button>
+                <Button variant="ustp" className="mt-4" onClick={handleStatisticsUpdate}>Update Statistics</Button>
               </CardContent>
             </Card>
           </TabsContent>
