@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Handshake, BookOpen, Rocket, Users, Building, FileText, CheckCircle, Clock, ArrowRight, Phone, Mail, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import servicesImage from "@/assets/services-bg.jpg";
 
 const Services = () => {
+  const navigate = useNavigate();
+  
   const mainServices = [
     {
       icon: Shield,
@@ -134,21 +137,33 @@ const Services = () => {
       company: "GreenGrow Solutions",
       technology: "Bio-Organic Fertilizer System",
       impact: "35% yield increase, ₱2M annual revenue",
-      timeline: "6 months from licensing to market"
+      timeline: "6 months from licensing to market",
+      narrative: "Dr. Maria Santos, a soil scientist at USTP, developed an innovative bio-organic fertilizer system using locally-sourced agricultural waste. When GreenGrow Solutions, a local farming cooperative, approached USTP TPCO for sustainable farming solutions, we facilitated the technology transfer. Through our licensing program, GreenGrow implemented the system across 500 hectares of farmland. The results exceeded expectations: crop yields increased by 35%, soil health improved dramatically, and the cooperative generated ₱2M in additional annual revenue. Today, the technology is being scaled to other regions in Mindanao.",
+      challenge: "Traditional fertilizers were degrading soil quality and becoming increasingly expensive for local farmers.",
+      solution: "Bio-organic fertilizer system that enriches soil while reducing costs by 40%.",
+      outcome: "Transformed 500 hectares of farmland and created a sustainable revenue model for farming communities."
     },
     {
       title: "Smart Construction Materials",
       company: "BuildSmart Inc.",
       technology: "Concrete Additive Technology",
       impact: "20% cost reduction, 15 projects implemented",
-      timeline: "8 months development to deployment"
+      timeline: "8 months development to deployment",
+      narrative: "Professor Roberto Mendez's research on concrete additives using volcanic ash from local sources caught the attention of BuildSmart Inc., a regional construction company. Through USTP TPCO's industry-academe matching program, we facilitated a partnership that transformed how construction projects are executed in Northern Mindanao. The innovative additive not only reduced construction costs by 20% but also improved structural integrity by 30%. BuildSmart has since implemented this technology in 15 major projects, including hospitals and schools, contributing to safer and more affordable infrastructure development.",
+      challenge: "High construction costs and environmental concerns with traditional concrete production.",
+      solution: "Volcanic ash-based concrete additive that improves strength while reducing costs.",
+      outcome: "15 major construction projects completed with improved safety standards and cost efficiency."
     },
     {
       title: "Food Preservation Innovation",
       company: "FreshPack Solutions",
       technology: "Natural Packaging Technology",
       impact: "50% shelf life extension, export market entry",
-      timeline: "4 months pilot to commercial scale"
+      timeline: "4 months pilot to commercial scale",
+      narrative: "Dr. Carmen Reyes developed a revolutionary natural packaging technology using plant-based antimicrobial agents. FreshPack Solutions, a food processing startup, was struggling with product shelf life limitations that prevented them from accessing export markets. USTP TPCO's startup incubation program provided the perfect platform for technology transfer. Within four months, FreshPack successfully scaled the technology, extending product shelf life by 50% and enabling them to enter international markets. The company now exports to three ASEAN countries and has created 50 new jobs in the local community.",
+      challenge: "Limited shelf life of processed foods preventing export market expansion.",
+      solution: "Plant-based antimicrobial packaging that naturally preserves food products.",
+      outcome: "Successful entry into international markets with 50% longer product shelf life."
     }
   ];
 
@@ -170,7 +185,7 @@ const Services = () => {
             Comprehensive technology transfer and commercialization services to bridge 
             the gap between research innovation and market success.
           </p>
-          <Button variant="gold" size="xl">
+          <Button variant="gold" size="xl" onClick={() => navigate('/contact')}>
             Request Service Consultation
             <ArrowRight className="ml-2" />
           </Button>
@@ -212,9 +227,15 @@ const Services = () => {
                 <CardContent className="p-6">
                   <Tabs defaultValue="features" className="w-full">
                     <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="features">Features</TabsTrigger>
-                      <TabsTrigger value="process">Process</TabsTrigger>
-                      <TabsTrigger value="details">Details</TabsTrigger>
+                      <TabsTrigger value="features" className="data-[state=inactive]:text-white">
+                        Features
+                      </TabsTrigger>
+                      <TabsTrigger value="process" className="data-[state=inactive]:text-white">
+                        Process
+                      </TabsTrigger>
+                      <TabsTrigger value="details" className="data-[state=inactive]:text-white">
+                        Details
+                      </TabsTrigger>
                     </TabsList>
                     
                     <TabsContent value="features" className="mt-4">
@@ -256,7 +277,21 @@ const Services = () => {
                   </Tabs>
                   
                   <div className="mt-6">
-                    <Button variant="gold-outline" size="sm" className="w-full">
+                    <Button 
+                      variant="gold-outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => {
+                        const serviceMap: { [key: string]: string } = {
+                          'IP Protection Services': 'ip-protection',
+                          'Technology Licensing': 'technology-licensing', 
+                          'Industry-Academe Matching': 'industry-matching',
+                          'Startup Incubation': 'startup-incubation'
+                        };
+                        const serviceParam = serviceMap[service.title] || 'ip-protection';
+                        navigate(`/service-request?service=${serviceParam}`);
+                      }}
+                    >
                       Request This Service
                     </Button>
                   </div>
@@ -281,19 +316,32 @@ const Services = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {additionalServices.map((service, index) => (
-              <Card key={index} className="text-center hover:shadow-card transition-all duration-300">
+              <Card key={index} className="text-center hover:shadow-card transition-all duration-300 cursor-pointer group"
+                    onClick={() => navigate('/additional-services')}>
                 <CardContent className="p-6">
-                  <div className="p-3 bg-secondary/10 rounded-full w-fit mx-auto mb-4">
+                  <div className="p-3 bg-secondary/10 rounded-full w-fit mx-auto mb-4 group-hover:bg-secondary/20 transition-colors">
                     <service.icon className="text-secondary" size={32} />
                   </div>
-                  <h3 className="font-roboto font-semibold text-primary mb-2">{service.title}</h3>
+                  <h3 className="font-roboto font-semibold text-primary mb-2 group-hover:text-accent transition-colors">{service.title}</h3>
                   <p className="text-gray-600 text-sm mb-4">{service.description}</p>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs mb-4">
                     {service.duration}
                   </Badge>
+                  <div className="mt-4">
+                    <span className="text-sm text-primary group-hover:text-accent transition-colors font-medium">
+                      Learn More →
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
             ))}
+          </div>
+          
+          <div className="text-center mt-8">
+            <Button variant="gold" size="lg" onClick={() => navigate('/additional-services')}>
+              View All Additional Services
+              <ArrowRight className="ml-2" size={16} />
+            </Button>
           </div>
         </div>
       </section>
@@ -310,33 +358,84 @@ const Services = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-12">
             {successStories.map((story, index) => (
-              <Card key={index} className="hover:shadow-card transition-all duration-300">
-                <CardHeader className="bg-secondary/5">
-                  <CardTitle className="text-lg font-roboto text-primary">{story.title}</CardTitle>
-                  <CardDescription className="font-semibold text-secondary">
-                    {story.company}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="font-semibold text-sm text-gray-700">Technology:</h4>
-                      <p className="text-sm text-gray-600">{story.technology}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm text-gray-700">Impact:</h4>
-                      <p className="text-sm text-gray-600">{story.impact}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm text-gray-700">Timeline:</h4>
-                      <p className="text-sm text-gray-600">{story.timeline}</p>
+              <div key={index} className={`grid grid-cols-1 lg:grid-cols-2 gap-8 items-center ${
+                index % 2 === 1 ? 'lg:grid-flow-col-dense' : ''
+              }`}>
+                {/* Story Content */}
+                <div className={index % 2 === 1 ? 'lg:col-start-2' : ''}>
+                  <Card className="h-full">
+                    <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10">
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge variant="secondary" className="text-xs">
+                          Case Study {index + 1}
+                        </Badge>
+                        <span className="text-xs text-gray-500">{story.timeline}</span>
+                      </div>
+                      <CardTitle className="text-xl font-roboto text-primary">
+                        {story.title}
+                      </CardTitle>
+                      <CardDescription className="font-semibold text-secondary">
+                        {story.company}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-semibold text-sm text-primary mb-2">The Challenge</h4>
+                          <p className="text-sm text-gray-600">{story.challenge}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-sm text-primary mb-2">USTP Solution</h4>
+                          <p className="text-sm text-gray-600">{story.solution}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-sm text-primary mb-2">Impact Achieved</h4>
+                          <p className="text-sm text-gray-600">{story.outcome}</p>
+                          <div className="mt-2 p-2 bg-green-50 rounded-md">
+                            <p className="text-sm font-semibold text-green-800">{story.impact}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                {/* Story Narrative */}
+                <div className={index % 2 === 1 ? 'lg:col-start-1' : ''}>
+                  <div className="prose prose-gray max-w-none">
+                    <h3 className="text-2xl font-roboto font-bold text-primary mb-4">
+                      Success Story: {story.technology}
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed text-justify">
+                      {story.narrative}
+                    </p>
+                    <div className="mt-6 flex flex-wrap gap-2">
+                      <Badge variant="outline" className="bg-primary/5">
+                        Technology Transfer
+                      </Badge>
+                      <Badge variant="outline" className="bg-accent/5">
+                        Industry Partnership
+                      </Badge>
+                      <Badge variant="outline" className="bg-secondary/5">
+                        Market Success
+                      </Badge>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
+          </div>
+          
+          <div className="text-center mt-12">
+            <p className="text-gray-600 mb-4">
+              Want to be our next success story?
+            </p>
+            <Button variant="gold" size="lg">
+              Start Your Journey
+              <ArrowRight className="ml-2" size={16} />
+            </Button>
           </div>
         </div>
       </section>

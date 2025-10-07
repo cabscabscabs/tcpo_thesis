@@ -1,11 +1,15 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExternalLink, Calendar, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const FeaturedTechnologies = () => {
-  const technologies = [
+  const navigate = useNavigate();
+  const [technologies, setTechnologies] = useState([
     {
+      id: 1,
       title: "Agricultural Soil Enhancement Technology",
       description: "Revolutionary bio-organic fertilizer system that increases crop yield by 35% while reducing environmental impact.",
       field: "Agriculture",
@@ -15,6 +19,7 @@ const FeaturedTechnologies = () => {
       abstract: "A novel approach to soil enrichment using locally-sourced organic materials and precision application techniques."
     },
     {
+      id: 2,
       title: "Smart Materials for Construction",
       description: "Innovative cement additive technology that improves structural integrity and reduces construction costs by 20%.",
       field: "Materials Science",
@@ -24,6 +29,7 @@ const FeaturedTechnologies = () => {
       abstract: "Advanced material composition for enhanced durability and environmental sustainability in construction."
     },
     {
+      id: 3,
       title: "Food Preservation System",
       description: "Novel packaging technology that extends fresh produce shelf life by 50% using natural antimicrobial agents.",
       field: "Food Technology",
@@ -32,7 +38,54 @@ const FeaturedTechnologies = () => {
       year: "2024",
       abstract: "Sustainable food preservation method combining traditional knowledge with modern packaging science."
     }
-  ];
+  ]);
+
+  // Load featured technologies from localStorage
+  useEffect(() => {
+    const savedTechnologies = localStorage.getItem('featuredTechnologies');
+    if (savedTechnologies) {
+      try {
+        const parsedTechnologies = JSON.parse(savedTechnologies);
+        if (parsedTechnologies.length > 0) {
+          setTechnologies(parsedTechnologies);
+        }
+      } catch (error) {
+        console.error('Failed to load featured technologies:', error);
+      }
+    }
+  }, []);
+
+  // Listen for storage changes from admin panel
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedTechnologies = localStorage.getItem('featuredTechnologies');
+      if (savedTechnologies) {
+        try {
+          const parsedTechnologies = JSON.parse(savedTechnologies);
+          if (parsedTechnologies.length > 0) {
+            setTechnologies(parsedTechnologies);
+          }
+        } catch (error) {
+          console.error('Failed to load featured technologies:', error);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const handleLearnMore = (tech: any) => {
+    // Navigate to individual technology details page
+    const slug = tech.title.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    navigate(`/technology/${slug}`, { state: { technology: tech } });
+  };
+
+  const handleViewPortfolio = () => {
+    navigate('/ip-portfolio');
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -57,7 +110,8 @@ const FeaturedTechnologies = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          {technologies.map((tech, index) => (
+          {/* Display only the first 3 featured technologies */}
+          {technologies.slice(0, 3).map((tech, index) => (
             <Card key={index} className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="bg-primary text-white">
                 <div className="flex justify-between items-start mb-2">
@@ -90,7 +144,7 @@ const FeaturedTechnologies = () => {
                   </div>
                 </div>
                 
-                <Button variant="gold-outline" size="sm" className="w-full group">
+                <Button variant="gold-outline" size="sm" className="w-full group" onClick={() => handleLearnMore(tech)}>
                   Learn More
                   <ExternalLink size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
@@ -100,8 +154,8 @@ const FeaturedTechnologies = () => {
         </div>
 
         <div className="text-center">
-          <Button variant="ustp" size="lg">
-            View Complete IP Portfolio
+          <Button variant="ustp" size="lg" onClick={handleViewPortfolio}>
+            {technologies.length > 3 ? `View All ${technologies.length} Technologies` : 'View Complete IP Portfolio'}
           </Button>
         </div>
       </div>

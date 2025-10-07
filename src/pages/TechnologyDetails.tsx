@@ -32,6 +32,76 @@ const TechnologyDetails = () => {
       setLoading(true);
       console.log("Fetching technology with slug:", slug);
       
+      // First, try to find in admin-managed technologies (localStorage)
+      const adminTechnologies = localStorage.getItem('featuredTechnologies');
+      if (adminTechnologies) {
+        try {
+          const parsedTech = JSON.parse(adminTechnologies);
+          const adminTech = parsedTech.find((tech: any) => {
+            const techSlug = tech.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            return techSlug === slug;
+          });
+          
+          if (adminTech) {
+            // Transform admin tech to ExtendedPortfolioItem format
+            const transformedTech: ExtendedPortfolioItem = {
+              id: adminTech.id.toString(),
+              title: adminTech.title,
+              slug: slug || '',
+              description: adminTech.description,
+              image_url: "/placeholder.svg?height=400&width=600",
+              link_url: "#",
+              category: adminTech.field,
+              tags: [adminTech.field, adminTech.status, 'USTP', 'Innovation'],
+              published: true,
+              published_at: new Date().toISOString(),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              inventors: adminTech.inventors,
+              field: adminTech.field,
+              status: adminTech.status,
+              year: adminTech.year,
+              abstract: adminTech.abstract || adminTech.description,
+              licensing: adminTech.status === 'Licensed' ? 'Already Licensed' : 'Available for licensing through USTP TPCO',
+              applications: [adminTech.field, 'Innovation', 'Research'],
+              contact: "tpco@ustp.edu.ph",
+              // Set all optional fields to null for admin technologies
+              inventor: null,
+              patent_status: null,
+              patent_number: null,
+              filing_date: null,
+              grant_date: null,
+              assignee: "University of Science and Technology of Southern Philippines",
+              ipc_codes: null,
+              cpc_codes: null,
+              application_number: null,
+              priority_date: null,
+              expiration_date: null,
+              claims: null,
+              jurisdictions: null,
+              family_members: null,
+              legal_status: null,
+              citations: null,
+              citations_patents: null,
+              cited_by: null,
+              cited_by_patents: null,
+              family_size: null,
+              priority_claims: null,
+              technology_fields: [adminTech.field],
+              ipc_classes: null,
+              cpc_classes: null
+            };
+            
+            setTechnology(transformedTech);
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error('Failed to parse admin technologies:', error);
+        }
+      }
+      
+      // If not found in admin data, try Supabase
       const { data, error } = await supabase
         .from("portfolio_items")
         .select("*")
@@ -46,7 +116,7 @@ const TechnologyDetails = () => {
       console.log("Database response:", data);
       
       if (!data) {
-        setError("Technology not found in database");
+        setError("Technology not found");
         return;
       }
       
@@ -55,7 +125,7 @@ const TechnologyDetails = () => {
       setTechnology(transformedData);
     } catch (err) {
       console.error("Error fetching technology:", err);
-      setError(`Failed to load technology details: ${err.message || "Please try again later."}`);
+      setError(`Technology not found. This might be an admin-managed technology or the slug may have changed.`);
     } finally {
       setLoading(false);
     }
@@ -137,18 +207,18 @@ const TechnologyDetails = () => {
           <div className="max-w-4xl mx-auto">
             <div className="flex flex-wrap gap-2 mb-4">
               {technology.status && (
-                <Badge className="bg-white text-primary text-xs">
+                <Badge className="bg-white text-primary text-xs pointer-events-none">
                   {technology.status}
                 </Badge>
               )}
               {(technology.field || technology.category) && (
-                <Badge className="bg-white/80 text-primary text-xs">
+                <Badge className="bg-white/80 text-primary text-xs pointer-events-none">
                   {technology.field || technology.category}
                 </Badge>
               )}
             </div>
             <h1 className="text-4xl font-roboto font-bold mb-4">{technology.title}</h1>
-            <p className="text-xl text-gray-200 mb-6">
+            <p className="text-xl text-gray-200 mb-6 break-words">
               {technology.abstract || technology.description}
             </p>
             <div className="flex items-center text-gray-300">
@@ -168,7 +238,7 @@ const TechnologyDetails = () => {
               <div className="lg:col-span-2">
                 <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
                   <h2 className="text-2xl font-roboto font-bold text-primary mb-4">Technology Overview</h2>
-                  <p className="text-gray-700 leading-relaxed">
+                  <p className="text-gray-700 leading-relaxed break-words">
                     {technology.description}
                   </p>
                 </div>
@@ -301,7 +371,7 @@ const TechnologyDetails = () => {
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex gap-1">
                             {item.status && (
-                              <Badge className="bg-white text-primary text-xs">
+                              <Badge className="bg-white text-primary text-xs pointer-events-none">
                                 {item.status}
                               </Badge>
                             )}
@@ -313,12 +383,12 @@ const TechnologyDetails = () => {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4">
-                        <CardDescription className="text-gray-600 line-clamp-3 text-sm">
+                        <CardDescription className="text-gray-600 line-clamp-3 text-sm break-words">
                           {item.abstract || item.description}
                         </CardDescription>
                         <div className="flex flex-wrap gap-1 mt-3">
                           {(item.field || item.category) && (
-                            <Badge className="bg-white/80 text-primary text-xs">
+                            <Badge className="bg-white/80 text-primary text-xs pointer-events-none">
                               {item.field || item.category}
                             </Badge>
                           )}

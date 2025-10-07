@@ -1,20 +1,12 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Search, Filter, Calendar, User, ExternalLink, ArrowRight, ArrowLeft } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Calendar, User, ExternalLink } from "lucide-react";
 
-const LatestNews = () => {
+const HomepageLatestNews = () => {
   const navigate = useNavigate();
-  const [visibleCount, setVisibleCount] = useState(6);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedYear, setSelectedYear] = useState("all");
-  const [activeTab, setActiveTab] = useState("all");
   const [newsArticles, setNewsArticles] = useState([]);
   
   // Mock fallback data in case no admin data exists
@@ -65,37 +57,33 @@ const LatestNews = () => {
         const savedNews = localStorage.getItem('newsArticles');
         if (savedNews) {
           const parsedNews = JSON.parse(savedNews);
-          // Only show published articles on the frontend
+          // Only show published articles on the frontend, sorted by date (latest first)
           const publishedNews = parsedNews
             .filter(article => article.status === 'Published')
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) // Sort latest first
-            .map(article => ({
+            .slice(0, 3) // Limit to 3 most recent articles
+            .map((article, index) => ({
               ...article,
               // Use the admin-uploaded image if available, otherwise use placeholder
               image: article.image || `https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=600&fit=crop&q=80`,
               // Generate tags from category and title
               tags: article.tags || [article.category, 'USTP', 'News'],
-              featured: false // Initially set all to false
+              featured: index === 0 // Make first (most recent) article featured
             }));
-          
-          // Set the most recent article as featured
-          if (publishedNews.length > 0) {
-            publishedNews[0].featured = true;
-          }
           
           if (publishedNews.length > 0) {
             setNewsArticles(publishedNews);
           } else {
             // Use fallback data if no published articles exist
-            setNewsArticles(fallbackNewsItems);
+            setNewsArticles(fallbackNewsItems.slice(0, 3));
           }
         } else {
           // Use fallback data if no saved news exists
-          setNewsArticles(fallbackNewsItems);
+          setNewsArticles(fallbackNewsItems.slice(0, 3));
         }
       } catch (error) {
         console.error('Failed to load news data:', error);
-        setNewsArticles(fallbackNewsItems);
+        setNewsArticles(fallbackNewsItems.slice(0, 3));
       }
     };
 
@@ -115,9 +103,6 @@ const LatestNews = () => {
     };
   }, []);
 
-  // Use newsArticles instead of allNewsItems
-  const allNewsItems = newsArticles;
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -133,55 +118,14 @@ const LatestNews = () => {
       'Innovation': 'bg-ustp-orange text-white',
       'Research': 'bg-primary text-white',
       'Licensing': 'bg-secondary text-white',
-      'Copyright': 'bg-muted text-white'
+      'Copyright': 'bg-muted text-white',
+      'Events': 'bg-green-600 text-white',
+      'Partnerships': 'bg-purple-600 text-white',
+      'Education': 'bg-blue-600 text-white',
+      'Announcements': 'bg-orange-600 text-white'
     };
     return colors[category as keyof typeof colors] || 'bg-muted text-white';
   };
-
-  // Get unique categories and years for filters
-  const categories = useMemo(() => {
-    const cats = [...new Set(allNewsItems.map(item => item.category))];
-    return cats.sort();
-  }, [allNewsItems]);
-
-  const years = useMemo(() => {
-    const yrs = [...new Set(allNewsItems.map(item => new Date(item.date).getFullYear().toString()))];
-    return yrs.sort((a, b) => parseInt(b) - parseInt(a));
-  }, [allNewsItems]);
-
-  // Filter news based on search, category, and year
-  const filteredNews = useMemo(() => {
-    return allNewsItems.filter(item => {
-      const matchesSearch = searchTerm === "" || 
-        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
-      const matchesYear = selectedYear === "all" || new Date(item.date).getFullYear().toString() === selectedYear;
-      
-      return matchesSearch && matchesCategory && matchesYear;
-    });
-  }, [allNewsItems, searchTerm, selectedCategory, selectedYear]);
-
-  // Get featured article and regular articles
-  const featuredArticle = filteredNews.find(item => item.featured);
-  const regularArticles = filteredNews.filter(item => !item.featured).slice(0, visibleCount - (featuredArticle ? 1 : 0));
-  
-  const loadMore = () => {
-    setVisibleCount(prev => Math.min(prev + 6, filteredNews.length));
-  };
-  
-  const hasMore = visibleCount < filteredNews.length;
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setSelectedCategory("all");
-    setSelectedYear("all");
-    setActiveTab("all");
-  };
-
-  const hasActiveFilters = searchTerm !== "" || selectedCategory !== "all" || selectedYear !== "all";
 
   // Navigation functions
   const handleNewsClick = (article: any) => {
@@ -194,6 +138,10 @@ const LatestNews = () => {
   const handleViewAllNews = () => {
     navigate('/latest-news');
   };
+
+  // Get featured article and regular articles
+  const featuredArticle = newsArticles.find((item: any) => item.featured);
+  const regularArticles = newsArticles.filter((item: any) => !item.featured);
 
   return (
     <section className="py-20 bg-gradient-to-br from-background via-background/95 to-ustp-blue/5">
@@ -208,97 +156,13 @@ const LatestNews = () => {
           </p>
         </div>
 
-        {/* Search and Filter Controls */}
-        <div className="max-w-6xl mx-auto mb-8">
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <Input
-                  placeholder="Search news..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              {/* Category Filter */}
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map(category => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              {/* Year Filter */}
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Years" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Years</SelectItem>
-                  {years.map(year => (
-                    <SelectItem key={year} value={year}>{year}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              {/* Clear Filters */}
-              {hasActiveFilters && (
-                <Button variant="outline" onClick={clearFilters} className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  Clear Filters
-                </Button>
-              )}
-            </div>
-            
-            {/* Active Filters Display */}
-            {hasActiveFilters && (
-              <div className="mt-4 flex flex-wrap gap-2 items-center">
-                <span className="text-sm text-gray-600">Active filters:</span>
-                {searchTerm && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    Search: "{searchTerm}"
-                  </Badge>
-                )}
-                {selectedCategory !== "all" && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    Category: {selectedCategory}
-                  </Badge>
-                )}
-                {selectedYear !== "all" && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    Year: {selectedYear}
-                  </Badge>
-                )}
-              </div>
-            )}
-            
-            {/* Results Count */}
-            <div className="mt-4 text-sm text-gray-600">
-              Showing {Math.min(visibleCount, filteredNews.length)} of {filteredNews.length} news articles
-              {hasActiveFilters && " (filtered)"}
-            </div>
-          </div>
-        </div>
-
-        {/* News Grid */}
-        {filteredNews.length === 0 ? (
+        {/* News Grid - Limited to 3 articles for homepage */}
+        {newsArticles.length === 0 ? (
           <div className="text-center py-16">
-            <Filter className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No news found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No news available</h3>
             <p className="text-gray-500 mb-6">
-              Try adjusting your search terms or filters to find what you're looking for.
+              Check back soon for the latest updates and announcements.
             </p>
-            <Button variant="outline" onClick={clearFilters}>
-              Clear all filters
-            </Button>
           </div>
         ) : (
           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -336,7 +200,7 @@ const LatestNews = () => {
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-1">
-                        {featuredArticle.tags.slice(0, 4).map((tag, index) => (
+                        {featuredArticle.tags.slice(0, 4).map((tag: string, index: number) => (
                           <Badge key={index} variant="outline" className="text-xs bg-white/20 text-white border-white/30">
                             {tag}
                           </Badge>
@@ -349,7 +213,7 @@ const LatestNews = () => {
             )}
 
             {/* Regular Articles - Grid */}
-            {regularArticles.map((item) => (
+            {regularArticles.map((item: any) => (
               <div key={item.id} className="lg:col-span-1">
                 <Card 
                   className="h-full overflow-hidden group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
@@ -379,7 +243,7 @@ const LatestNews = () => {
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-1">
-                        {item.tags.slice(0, 3).map((tag, index) => (
+                        {item.tags.slice(0, 3).map((tag: string, index: number) => (
                           <Badge key={index} variant="outline" className="text-xs bg-white/20 text-white border-white/30">
                             {tag}
                           </Badge>
@@ -393,44 +257,20 @@ const LatestNews = () => {
           </div>
         )}
 
-        {/* Load More and Actions */}
-        <div className="text-center mt-12 space-y-6">
-          {hasMore && (
-            <Button 
-              onClick={loadMore}
-              variant="outline"
-              size="lg"
-              className="px-8"
-            >
-              Load More News
-            </Button>
-          )}
+        {/* View All News Button */}
+        <div className="text-center mt-12">
+          <Button 
+            variant="default" 
+            size="lg" 
+            className="px-8"
+            onClick={handleViewAllNews}
+          >
+            View All News
+            <ExternalLink className="ml-2 h-4 w-4" />
+          </Button>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button 
-              variant="default" 
-              size="lg" 
-              className="px-8"
-              onClick={handleViewAllNews}
-            >
-              View All News
-              <ExternalLink className="ml-2 h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="px-8"
-              onClick={() => {
-                // Simple newsletter subscription placeholder
-                alert('🚀 Newsletter subscription feature coming soon! \n\nStay tuned for real-time updates about USTP TPCO developments, new patent announcements, and innovation opportunities.');
-              }}
-            >
-              Subscribe to Newsletter
-            </Button>
-          </div>
-          
-          <p className="text-sm text-muted-foreground">
-            Get real-time updates delivered to your inbox
+          <p className="text-sm text-muted-foreground mt-4">
+            Discover more news, updates, and announcements
           </p>
         </div>
       </div>
@@ -438,4 +278,4 @@ const LatestNews = () => {
   );
 };
 
-export default LatestNews;
+export default HomepageLatestNews;

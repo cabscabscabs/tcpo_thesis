@@ -8,12 +8,16 @@ import { ChatWidget } from "@/components/ChatWidget";
 import Index from "./pages/Index";
 import IPPortfolio from "./pages/IPPortfolio";
 import Services from "./pages/Services";
+import ServiceRequest from "./pages/ServiceRequest";
+import AdditionalServices from "./pages/AdditionalServices";
 import Resources from "./pages/Resources";
 import About from "./pages/About";
+import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
 import ChatDemo from "./pages/ChatDemo";
 import NotFound from "./pages/NotFound";
 import LatestNewsPage from "./pages/LatestNewsPage";
+import NewsDetail from "./pages/NewsDetail";
 import TechnologyDetails from "./pages/TechnologyDetails";
 
 const queryClient = new QueryClient();
@@ -29,9 +33,13 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/ip-portfolio" element={<IPPortfolio />} />
             <Route path="/technology/:slug" element={<TechnologyDetails />} />
+            <Route path="/news/:slug" element={<NewsDetail />} />
             <Route path="/services" element={<Services />} />
+            <Route path="/service-request" element={<ServiceRequest />} />
+            <Route path="/additional-services" element={<AdditionalServices />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/chat-demo" element={<ChatDemo />} />
             <Route path="/latest-news" element={<LatestNewsPage />} />

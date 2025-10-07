@@ -70,42 +70,139 @@ const IPPortfolio = () => {
       setLoading(true);
       setError(null);
       
-      // Base query
-      let query: ReturnType<typeof supabase.from> = supabase
-        .from("portfolio_items")
-        .select("*", { count: "exact" })
-        .eq("published", true);
+      // First, try to load from admin panel (localStorage)
+      const adminTechnologies = localStorage.getItem('featuredTechnologies');
+      let adminData: ExtendedPortfolioItem[] = [];
       
-      // Add search filter if searchTerm exists
+      if (adminTechnologies) {
+        try {
+          const parsedTech = JSON.parse(adminTechnologies);
+          // Transform admin data to ExtendedPortfolioItem format
+          adminData = parsedTech.map((tech: any, index: number) => ({
+            id: tech.id.toString(),
+            title: tech.title,
+            slug: tech.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+            description: tech.description,
+            image_url: "/placeholder.svg?height=200&width=300",
+            link_url: "#",
+            category: tech.field,
+            tags: [tech.field, tech.status, 'USTP'],
+            published: true,
+            published_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            inventors: tech.inventors,
+            field: tech.field,
+            status: tech.status,
+            year: tech.year,
+            abstract: tech.abstract || tech.description,
+            licensing: tech.status === 'Licensed' ? 'Already Licensed' : 'Available for licensing',
+            applications: [tech.field, 'Innovation', 'Research'],
+            contact: "tpco@ustp.edu.ph",
+            // Set all optional fields to null
+            inventor: null,
+            patent_status: null,
+            patent_number: null,
+            filing_date: null,
+            grant_date: null,
+            assignee: null,
+            ipc_codes: null,
+            cpc_codes: null,
+            application_number: null,
+            priority_date: null,
+            expiration_date: null,
+            claims: null,
+            jurisdictions: null,
+            family_members: null,
+            legal_status: null,
+            citations: null,
+            citations_patents: null,
+            cited_by: null,
+            cited_by_patents: null,
+            family_size: null,
+            priority_claims: null,
+            technology_fields: null,
+            ipc_classes: null,
+            cpc_classes: null
+          }));
+        } catch (error) {
+          console.error('Failed to parse admin technologies:', error);
+        }
+      }
+      
+      // Then try to fetch from Supabase as additional data
+      let supabaseData: ExtendedPortfolioItem[] = [];
+      try {
+        // Base query
+        let query: ReturnType<typeof supabase.from> = supabase
+          .from("portfolio_items")
+          .select("*", { count: "exact" })
+          .eq("published", true);
+        
+        // Add search filter if searchTerm exists
+        if (searchTerm) {
+          query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,inventor.ilike.%${searchTerm}%`);
+        }
+        
+        // Add field filter if not "all"
+        if (selectedField !== "all") {
+          query = query.eq("category", selectedField);
+        }
+        
+        // Add status filter if not "all"
+        if (selectedStatus !== "all") {
+          query = query.eq("patent_status", selectedStatus);
+        }
+        
+        const { data, error } = await query;
+        
+        if (!error && data) {
+          // Transform data to ensure it matches ExtendedPortfolioItem interface
+          supabaseData = data.map(item => transformToExtendedPortfolioItem(item));
+        }
+      } catch (err) {
+        console.log('Supabase fetch failed, using fallback data');
+      }
+      
+      // Combine admin data with supabase data (admin data takes precedence)
+      let allData = [...adminData, ...supabaseData];
+      
+      // If no data from either source, use sample data
+      if (allData.length === 0) {
+        allData = getSamplePortfolioItems();
+      }
+      
+      // Apply client-side filtering
+      let filteredData = allData;
+      
       if (searchTerm) {
-        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,inventor.ilike.%${searchTerm}%`);
+        filteredData = filteredData.filter(item => 
+          item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (item.category && item.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (item.inventors && item.inventors.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
       }
       
-      // Add field filter if not "all"
       if (selectedField !== "all") {
-        query = query.eq("category", selectedField);
+        filteredData = filteredData.filter(item => item.category === selectedField || item.field === selectedField);
       }
       
-      // Add status filter if not "all"
       if (selectedStatus !== "all") {
-        query = query.eq("patent_status", selectedStatus);
+        filteredData = filteredData.filter(item => item.status === selectedStatus || item.patent_status === selectedStatus);
       }
       
-      // Add pagination
-      const { data, count, error } = await query
-        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
+      // Apply pagination
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+      const paginatedData = filteredData.slice(startIndex, endIndex);
       
-      if (error) throw error;
-      
-      // Transform data to ensure it matches ExtendedPortfolioItem interface
-      const transformedData = data.map(item => transformToExtendedPortfolioItem(item));
-      
-      setPortfolioItems(transformedData);
-      setTotalItems(count || 0);
+      setPortfolioItems(paginatedData);
+      setTotalItems(filteredData.length);
     } catch (err) {
       console.error("Error fetching portfolio items:", err);
       setError("Failed to load portfolio items. Please try again later.");
-      // Fallback to sample data if database fetch fails
+      // Fallback to sample data if everything fails
       setPortfolioItems(getSamplePortfolioItems());
       setTotalItems(getSamplePortfolioItems().length);
     } finally {
@@ -115,49 +212,79 @@ const IPPortfolio = () => {
 
   const fetchFilterOptions = useCallback(async () => {
     try {
-      // Define interfaces for the data
-      interface CategoryData {
-        category: string | null;
+      // Get options from admin technologies first
+      const adminTechnologies = localStorage.getItem('featuredTechnologies');
+      let adminFields: string[] = [];
+      let adminStatuses: string[] = [];
+      
+      if (adminTechnologies) {
+        try {
+          const parsedTech = JSON.parse(adminTechnologies);
+          adminFields = Array.from(new Set(parsedTech.map((tech: any) => tech.field).filter(Boolean))) as string[];
+          adminStatuses = Array.from(new Set(parsedTech.map((tech: any) => tech.status).filter(Boolean))) as string[];
+        } catch (error) {
+          console.error('Failed to parse admin technologies for filters:', error);
+        }
       }
       
-      interface PatentStatusData {
-        patent_status: string | null;
-      }
-      
-      // Use unknown first, then cast to any to avoid linting errors
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const typedSupabase = supabase as unknown as any;
-      
-      // Fetch unique categories
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const categoryResult = await typedSupabase
-        .from("portfolio_items")
-        .select("category")
-        .neq("category", null)
-        .neq("category", "");
-      
-      if (!categoryResult.error && categoryResult.data) {
-        const uniqueCategories = Array.from(new Set(categoryResult.data.map((item: CategoryData) => item.category))).filter(Boolean) as string[];
-        setFieldOptions(uniqueCategories);
-      }
-      
-      // Fetch unique patent statuses
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const statusResult = await typedSupabase
-        .from("portfolio_items")
-        .select("patent_status")
-        .neq("patent_status", null)
-        .neq("patent_status", "");
-      
-      if (!statusResult.error && statusResult.data) {
-        const uniqueStatuses = Array.from(new Set(statusResult.data.map((item: PatentStatusData) => item.patent_status))).filter(Boolean) as string[];
-        setStatusOptions(uniqueStatuses);
+      // Try to get additional options from Supabase
+      try {
+        // Define interfaces for the data
+        interface CategoryData {
+          category: string | null;
+        }
+        
+        interface PatentStatusData {
+          patent_status: string | null;
+        }
+        
+        // Use unknown first, then cast to any to avoid linting errors
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const typedSupabase = supabase as unknown as any;
+        
+        // Fetch unique categories
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const categoryResult = await typedSupabase
+          .from("portfolio_items")
+          .select("category")
+          .neq("category", null)
+          .neq("category", "");
+        
+        let supabaseFields: string[] = [];
+        if (!categoryResult.error && categoryResult.data) {
+          supabaseFields = Array.from(new Set(categoryResult.data.map((item: CategoryData) => item.category))).filter(Boolean) as string[];
+        }
+        
+        // Fetch unique patent statuses
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const statusResult = await typedSupabase
+          .from("portfolio_items")
+          .select("patent_status")
+          .neq("patent_status", null)
+          .neq("patent_status", "");
+        
+        let supabaseStatuses: string[] = [];
+        if (!statusResult.error && statusResult.data) {
+          supabaseStatuses = Array.from(new Set(statusResult.data.map((item: PatentStatusData) => item.patent_status))).filter(Boolean) as string[];
+        }
+        
+        // Combine admin and supabase options
+        const combinedFields = [...new Set([...adminFields, ...supabaseFields])].sort();
+        const combinedStatuses = [...new Set([...adminStatuses, ...supabaseStatuses])].sort();
+        
+        setFieldOptions(combinedFields.length > 0 ? combinedFields : ["Agriculture", "Materials Science", "Food Technology", "Environmental Technology", "Energy Technology", "Information Technology"]);
+        setStatusOptions(combinedStatuses.length > 0 ? combinedStatuses : ["Available", "Licensed", "Pending", "Under Review"]);
+      } catch (err) {
+        console.error("Error fetching filter options:", err);
+        // Use admin options + fallback if Supabase fails
+        setFieldOptions(adminFields.length > 0 ? adminFields : ["Agriculture", "Materials Science", "Food Technology", "Environmental Technology", "Energy Technology", "Information Technology"]);
+        setStatusOptions(adminStatuses.length > 0 ? adminStatuses : ["Available", "Licensed", "Pending", "Under Review"]);
       }
     } catch (err) {
       console.error("Error fetching filter options:", err);
-      // Fallback to hardcoded options if database fetch fails
-      setFieldOptions(["Agriculture", "Materials Science", "Food Technology", "Environmental Technology", "Energy Technology", "Aquaculture Technology"]);
-      setStatusOptions(["Granted", "Pending", "Licensed", "Under Review"]);
+      // Fallback to hardcoded options if everything fails
+      setFieldOptions(["Agriculture", "Materials Science", "Food Technology", "Environmental Technology", "Energy Technology", "Information Technology"]);
+      setStatusOptions(["Available", "Licensed", "Pending", "Under Review"]);
     }
   }, []);
 
@@ -168,6 +295,17 @@ const IPPortfolio = () => {
   useEffect(() => {
     fetchFilterOptions();
   }, [fetchFilterOptions]);
+
+  // Listen for storage changes from admin panel
+  useEffect(() => {
+    const handleStorageChange = () => {
+      fetchPortfolioItems();
+      fetchFilterOptions();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [fetchPortfolioItems, fetchFilterOptions]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -361,12 +499,12 @@ const IPPortfolio = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
-                    <CardDescription className="text-gray-600 line-clamp-3 text-sm">
+                    <CardDescription className="text-gray-600 line-clamp-3 text-sm break-words">
                       {item.abstract || item.description}
                     </CardDescription>
                     <div className="flex flex-wrap gap-1 mt-3">
                       {(item.field || item.category) && (
-                        <Badge className={`${getFieldColor(item.field || item.category || '')} text-xs`}>
+                        <Badge className={`${getFieldColor(item.field || item.category || '')} text-xs pointer-events-none`}>
                           {item.field || item.category}
                         </Badge>
                       )}
@@ -414,12 +552,12 @@ const IPPortfolio = () => {
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex gap-2">
                           {item.status && (
-                            <Badge className={`${getStatusColor(item.status)} text-xs`}>
+                            <Badge className={`${getStatusColor(item.status)} text-xs pointer-events-none`}>
                               {item.status}
                             </Badge>
                           )}
                           {(item.field || item.category) && (
-                            <Badge className={`${getFieldColor(item.field || item.category || '')} text-xs`}>
+                            <Badge className={`${getFieldColor(item.field || item.category || '')} text-xs pointer-events-none`}>
                               {item.field || item.category}
                             </Badge>
                           )}
@@ -429,7 +567,7 @@ const IPPortfolio = () => {
                       <CardTitle className="text-xl font-roboto group-hover:text-secondary transition-colors">
                         {item.title}
                       </CardTitle>
-                      <CardDescription className="text-gray-200">
+                      <CardDescription className="text-gray-200 line-clamp-3 break-words">
                         {item.abstract || item.description}
                       </CardDescription>
                     </CardHeader>

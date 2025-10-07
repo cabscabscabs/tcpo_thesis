@@ -1,9 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Shield, Handshake, BookOpen, Rocket, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import servicesImage from "@/assets/services-bg.jpg";
 
 const ServicesOverview = () => {
+  const navigate = useNavigate();
+  
   const services = [
     {
       icon: Shield,
@@ -30,6 +33,11 @@ const ServicesOverview = () => {
       features: ["Business Development", "Mentorship Programs", "Funding Assistance", "Market Entry Support"]
     }
   ];
+
+  const handleRequestService = () => {
+    // Navigate to the services page as specified
+    window.location.href = 'http://localhost:8080/services';
+  };
 
   return (
     <section className="py-20 bg-white">
@@ -77,7 +85,7 @@ const ServicesOverview = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="gold" size="lg" className="group">
+              <Button variant="gold" size="lg" className="group" onClick={handleRequestService}>
                 Request Service
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
@@ -90,12 +98,14 @@ const ServicesOverview = () => {
           {/* Services Image */}
           <div className="relative">
             <div 
-              className="rounded-lg shadow-lg h-96 bg-cover bg-center"
+              className="rounded-lg shadow-lg h-96 bg-cover bg-center bg"
               style={{ backgroundImage: `url(${servicesImage})` }}
             >
+              {/* Dimming overlay */}
+              <div className="absolute inset-0 bg-black/40 rounded-lg"></div>
               <div className="absolute inset-0 bg-gradient-ustp/70 rounded-lg flex items-center justify-center">
-                <div className="text-center text-white p-8">
-                  <h3 className="text-2xl font-roboto font-bold mb-4">
+                <div className="text-center font-bold text-white p-15">
+                  <h3 className="text-3xl font-roboto font-bold mb-4">
                     4-Step Process
                   </h3>
                   <div className="space-y-3">
