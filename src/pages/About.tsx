@@ -3,8 +3,10 @@ import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Mail, Phone, MapPin, Linkedin, Award, Users, Target, Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const About = () => {
+  const navigate = useNavigate();
   const team = [
     {
       name: "Dr. Venessa Garcia",
@@ -438,7 +440,7 @@ const About = () => {
               Office Hours: Monday - Friday, 8:00 AM - 5:00 PM<br />
               Walk-in consultations welcome, appointments recommended
             </p>
-            <Button variant="gold" size="lg">
+            <Button variant="gold" size="lg" onClick={() => navigate('/contact')}>
               Schedule a Meeting
               <Phone className="ml-2" />
             </Button>

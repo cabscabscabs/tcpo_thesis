@@ -35,8 +35,8 @@ const ServicesOverview = () => {
   ];
 
   const handleRequestService = () => {
-    // Navigate to the services page as specified
-    window.location.href = 'http://localhost:8080/services';
+    // Navigate to the services page using React Router
+    navigate('/services');
   };
 
   return (

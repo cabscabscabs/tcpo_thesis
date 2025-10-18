@@ -140,7 +140,7 @@ const NewsDetail = () => {
       <Navigation />
       
       {/* Back Button */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-4 py-6">
         <Button 
           variant="outline" 
           onClick={() => navigate('/latest-news')}
@@ -151,10 +151,21 @@ const NewsDetail = () => {
         </Button>
       </div>
 
-      <article className="container mx-auto px-4 pb-12">
-        <div className="max-w-4xl mx-auto">
+      <article className="max-w-4xl mx-auto px-4 pb-12">
+        <div className="space-y-8">
+          {/* Featured Image */}
+          {article.image && (
+            <div className="w-full h-64 md:h-80 lg:h-96 bg-cover bg-center rounded-lg shadow-lg overflow-hidden">
+              <img 
+                src={article.image} 
+                alt={article.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+
           {/* Article Header */}
-          <header className="bg-white rounded-lg shadow-sm p-8 mb-8">
+          <header className="bg-white rounded-lg shadow-sm p-8">
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge className="bg-ustp-blue text-white">
                 {article.category.toUpperCase()}
@@ -199,10 +210,10 @@ const NewsDetail = () => {
           </header>
 
           {/* Article Content */}
-          <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
+          <div className="bg-white rounded-lg shadow-sm p-8">
             <div className="prose prose-lg max-w-none">
               {article.content.split('\n').map((paragraph, index) => (
-                <p key={index} className="mb-4 text-gray-700 leading-relaxed">
+                <p key={index} className="mb-4 text-gray-700 leading-relaxed break-words">
                   {paragraph}
                 </p>
               ))}

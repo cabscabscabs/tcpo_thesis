@@ -156,6 +156,9 @@ const Admin = () => {
     }
   ]);
 
+  // State for featured technology selection
+  const [selectedFeaturedTech, setSelectedFeaturedTech] = useState<number[]>([]);
+
   // Modal states for technology management
   const [showTechModal, setShowTechModal] = useState(false);
   const [editingTech, setEditingTech] = useState<any>(null);
@@ -166,7 +169,8 @@ const Admin = () => {
     status: 'Available',
     inventors: '',
     year: new Date().getFullYear().toString(),
-    abstract: ''
+    abstract: '',
+    image: null as File | null
   });
 
   // Load saved data on component mount
@@ -491,15 +495,7 @@ const Admin = () => {
       content: article.content,
       image: null
     });
-    
-    // Scroll to the form for better UX
-    const formElement = document.getElementById('news-form');
-    if (formElement) {
-      formElement.scrollIntoView({ behavior: 'smooth' });
-    }
-    
-    // Show a toast or alert to indicate editing mode
-    alert(`✏️ Now editing: "${article.title}". Make your changes and click "Update Article" to save.`);
+    setShowNewsModal(true);
   };
 
   // News duplication function
@@ -580,7 +576,8 @@ Article Details:
       status: 'Available',
       inventors: '',
       year: new Date().getFullYear().toString(),
-      abstract: ''
+      abstract: '',
+      image: null
     });
     setShowTechModal(true);
   };
@@ -594,7 +591,8 @@ Article Details:
       status: tech.status,
       inventors: tech.inventors,
       year: tech.year,
-      abstract: tech.abstract
+      abstract: tech.abstract,
+      image: null
     });
     setShowTechModal(true);
   };
@@ -842,7 +840,7 @@ Article Details:
               <Card>
                 <CardHeader>
                   <CardTitle>Featured Technologies</CardTitle>
-                  <CardDescription>Highlight key innovations</CardDescription>
+                  <CardDescription>Highlight key innovations from existing patents</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
@@ -868,9 +866,16 @@ Article Details:
                       </div>
                     ))}
                   </div>
-                  <Button variant="ustp" className="w-full" onClick={handleAddTechnology}>
+                  <Button variant="ustp" className="w-full" onClick={() => {
+                    // Navigate to patents tab to select technologies
+                    const patentsTab = document.querySelector('[data-value="patents"]');
+                    if (patentsTab) {
+                      (patentsTab as HTMLButtonElement).click();
+                      alert('Please go to the Patents tab to select technologies to feature.');
+                    }
+                  }}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Featured Technology
+                    Select from Patents
                   </Button>
                 </CardContent>
               </Card>
@@ -914,7 +919,7 @@ Article Details:
               </Button>
             </div>
 
-            <Card id="news-form">
+            <Card id="news-form" className={showNewsModal ? "hidden" : ""}>
               <CardHeader>
                 <CardTitle>
                   {editingNews ? (
@@ -1275,6 +1280,7 @@ Article Details:
             <Card>
               <CardHeader>
                 <CardTitle>Existing Patents</CardTitle>
+                <CardDescription>Select patents to feature on homepage and IP portfolio</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -1290,6 +1296,35 @@ Article Details:
                         </div>
                       </div>
                       <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            // Add to featured technologies
+                            const isAlreadyFeatured = featuredTechnologies.some(tech => tech.id === patent.id);
+                            if (!isAlreadyFeatured) {
+                              const newFeaturedTech = {
+                                id: patent.id,
+                                title: patent.title,
+                                description: `Patent in ${patent.field}`,
+                                field: patent.field,
+                                status: patent.status,
+                                inventors: "Dr. USTP Researcher", // Default value
+                                year: new Date().getFullYear().toString(),
+                                abstract: `Patent abstract for ${patent.title}`
+                              };
+                              const updatedTechnologies = [...featuredTechnologies, newFeaturedTech];
+                              setFeaturedTechnologies(updatedTechnologies);
+                              localStorage.setItem('featuredTechnologies', JSON.stringify(updatedTechnologies));
+                              window.dispatchEvent(new Event('storage'));
+                              alert(`✅ ${patent.title} added to featured technologies!`);
+                            } else {
+                              alert(`⚠️ ${patent.title} is already featured.`);
+                            }
+                          }}
+                        >
+                          Feature
+                        </Button>
                         <Button variant="outline" size="sm">
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -1312,28 +1347,55 @@ Article Details:
                 Add Service
               </Button>
             </div>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Add New Service</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="service-title">Service Title</Label>
+                    <Input id="service-title" placeholder="Enter service title" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="service-description">Service Description</Label>
+                    <Textarea id="service-description" placeholder="Enter service description" rows={4} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="service-image">Service Image</Label>
+                    <Input id="service-image" type="file" accept="image/*" />
+                  </div>
+                </div>
+                <Button variant="ustp">Add Service</Button>
+              </CardContent>
+            </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {services.map((service) => (
-                <Card key={service.id}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{service.name}</CardTitle>
-                    <CardDescription>{service.requests} pending requests</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        View Requests
-                      </Button>
+            <Card>
+              <CardHeader>
+                <CardTitle>Existing Services</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {services.map((service) => (
+                    <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <h3 className="font-semibold">{service.name}</h3>
+                        <p className="text-sm text-muted-foreground">{service.requests} requests</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
             {/* Additional Service Requests Section */}
             <Card>
               <CardHeader>
@@ -1577,6 +1639,123 @@ Article Details:
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* News Edit Modal */}
+      <Dialog open={showNewsModal} onOpenChange={setShowNewsModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingNews ? 'Edit News Article' : 'Create News Article'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingNews ? 'Update the news article information below.' : 'Fill in the details for the new news article.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="modal-news-title">Article Title *</Label>
+                <Input 
+                  id="modal-news-title" 
+                  value={newsForm.title}
+                  onChange={(e) => setNewsForm({...newsForm, title: e.target.value})}
+                  placeholder="Enter article title"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="modal-news-category">Category *</Label>
+                <Select value={newsForm.category} onValueChange={(value) => setNewsForm({...newsForm, category: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Events">Events</SelectItem>
+                    <SelectItem value="Partnerships">Partnerships</SelectItem>
+                    <SelectItem value="Education">Education</SelectItem>
+                    <SelectItem value="Innovation">Innovation</SelectItem>
+                    <SelectItem value="Announcements">Announcements</SelectItem>
+                    <SelectItem value="Patent">Patent</SelectItem>
+                    <SelectItem value="Research">Research</SelectItem>
+                    <SelectItem value="Licensing">Licensing</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="modal-news-author">Author</Label>
+                <Input 
+                  id="modal-news-author" 
+                  value={newsForm.author}
+                  onChange={(e) => setNewsForm({...newsForm, author: e.target.value})}
+                  placeholder="Article author"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="modal-news-date">Publication Date</Label>
+                <Input 
+                  id="modal-news-date" 
+                  type="date" 
+                  value={newsForm.date}
+                  onChange={(e) => setNewsForm({...newsForm, date: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="modal-news-excerpt">Excerpt</Label>
+              <Textarea 
+                id="modal-news-excerpt" 
+                value={newsForm.excerpt}
+                onChange={(e) => setNewsForm({...newsForm, excerpt: e.target.value})}
+                placeholder="Brief summary of the article" 
+                rows={2}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="modal-news-content">Article Content *</Label>
+              <Textarea 
+                id="modal-news-content" 
+                value={newsForm.content}
+                onChange={(e) => setNewsForm({...newsForm, content: e.target.value})}
+                placeholder="Full article content" 
+                rows={6}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="modal-news-image">Featured Image</Label>
+              <Input 
+                id="modal-news-image" 
+                type="file" 
+                accept="image/*" 
+                onChange={(e) => setNewsForm({...newsForm, image: e.target.files?.[0] || null})}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewsModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="ustp" onClick={() => {
+              if (editingNews) {
+                handlePublishNews();
+              } else {
+                handlePublishNews();
+              }
+            }}>
+              {editingNews ? 'Update Article' : 'Publish Article'}
+            </Button>
+            <Button variant="outline" onClick={() => {
+              if (editingNews) {
+                handleSaveDraft();
+              } else {
+                handleSaveDraft();
+              }
+            }}>
+              {editingNews ? 'Save Changes as Draft' : 'Save as Draft'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Technology Add/Edit Modal */}
       <Dialog open={showTechModal} onOpenChange={setShowTechModal}>

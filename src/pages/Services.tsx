@@ -347,7 +347,7 @@ const Services = () => {
       </section>
 
       {/* Success Stories */}
-      <section className="py-16">
+      <section id="success-stories" className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-roboto font-bold text-primary mb-4">
@@ -432,7 +432,7 @@ const Services = () => {
             <p className="text-gray-600 mb-4">
               Want to be our next success story?
             </p>
-            <Button variant="gold" size="lg">
+            <Button variant="gold" size="lg" onClick={() => navigate('/contact')}>
               Start Your Journey
               <ArrowRight className="ml-2" size={16} />
             </Button>

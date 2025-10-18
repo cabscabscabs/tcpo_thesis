@@ -1,34 +1,60 @@
 import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Footer = () => {
+  const navigate = useNavigate();
+
+  // Navigation function to handle clicks
+  const handleNavigation = (href: string, name: string, tab?: string) => {
+    if (name === "Success Stories") {
+      // Navigate to services page and scroll to success stories section
+      navigate('/services');
+      setTimeout(() => {
+        const element = document.getElementById('success-stories');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else if (tab && href === "/resources") {
+      // Navigate to resources page with specific tab
+      navigate(`/resources?tab=${tab}`);
+    } else if (href.startsWith('/')) {
+      // Internal navigation
+      navigate(href);
+    } else {
+      // External links (not implemented yet)
+      console.log(`Navigation to ${name} not yet implemented`);
+    }
+  };
+
   const quickLinks = [
-    { name: "IP Portfolio", href: "/ip-portfolio" },
-    { name: "Patent Search", href: "/patent-search" },
-    { name: "Licensing Guide", href: "/licensing" },
-    { name: "Success Stories", href: "/success-stories" }
+    { name: "IP Portfolio", href: "/ip-portfolio", implemented: true },
+    { name: "Patent Search", href: "/patent-search", implemented: false },
+    { name: "Licensing Guide", href: "/licensing", implemented: false },
+    { name: "Success Stories", href: "/services", implemented: true }
   ];
 
   const services = [
-    { name: "Patent Filing", href: "/services/patents" },
-    { name: "Technology Transfer", href: "/services/transfer" },
-    { name: "Industry Matching", href: "/services/matching" },
-    { name: "Startup Incubation", href: "/services/incubation" }
+    { name: "Patent Filing", href: "/services", implemented: true },
+    { name: "Technology Transfer", href: "/services", implemented: true },
+    { name: "Industry Matching", href: "/services", implemented: true },
+    { name: "Startup Incubation", href: "/services", implemented: true }
   ];
 
   const resources = [
-    { name: "IP 101 Tutorials", href: "/resources/tutorials" },
-    { name: "Legal Templates", href: "/resources/templates" },
-    { name: "SSF Booking", href: "/resources/facilities" },
-    { name: "Research Guidelines", href: "/resources/guidelines" }
+    { name: "IP 101 Tutorials", href: "/resources", tab: "tutorials", implemented: true },
+    { name: "Legal Templates", href: "/resources", tab: "templates", implemented: true },
+    { name: "SSF Booking", href: "/resources", tab: "facilities", implemented: true },
+    { name: "Research Guidelines", href: "/resources", tab: "guidelines", implemented: true }
   ];
 
   const partners = [
-    "Oro Chamber of Commerce",
-    "Ateneo IPO",
-    "DOST Region X",
-    "DTI Misamis Oriental",
-    "CDO b.i.t.e.s."
+    { name: "Oro Chamber of Commerce", url: "https://www.orochamber.org/" },
+    { name: "Ateneo IPO", url: "https://www.aipo.ateneo.edu/" },
+    { name: "DOST Region X", url: "https://region10.dost.gov.ph/" },
+    { name: "DTI Misamis Oriental", url: "https://www.dti.gov.ph/dti-regions/dti-region-10" },
+    { name: "CDO b.i.t.e.s.", url: "https://www.cdobites.com/" }
   ];
 
   return (
@@ -78,12 +104,18 @@ const Footer = () => {
             <ul className="space-y-2">
               {quickLinks.map((link, index) => (
                 <li key={index}>
-                  <a 
-                    href={link.href} 
-                    className="text-white/70 hover:text-secondary transition-colors text-sm"
-                  >
-                    {link.name}
-                  </a>
+                  {link.implemented ? (
+                    <button 
+                      onClick={() => handleNavigation(link.href, link.name)}
+                      className="text-white/70 hover:text-secondary transition-colors text-sm text-left"
+                    >
+                      {link.name}
+                    </button>
+                  ) : (
+                    <span className="text-white/50 text-sm cursor-not-allowed">
+                      {link.name} (Coming Soon)
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -95,12 +127,18 @@ const Footer = () => {
             <ul className="space-y-2">
               {services.map((service, index) => (
                 <li key={index}>
-                  <a 
-                    href={service.href} 
-                    className="text-white/70 hover:text-secondary transition-colors text-sm"
-                  >
-                    {service.name}
-                  </a>
+                  {service.implemented ? (
+                    <button 
+                      onClick={() => handleNavigation(service.href, service.name)}
+                      className="text-white/70 hover:text-secondary transition-colors text-sm text-left"
+                    >
+                      {service.name}
+                    </button>
+                  ) : (
+                    <span className="text-white/50 text-sm cursor-not-allowed">
+                      {service.name} (Coming Soon)
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -112,12 +150,18 @@ const Footer = () => {
             <ul className="space-y-2">
               {resources.map((resource, index) => (
                 <li key={index}>
-                  <a 
-                    href={resource.href} 
-                    className="text-white/70 hover:text-secondary transition-colors text-sm"
-                  >
-                    {resource.name}
-                  </a>
+                  {resource.implemented ? (
+                    <button 
+                      onClick={() => handleNavigation(resource.href, resource.name, resource.tab)}
+                      className="text-white/70 hover:text-secondary transition-colors text-sm text-left"
+                    >
+                      {resource.name}
+                    </button>
+                  ) : (
+                    <span className="text-white/50 text-sm cursor-not-allowed">
+                      {resource.name} (Coming Soon)
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -129,9 +173,15 @@ const Footer = () => {
           <h4 className="font-roboto font-semibold mb-4 text-center">Our Partners</h4>
           <div className="flex flex-wrap justify-center gap-4 mb-6">
             {partners.map((partner, index) => (
-              <span key={index} className="text-sm text-white/80 bg-white/5 px-3 py-1 rounded-full">
-                {partner}
-              </span>
+              <a 
+                key={index} 
+                href={partner.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-white/80 bg-white/5 px-3 py-1 rounded-full hover:bg-white/10 hover:text-secondary transition-colors cursor-pointer"
+              >
+                {partner.name}
+              </a>
             ))}
           </div>
         </div>
@@ -143,15 +193,15 @@ const Footer = () => {
           </p>
           
           <div className="flex space-x-6 text-sm">
-            <a href="/privacy" className="text-white/60 hover:text-secondary transition-colors">
-              Privacy Policy
-            </a>
-            <a href="/terms" className="text-white/60 hover:text-secondary transition-colors">
-              Terms of Use
-            </a>
-            <a href="/accessibility" className="text-white/60 hover:text-secondary transition-colors">
-              Accessibility
-            </a>
+            <span className="text-white/50 cursor-not-allowed">
+              Privacy Policy (Coming Soon)
+            </span>
+            <span className="text-white/50 cursor-not-allowed">
+              Terms of Use (Coming Soon)
+            </span>
+            <span className="text-white/50 cursor-not-allowed">
+              Accessibility (Coming Soon)
+            </span>
           </div>
         </div>
 
@@ -166,7 +216,7 @@ const Footer = () => {
                 Join us for the premier technology commercialization event in Northern Mindanao
               </p>
             </div>
-            <Button variant="gold" size="sm" className="group">
+            <Button variant="gold" size="sm" className="group" onClick={() => console.log('TPCO-CET Convergence 2025 - Coming Soon!')}>
               Learn More
               <ExternalLink className="ml-2 group-hover:translate-x-1 transition-transform" size={16} />
             </Button>

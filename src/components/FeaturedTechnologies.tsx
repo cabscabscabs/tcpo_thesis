@@ -89,10 +89,10 @@ const FeaturedTechnologies = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Licensed": return "bg-accent/10 text-accent-foreground border-accent/20";
-      case "Available": return "bg-secondary/10 text-secondary-foreground border-secondary/20";
-      case "Pending": return "bg-muted text-muted-foreground border-muted-foreground/20";
-      default: return "bg-muted text-muted-foreground border-muted-foreground/20";
+      case "Licensed": return "bg-accent/10 text-white border-accent/20";
+      case "Available": return "bg-secondary/10 text-white border-secondary/20";
+      case "Pending": return "bg-muted text-white border-muted-foreground/20";
+      default: return "bg-muted text-white border-muted-foreground/20";
     }
   };
 

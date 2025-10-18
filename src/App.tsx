@@ -11,14 +11,18 @@ import Services from "./pages/Services";
 import ServiceRequest from "./pages/ServiceRequest";
 import AdditionalServices from "./pages/AdditionalServices";
 import Resources from "./pages/Resources";
+import BrowseResources from "./pages/BrowseResources";
+import FacilityBooking from "./pages/FacilityBooking";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Events from "./pages/Events";
 import Admin from "./pages/Admin";
 import ChatDemo from "./pages/ChatDemo";
 import NotFound from "./pages/NotFound";
 import LatestNewsPage from "./pages/LatestNewsPage";
 import NewsDetail from "./pages/NewsDetail";
 import TechnologyDetails from "./pages/TechnologyDetails";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +33,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/ip-portfolio" element={<IPPortfolio />} />
@@ -38,8 +43,11 @@ const App = () => (
             <Route path="/service-request" element={<ServiceRequest />} />
             <Route path="/additional-services" element={<AdditionalServices />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/browse-resources" element={<BrowseResources />} />
+            <Route path="/facility-booking" element={<FacilityBooking />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/events" element={<Events />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/chat-demo" element={<ChatDemo />} />
             <Route path="/latest-news" element={<LatestNewsPage />} />

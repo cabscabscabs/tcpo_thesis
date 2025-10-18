@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, FileText, Users, BookOpen, Info, Newspaper } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const navItems = [
     { name: "Home", href: "/", icon: null },
@@ -30,15 +32,15 @@ const Navigation = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
-              <a
+              <button
                 key={item.name}
-                href={item.href}
-                className="text-white hover:text-secondary transition-colors duration-300 px-3 py-2 text-sm font-medium"
+                onClick={() => navigate(item.href)}
+                className="text-white hover:text-secondary transition-colors duration-300 px-3 py-2 text-sm font-medium border-none bg-transparent cursor-pointer"
               >
                 {item.name}
-              </a>
+              </button>
             ))}
-            <Button variant="gold" size="sm">
+            <Button variant="gold" size="sm" onClick={() => navigate('/contact')}>
               Contact Us
             </Button>
             <ThemeToggle className="text-white hover:text-secondary" />
@@ -60,20 +62,22 @@ const Navigation = () => {
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 bg-primary border-t border-primary/20">
               {navItems.map((item) => (
-                <a
+                <button
                   key={item.name}
-                  href={item.href}
-                  className="text-white hover:text-secondary block px-3 py-2 text-base font-medium transition-colors"
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    navigate(item.href);
+                    setIsOpen(false);
+                  }}
+                  className="text-white hover:text-secondary block px-3 py-2 text-base font-medium transition-colors w-full text-left border-none bg-transparent cursor-pointer"
                 >
                   <div className="flex items-center space-x-2">
                     {item.icon && <item.icon size={18} />}
                     <span>{item.name}</span>
                   </div>
-                </a>
+                </button>
               ))}
               <div className="pt-2">
-                <Button variant="gold" size="sm" className="w-full">
+                <Button variant="gold" size="sm" className="w-full" onClick={() => navigate('/contact')}>
                   Contact Us
                 </Button>
               </div>
