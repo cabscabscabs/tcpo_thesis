@@ -5,48 +5,23 @@ import { useNavigate } from "react-router-dom";
 const Footer = () => {
   const navigate = useNavigate();
 
-  // Navigation function to handle clicks
-  const handleNavigation = (href: string, name: string, tab?: string) => {
-    if (name === "Success Stories") {
-      // Navigate to services page and scroll to success stories section
-      navigate('/services');
-      setTimeout(() => {
-        const element = document.getElementById('success-stories');
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    } else if (tab && href === "/resources") {
-      // Navigate to resources page with specific tab
-      navigate(`/resources?tab=${tab}`);
-    } else if (href.startsWith('/')) {
-      // Internal navigation
-      navigate(href);
-    } else {
-      // External links (not implemented yet)
-      console.log(`Navigation to ${name} not yet implemented`);
-    }
-  };
-
   const quickLinks = [
-    { name: "IP Portfolio", href: "/ip-portfolio", implemented: true },
-    { name: "Patent Search", href: "/patent-search", implemented: false },
-    { name: "Licensing Guide", href: "/licensing", implemented: false },
-    { name: "Success Stories", href: "/services", implemented: true }
+    { name: "IP Portfolio", href: "/ip-portfolio" },
+    { name: "Success Stories", href: "/services" }
   ];
 
   const services = [
-    { name: "Patent Filing", href: "/services", implemented: true },
-    { name: "Technology Transfer", href: "/services", implemented: true },
-    { name: "Industry Matching", href: "/services", implemented: true },
-    { name: "Startup Incubation", href: "/services", implemented: true }
+    { name: "Patent Filing", href: "/services" },
+    { name: "Technology Transfer", href: "/services" },
+    { name: "Industry Matching", href: "/services" },
+    { name: "Startup Incubation", href: "/services" }
   ];
 
   const resources = [
-    { name: "IP 101 Tutorials", href: "/resources", tab: "tutorials", implemented: true },
-    { name: "Legal Templates", href: "/resources", tab: "templates", implemented: true },
-    { name: "SSF Booking", href: "/resources", tab: "facilities", implemented: true },
-    { name: "Research Guidelines", href: "/resources", tab: "guidelines", implemented: true }
+    { name: "IP 101 Tutorials", href: "/resources" },
+    { name: "Legal Templates", href: "/resources" },
+    { name: "SSF Booking", href: "/resources" },
+    { name: "Research Guidelines", href: "/resources" }
   ];
 
   const partners = [
@@ -104,18 +79,12 @@ const Footer = () => {
             <ul className="space-y-2">
               {quickLinks.map((link, index) => (
                 <li key={index}>
-                  {link.implemented ? (
-                    <button 
-                      onClick={() => handleNavigation(link.href, link.name)}
-                      className="text-white/70 hover:text-secondary transition-colors text-sm text-left"
-                    >
-                      {link.name}
-                    </button>
-                  ) : (
-                    <span className="text-white/50 text-sm cursor-not-allowed">
-                      {link.name} (Coming Soon)
-                    </span>
-                  )}
+                  <button 
+                    onClick={() => navigate(link.href)}
+                    className="text-white/70 hover:text-secondary transition-colors text-sm text-left"
+                  >
+                    {link.name}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -127,18 +96,12 @@ const Footer = () => {
             <ul className="space-y-2">
               {services.map((service, index) => (
                 <li key={index}>
-                  {service.implemented ? (
-                    <button 
-                      onClick={() => handleNavigation(service.href, service.name)}
-                      className="text-white/70 hover:text-secondary transition-colors text-sm text-left"
-                    >
-                      {service.name}
-                    </button>
-                  ) : (
-                    <span className="text-white/50 text-sm cursor-not-allowed">
-                      {service.name} (Coming Soon)
-                    </span>
-                  )}
+                  <button 
+                    onClick={() => navigate(service.href)}
+                    className="text-white/70 hover:text-secondary transition-colors text-sm text-left"
+                  >
+                    {service.name}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -150,18 +113,12 @@ const Footer = () => {
             <ul className="space-y-2">
               {resources.map((resource, index) => (
                 <li key={index}>
-                  {resource.implemented ? (
-                    <button 
-                      onClick={() => handleNavigation(resource.href, resource.name, resource.tab)}
-                      className="text-white/70 hover:text-secondary transition-colors text-sm text-left"
-                    >
-                      {resource.name}
-                    </button>
-                  ) : (
-                    <span className="text-white/50 text-sm cursor-not-allowed">
-                      {resource.name} (Coming Soon)
-                    </span>
-                  )}
+                  <button 
+                    onClick={() => navigate(resource.href)}
+                    className="text-white/70 hover:text-secondary transition-colors text-sm text-left"
+                  >
+                    {resource.name}
+                  </button>
                 </li>
               ))}
             </ul>

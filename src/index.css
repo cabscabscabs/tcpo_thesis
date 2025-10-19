@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;500;600&display=swap');
 
+/* Tailwind CSS directives - these are normal and expected */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -158,10 +159,12 @@
 
 @layer base {
   * {
+    /* Apply border styles - this is normal for Tailwind */
     @apply border-border;
   }
 
   body {
+    /* Apply background and text colors - this is normal for Tailwind */
     @apply bg-background text-foreground;
     font-family: 'Open Sans', sans-serif;
   }
@@ -176,6 +179,12 @@
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
+    /* Also define the standard property for compatibility */
+    line-clamp: 2;
     -webkit-line-clamp: 2;
+  }
+  
+  .bg-gradient-ustp {
+    background-image: var(--gradient-ustp);
   }
 }
