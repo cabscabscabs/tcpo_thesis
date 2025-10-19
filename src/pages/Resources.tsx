@@ -142,7 +142,7 @@ const Resources = () => {
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Tabs defaultValue="templates" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-4 text-white">
               <TabsTrigger value="templates">Templates</TabsTrigger>
               <TabsTrigger value="tutorials">IP 101 Tutorials</TabsTrigger>
               <TabsTrigger value="facilities">SSF Booking</TabsTrigger>

@@ -113,7 +113,7 @@ const Events = () => {
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Tabs defaultValue="upcoming" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsList className="grid w-full grid-cols-2 mb-8 text-white">
               <TabsTrigger value="upcoming">
                 Upcoming Events ({upcomingEvents.length})
               </TabsTrigger>
