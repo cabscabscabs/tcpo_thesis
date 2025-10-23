@@ -15,12 +15,26 @@ const Admin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginData, setLoginData] = useState({ username: "", password: "" });
 
-  // Mock data for demonstration
-  const [patents] = useState([
-    { id: 1, title: "Smart Irrigation System", status: "Granted", field: "Agriculture" },
-    { id: 2, title: "Bio-degradable Packaging", status: "Pending", field: "Materials Science" },
-    { id: 3, title: "Food Preservation Method", status: "Granted", field: "Food Technology" }
-  ]);
+  // Patent management state
+  const [patents, setPatents] = useState<any[]>(() => {
+    const savedPatents = localStorage.getItem('patents');
+    return savedPatents ? JSON.parse(savedPatents) : [
+      { id: 1, title: "Smart Irrigation System", status: "Granted", field: "Agriculture" },
+      { id: 2, title: "Bio-degradable Packaging", status: "Pending", field: "Materials Science" },
+      { id: 3, title: "Food Preservation Method", status: "Granted", field: "Food Technology" }
+    ];
+  });
+
+  // Patent form state
+  const [patentForm, setPatentForm] = useState({
+    title: '',
+    patentId: '',
+    inventors: '',
+    field: '',
+    abstract: '',
+    status: 'Pending',
+    year: new Date().getFullYear().toString()
+  });
 
   // News management
   const [news, setNews] = useState([
@@ -63,11 +77,14 @@ const Admin = () => {
   const [showNewsModal, setShowNewsModal] = useState(false);
   const [editingNews, setEditingNews] = useState<any>(null);
 
-  const [events] = useState([
-    { id: 1, title: "Morning with IP Workshop", date: "2024-02-15", status: "Upcoming", attendees: 45 },
-    { id: 2, title: "Technology Showcase 2024", date: "2024-03-20", status: "Planning", attendees: 120 },
-    { id: 3, title: "Innovation Forum", date: "2024-01-20", status: "Completed", attendees: 85 }
-  ]);
+  const [events, setEvents] = useState(() => {
+    const savedEvents = localStorage.getItem('eventsData');
+    return savedEvents ? JSON.parse(savedEvents) : [
+      { id: 1, title: "Morning with IP Workshop", date: "2024-02-15", status: "Upcoming", attendees: 45 },
+      { id: 2, title: "Technology Showcase 2024", date: "2024-03-20", status: "Planning", attendees: 120 },
+      { id: 3, title: "Innovation Forum", date: "2024-01-20", status: "Completed", attendees: 85 }
+    ];
+  });
 
   const [services] = useState([
     { id: 1, name: "IP Protection", requests: 15 },
@@ -173,6 +190,26 @@ const Admin = () => {
     image: null as File | null
   });
 
+  // Modal states for patent management
+  const [showPatentModal, setShowPatentModal] = useState(false);
+  const [editingPatent, setEditingPatent] = useState<any>(null);
+  
+  // Modal state for patent selection
+  const [showPatentSelectionModal, setShowPatentSelectionModal] = useState(false);
+
+  // Event form state
+  const [eventForm, setEventForm] = useState({
+    title: '',
+    type: 'workshop',
+    date: '',
+    time: '',
+    location: '',
+    capacity: '',
+    description: '',
+    image: null as File | null,
+    registrationOpen: true
+  });
+
   // Load saved data on component mount
   useEffect(() => {
     const savedContent = localStorage.getItem('homepageContent');
@@ -237,6 +274,17 @@ const Admin = () => {
         setServiceRequests(parsedRequests);
       } catch (error) {
         console.error('Failed to load service requests:', error);
+      }
+    }
+
+    // Load events
+    const savedEvents = localStorage.getItem('eventsData');
+    if (savedEvents) {
+      try {
+        const parsedEvents = JSON.parse(savedEvents);
+        setEvents(parsedEvents);
+      } catch (error) {
+        console.error('Failed to load events:', error);
       }
     }
   }, []);
@@ -650,6 +698,159 @@ Article Details:
     }
   };
 
+  // Handle saving a new patent
+  const handleSavePatent = () => {
+    if (!patentForm.title || !patentForm.field) {
+      alert('❌ Please fill in all required fields (Title, Field).');
+      return;
+    }
+
+    const newPatent = {
+      id: Date.now(), // Unique ID for new patents
+      title: patentForm.title,
+      patentId: patentForm.patentId,
+      inventors: patentForm.inventors,
+      field: patentForm.field,
+      abstract: patentForm.abstract,
+      status: patentForm.status || "Pending", // Default status
+      year: patentForm.year || new Date().getFullYear().toString()
+    };
+
+    const updatedPatents = [...patents, newPatent];
+    setPatents(updatedPatents);
+    localStorage.setItem('patents', JSON.stringify(updatedPatents));
+    
+    // Trigger storage event for other components
+    window.dispatchEvent(new Event('storage'));
+    
+    // Reset form
+    setPatentForm({
+      title: '',
+      patentId: '',
+      inventors: '',
+      field: '',
+      abstract: '',
+      status: 'Pending',
+      year: new Date().getFullYear().toString()
+    });
+    
+    alert('✅ Patent saved successfully!');
+  };
+
+  // Handle editing a patent
+  const handleEditPatent = (patent: any) => {
+    setEditingPatent(patent);
+    setPatentForm({
+      title: patent.title,
+      patentId: patent.patentId || '',
+      inventors: patent.inventors || '',
+      field: patent.field,
+      abstract: patent.abstract || '',
+      status: patent.status || 'Pending',
+      year: patent.year || new Date().getFullYear().toString()
+    });
+    setShowPatentModal(true);
+  };
+
+  // Handle updating a patent
+  const handleUpdatePatent = () => {
+    if (!patentForm.title || !patentForm.field) {
+      alert('❌ Please fill in all required fields (Title, Field).');
+      return;
+    }
+
+    // Update the patent in the list
+    const updatedPatents = patents.map(patent => 
+      patent.id === editingPatent.id 
+        ? { 
+            ...patent, 
+            title: patentForm.title,
+            patentId: patentForm.patentId,
+            inventors: patentForm.inventors,
+            field: patentForm.field,
+            abstract: patentForm.abstract,
+            status: patentForm.status,
+            year: patentForm.year
+          }
+        : patent
+    );
+
+    setPatents(updatedPatents);
+    localStorage.setItem('patents', JSON.stringify(updatedPatents));
+    
+    // Trigger storage event for other components
+    window.dispatchEvent(new Event('storage'));
+    
+    // Close modal and reset form
+    setShowPatentModal(false);
+    setEditingPatent(null);
+    setPatentForm({
+      title: '',
+      patentId: '',
+      inventors: '',
+      field: '',
+      abstract: '',
+      status: 'Pending',
+      year: new Date().getFullYear().toString()
+    });
+    
+    alert('✅ Patent updated successfully!');
+  };
+
+  // Handle deleting a patent
+  const handleDeletePatent = (patentId: number, title: string) => {
+    if (confirm(`Are you sure you want to delete the patent "${title}"? This action cannot be undone.`)) {
+      const updatedPatents = patents.filter(patent => patent.id !== patentId);
+      setPatents(updatedPatents);
+      localStorage.setItem('patents', JSON.stringify(updatedPatents));
+      window.dispatchEvent(new Event('storage'));
+      logActivity('patent', 'deleted', title);
+      alert(`✅ Patent "${title}" has been deleted successfully!`);
+    }
+  };
+
+  // Handle creating a new event
+  const handleCreateEvent = () => {
+    if (!eventForm.title || !eventForm.date) {
+      alert('❌ Please fill in all required fields (Event Title, Event Date).');
+      return;
+    }
+
+    const newEvent = {
+      id: Date.now(),
+      title: eventForm.title,
+      type: eventForm.type,
+      date: eventForm.date,
+      time: eventForm.time,
+      location: eventForm.location,
+      capacity: eventForm.capacity ? parseInt(eventForm.capacity) : null,
+      description: eventForm.description,
+      registrationOpen: eventForm.registrationOpen
+    };
+
+    const updatedEvents = [...events, newEvent];
+    setEvents(updatedEvents);
+    localStorage.setItem('eventsData', JSON.stringify(updatedEvents));
+    
+    // Trigger storage event for other components
+    window.dispatchEvent(new Event('storage'));
+    
+    // Reset form
+    setEventForm({
+      title: '',
+      type: 'workshop',
+      date: '',
+      time: '',
+      location: '',
+      capacity: '',
+      description: '',
+      image: null,
+      registrationOpen: true
+    });
+    
+    alert('✅ Event created successfully!');
+  };
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -867,12 +1068,8 @@ Article Details:
                     ))}
                   </div>
                   <Button variant="ustp" className="w-full" onClick={() => {
-                    // Navigate to patents tab to select technologies
-                    const patentsTab = document.querySelector('[data-value="patents"]');
-                    if (patentsTab) {
-                      (patentsTab as HTMLButtonElement).click();
-                      alert('Please go to the Patents tab to select technologies to feature.');
-                    }
+                    // Open patent selection modal
+                    setShowPatentSelectionModal(true);
                   }}>
                     <Plus className="mr-2 h-4 w-4" />
                     Select from Patents
@@ -1145,11 +1342,19 @@ Article Details:
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="event-title">Event Title</Label>
-                    <Input id="event-title" placeholder="Enter event title" />
+                    <Input 
+                      id="event-title" 
+                      placeholder="Enter event title" 
+                      value={eventForm.title}
+                      onChange={(e) => setEventForm({...eventForm, title: e.target.value})}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="event-type">Event Type</Label>
-                    <Select>
+                    <Select 
+                      value={eventForm.type}
+                      onValueChange={(value) => setEventForm({...eventForm, type: value})}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
@@ -1164,30 +1369,62 @@ Article Details:
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="event-date">Event Date</Label>
-                    <Input id="event-date" type="date" />
+                    <Input 
+                      id="event-date" 
+                      type="date" 
+                      value={eventForm.date}
+                      onChange={(e) => setEventForm({...eventForm, date: e.target.value})}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="event-time">Event Time</Label>
-                    <Input id="event-time" type="time" />
+                    <Input 
+                      id="event-time" 
+                      type="time" 
+                      value={eventForm.time}
+                      onChange={(e) => setEventForm({...eventForm, time: e.target.value})}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="event-location">Location</Label>
-                    <Input id="event-location" placeholder="Event venue" />
+                    <Input 
+                      id="event-location" 
+                      placeholder="Event venue" 
+                      value={eventForm.location}
+                      onChange={(e) => setEventForm({...eventForm, location: e.target.value})}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="event-capacity">Capacity</Label>
-                    <Input id="event-capacity" type="number" placeholder="Maximum attendees" />
+                    <Input 
+                      id="event-capacity" 
+                      type="number" 
+                      placeholder="Maximum attendees" 
+                      value={eventForm.capacity}
+                      onChange={(e) => setEventForm({...eventForm, capacity: e.target.value})}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="event-description">Event Description</Label>
-                  <Textarea id="event-description" placeholder="Detailed description of the event" rows={4} />
+                  <Textarea 
+                    id="event-description" 
+                    placeholder="Detailed description of the event" 
+                    rows={4} 
+                    value={eventForm.description}
+                    onChange={(e) => setEventForm({...eventForm, description: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="event-image">Event Image</Label>
-                  <Input id="event-image" type="file" accept="image/*" />
+                  <Input 
+                    id="event-image" 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={(e) => setEventForm({...eventForm, image: e.target.files?.[0] || null})}
+                  />
                 </div>
-                <Button variant="ustp">Create Event</Button>
+                <Button variant="ustp" onClick={handleCreateEvent}>Create Event</Button>
               </CardContent>
             </Card>
 
@@ -1227,7 +1464,7 @@ Article Details:
             </Card>
           </TabsContent>
 
-          <TabsContent value="patents" className="space-y-6">
+          <TabsContent value="patents" className="space-y-6" id="patents-section">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">Patent Management</h2>
               <Button variant="ustp">
@@ -1243,20 +1480,38 @@ Article Details:
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="patent-title">Patent Title</Label>
-                    <Input id="patent-title" placeholder="Enter patent title" />
+                    <Label htmlFor="patent-title">Patent Title *</Label>
+                    <Input 
+                      id="patent-title" 
+                      placeholder="Enter patent title" 
+                      value={patentForm.title}
+                      onChange={(e) => setPatentForm({...patentForm, title: e.target.value})}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="patent-id">Patent ID</Label>
-                    <Input id="patent-id" placeholder="Enter patent ID" />
+                    <Input 
+                      id="patent-id" 
+                      placeholder="Enter patent ID" 
+                      value={patentForm.patentId}
+                      onChange={(e) => setPatentForm({...patentForm, patentId: e.target.value})}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="inventors">Inventors</Label>
-                    <Input id="inventors" placeholder="Enter inventors (comma separated)" />
+                    <Input 
+                      id="inventors" 
+                      placeholder="Enter inventors (comma separated)" 
+                      value={patentForm.inventors}
+                      onChange={(e) => setPatentForm({...patentForm, inventors: e.target.value})}
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="field">Field</Label>
-                    <Select>
+                    <Label htmlFor="field">Field *</Label>
+                    <Select 
+                      value={patentForm.field} 
+                      onValueChange={(value) => setPatentForm({...patentForm, field: value})}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select field" />
                       </SelectTrigger>
@@ -1265,15 +1520,56 @@ Article Details:
                         <SelectItem value="materials">Materials Science</SelectItem>
                         <SelectItem value="food">Food Technology</SelectItem>
                         <SelectItem value="engineering">Engineering</SelectItem>
+                        <SelectItem value="biotechnology">Biotechnology</SelectItem>
+                        <SelectItem value="information-technology">Information Technology</SelectItem>
+                        <SelectItem value="environmental-science">Environmental Science</SelectItem>
+                        <SelectItem value="energy">Energy Technology</SelectItem>
+                        <SelectItem value="medical">Medical Technology</SelectItem>
+                        <SelectItem value="chemical">Chemical Engineering</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Status *</Label>
+                    <Select 
+                      value={patentForm.status} 
+                      onValueChange={(value) => setPatentForm({...patentForm, status: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Available">Available</SelectItem>
+                        <SelectItem value="Licensed">Licensed</SelectItem>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Under Review">Under Review</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="abstract">Abstract</Label>
-                  <Textarea id="abstract" placeholder="Enter patent abstract" rows={4} />
+                  <Label htmlFor="year">Year Added</Label>
+                  <Input 
+                    id="year" 
+                    type="number" 
+                    min="1900" 
+                    max="2100" 
+                    value={patentForm.year}
+                    onChange={(e) => setPatentForm({...patentForm, year: e.target.value})}
+                    placeholder="Enter year"
+                  />
                 </div>
-                <Button variant="ustp">Save Patent</Button>
+                <div className="space-y-2">
+                  <Label htmlFor="abstract">Abstract</Label>
+                  <Textarea 
+                    id="abstract" 
+                    placeholder="Enter patent abstract" 
+                    rows={4} 
+                    value={patentForm.abstract}
+                    onChange={(e) => setPatentForm({...patentForm, abstract: e.target.value})}
+                  />
+                </div>
+                <Button variant="ustp" onClick={handleSavePatent}>Save Patent</Button>
               </CardContent>
             </Card>
 
@@ -1306,12 +1602,13 @@ Article Details:
                               const newFeaturedTech = {
                                 id: patent.id,
                                 title: patent.title,
-                                description: `Patent in ${patent.field}`,
+                                slug: patent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+                                description: patent.abstract || `Patent in ${patent.field}`,
                                 field: patent.field,
                                 status: patent.status,
-                                inventors: "Dr. USTP Researcher", // Default value
+                                inventors: patent.inventors || "Dr. USTP Researcher",
                                 year: new Date().getFullYear().toString(),
-                                abstract: `Patent abstract for ${patent.title}`
+                                abstract: patent.abstract || `Patent abstract for ${patent.title}`
                               };
                               const updatedTechnologies = [...featuredTechnologies, newFeaturedTech];
                               setFeaturedTechnologies(updatedTechnologies);
@@ -1325,10 +1622,18 @@ Article Details:
                         >
                           Feature
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditPatent(patent)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDeletePatent(patent.id, patent.title)}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -1860,6 +2165,210 @@ Article Details:
             </Button>
             <Button variant="ustp" onClick={handleSaveTechnology}>
               {editingTech ? 'Update Technology' : 'Add Technology'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Patent Edit Modal */}
+      <Dialog open={showPatentModal} onOpenChange={setShowPatentModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Edit Patent
+            </DialogTitle>
+            <DialogDescription>
+              Update the patent information below.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="modal-patent-title">Patent Title *</Label>
+              <Input 
+                id="modal-patent-title" 
+                value={patentForm.title}
+                onChange={(e) => setPatentForm({...patentForm, title: e.target.value})}
+                placeholder="Enter patent title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="modal-patent-id">Patent ID</Label>
+              <Input 
+                id="modal-patent-id" 
+                value={patentForm.patentId}
+                onChange={(e) => setPatentForm({...patentForm, patentId: e.target.value})}
+                placeholder="Enter patent ID"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="modal-inventors">Inventors</Label>
+              <Input 
+                id="modal-inventors" 
+                value={patentForm.inventors}
+                onChange={(e) => setPatentForm({...patentForm, inventors: e.target.value})}
+                placeholder="Enter inventors (comma separated)"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="modal-field">Field *</Label>
+              <Select value={patentForm.field} onValueChange={(value) => setPatentForm({...patentForm, field: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select field" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="agriculture">Agriculture</SelectItem>
+                  <SelectItem value="materials">Materials Science</SelectItem>
+                  <SelectItem value="food">Food Technology</SelectItem>
+                  <SelectItem value="engineering">Engineering</SelectItem>
+                  <SelectItem value="biotechnology">Biotechnology</SelectItem>
+                  <SelectItem value="information-technology">Information Technology</SelectItem>
+                  <SelectItem value="environmental-science">Environmental Science</SelectItem>
+                  <SelectItem value="energy">Energy Technology</SelectItem>
+                  <SelectItem value="medical">Medical Technology</SelectItem>
+                  <SelectItem value="chemical">Chemical Engineering</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="modal-status">Status *</Label>
+              <Select value={patentForm.status} onValueChange={(value) => setPatentForm({...patentForm, status: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Available">Available</SelectItem>
+                  <SelectItem value="Licensed">Licensed</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Under Review">Under Review</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="modal-year">Year Added</Label>
+              <Input 
+                id="modal-year" 
+                type="number" 
+                min="1900" 
+                max="2100" 
+                value={patentForm.year}
+                onChange={(e) => setPatentForm({...patentForm, year: e.target.value})}
+                placeholder="Enter year"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="modal-abstract">Abstract</Label>
+              <Textarea 
+                id="modal-abstract" 
+                value={patentForm.abstract}
+                onChange={(e) => setPatentForm({...patentForm, abstract: e.target.value})}
+                placeholder="Enter patent abstract"
+                rows={4}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPatentModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="ustp" onClick={handleUpdatePatent}>
+              Update Patent
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Patent Selection Modal */}
+      <Dialog open={showPatentSelectionModal} onOpenChange={setShowPatentSelectionModal}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Select Patents to Feature</DialogTitle>
+            <DialogDescription>
+              Choose patents to add to the featured technologies on the homepage.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {patents.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No patents available. Add patents in the Patents section first.</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+                {patents.map((patent) => {
+                  // Check if this patent is already featured
+                  const isFeatured = featuredTechnologies.some(tech => tech.id === patent.id);
+                  
+                  return (
+                    <div key={patent.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{patent.title}</h3>
+                        <div className="flex gap-2 mt-1">
+                          <Badge variant={patent.status === "Granted" ? "default" : "secondary"}>
+                            {patent.status}
+                          </Badge>
+                          <Badge variant="outline">{patent.field}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                          {patent.abstract || `Patent in ${patent.field}`}
+                        </p>
+                      </div>
+                      <div className="ml-4">
+                        {isFeatured ? (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              // Remove from featured technologies
+                              const updatedTechnologies = featuredTechnologies.filter(tech => tech.id !== patent.id);
+                              setFeaturedTechnologies(updatedTechnologies);
+                              localStorage.setItem('featuredTechnologies', JSON.stringify(updatedTechnologies));
+                              window.dispatchEvent(new Event('storage'));
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="ustp" 
+                            size="sm"
+                            onClick={() => {
+                              // Add to featured technologies
+                              const newFeaturedTech = {
+                                id: patent.id,
+                                title: patent.title,
+                                slug: patent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+                                description: patent.abstract || `Patent in ${patent.field}`,
+                                field: patent.field,
+                                status: patent.status,
+                                inventors: patent.inventors || "Dr. USTP Researcher",
+                                year: new Date().getFullYear().toString(),
+                                abstract: patent.abstract || `Patent abstract for ${patent.title}`
+                              };
+                              const updatedTechnologies = [...featuredTechnologies, newFeaturedTech];
+                              setFeaturedTechnologies(updatedTechnologies);
+                              localStorage.setItem('featuredTechnologies', JSON.stringify(updatedTechnologies));
+                              window.dispatchEvent(new Event('storage'));
+                            }}
+                          >
+                            Add
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPatentSelectionModal(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

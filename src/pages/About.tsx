@@ -178,11 +178,19 @@ const About = () => {
                 strategic partnerships between academia and industry.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button variant="gold" size="lg">
+                <Button 
+                  variant="gold" 
+                  size="lg"
+                  onClick={() => navigate('/contact')}
+                >
                   Contact Our Team
                   <Mail className="ml-2" />
                 </Button>
-                <Button variant="gold-outline" size="lg">
+                <Button 
+                  variant="gold-outline" 
+                  size="lg"
+                  onClick={() => navigate('/contact')}
+                >
                   Visit Our Office
                   <MapPin className="ml-2" />
                 </Button>
@@ -277,10 +285,10 @@ const About = () => {
       <section className="py-16 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary text-white mb-4">
               Our Expert Team
             </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-lg text-muted-foreground text-white max-w-3xl mx-auto">
               Meet the dedicated professionals driving innovation and technology transfer at USTP TPCO.
             </p>
           </div>

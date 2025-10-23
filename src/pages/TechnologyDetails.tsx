@@ -38,7 +38,8 @@ const TechnologyDetails = () => {
         try {
           const parsedTech = JSON.parse(adminTechnologies);
           const adminTech = parsedTech.find((tech: any) => {
-            const techSlug = tech.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            // Use the slug field if it exists, otherwise generate it
+            const techSlug = tech.slug || tech.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             return techSlug === slug;
           });
           
@@ -98,6 +99,76 @@ const TechnologyDetails = () => {
           }
         } catch (error) {
           console.error('Failed to parse admin technologies:', error);
+        }
+      }
+      
+      // Second, try to find in admin-managed patents (localStorage)
+      const adminPatents = localStorage.getItem('patents');
+      if (adminPatents) {
+        try {
+          const parsedPatents = JSON.parse(adminPatents);
+          const adminPatent = parsedPatents.find((patent: any) => {
+            // Use the slug field if it exists, otherwise generate it
+            const patentSlug = patent.slug || patent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            return patentSlug === slug;
+          });
+          
+          if (adminPatent) {
+            // Transform admin patent to ExtendedPortfolioItem format
+            const transformedPatent: ExtendedPortfolioItem = {
+              id: adminPatent.id.toString(),
+              title: adminPatent.title,
+              slug: slug || '',
+              description: adminPatent.abstract || `Patent in ${adminPatent.field || 'Unknown Field'}`,
+              image_url: "/placeholder.svg?height=400&width=600",
+              link_url: "#",
+              category: adminPatent.field || "General",
+              tags: [adminPatent.field, adminPatent.status, 'USTP Patent'].filter(Boolean),
+              published: true,
+              published_at: new Date().toISOString(),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              inventors: adminPatent.inventors || "Dr. USTP Researcher",
+              field: adminPatent.field || "General",
+              status: adminPatent.status || "Pending",
+              year: new Date().getFullYear().toString(),
+              abstract: adminPatent.abstract || `Patent abstract for ${adminPatent.title || 'Untitled Patent'}`,
+              licensing: adminPatent.status === 'Licensed' ? 'Already Licensed' : 'Available for licensing through USTP TPCO',
+              applications: [adminPatent.field, 'Innovation', 'Research'].filter(Boolean),
+              contact: "tpco@ustp.edu.ph",
+              // Set all optional fields to null for admin patents
+              inventor: null,
+              patent_status: null,
+              patent_number: adminPatent.patentId || null,
+              filing_date: null,
+              grant_date: null,
+              assignee: "University of Science and Technology of Southern Philippines",
+              ipc_codes: null,
+              cpc_codes: null,
+              application_number: null,
+              priority_date: null,
+              expiration_date: null,
+              claims: null,
+              jurisdictions: null,
+              family_members: null,
+              legal_status: null,
+              citations: null,
+              citations_patents: null,
+              cited_by: null,
+              cited_by_patents: null,
+              family_size: null,
+              priority_claims: null,
+              technology_fields: [adminPatent.field].filter(Boolean),
+              ipc_classes: null,
+              cpc_classes: null
+            };
+            
+            setTechnology(transformedPatent);
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error('Failed to parse admin patents:', error);
         }
       }
       

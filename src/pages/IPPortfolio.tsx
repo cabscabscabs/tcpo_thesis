@@ -130,6 +130,66 @@ const IPPortfolio = () => {
         }
       }
       
+      // Load patents from admin panel (localStorage)
+      const adminPatents = localStorage.getItem('patents');
+      let patentData: ExtendedPortfolioItem[] = [];
+      
+      if (adminPatents) {
+        try {
+          const parsedPatents = JSON.parse(adminPatents);
+          // Transform patent data to ExtendedPortfolioItem format
+          patentData = parsedPatents.map((patent: any, index: number) => ({
+            id: patent.id.toString(),
+            title: patent.title || "Untitled Patent",
+            slug: patent.title ? patent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : `patent-${patent.id}`,
+            description: patent.abstract || patent.description || `Patent in ${patent.field || 'Unknown Field'}`,
+            image_url: "/placeholder.svg?height=200&width=300",
+            link_url: "#",
+            category: patent.field || "General",
+            tags: [patent.field, patent.status, 'USTP Patent'].filter(Boolean),
+            published: true,
+            published_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            inventors: patent.inventors || "Dr. USTP Researcher",
+            field: patent.field || "General",
+            status: patent.status || "Pending",
+            year: patent.year || new Date().getFullYear().toString(),
+            abstract: patent.abstract || `Patent abstract for ${patent.title || 'Untitled Patent'}`,
+            licensing: patent.status === 'Licensed' ? 'Already Licensed' : 'Available for licensing',
+            applications: [patent.field, 'Innovation', 'Research'].filter(Boolean),
+            contact: "tpco@ustp.edu.ph",
+            // Set all optional fields to null
+            inventor: null,
+            patent_status: null,
+            patent_number: patent.patentId || null,
+            filing_date: null,
+            grant_date: null,
+            assignee: null,
+            ipc_codes: null,
+            cpc_codes: null,
+            application_number: null,
+            priority_date: null,
+            expiration_date: null,
+            claims: null,
+            jurisdictions: null,
+            family_members: null,
+            legal_status: null,
+            citations: null,
+            citations_patents: null,
+            cited_by: null,
+            cited_by_patents: null,
+            family_size: null,
+            priority_claims: null,
+            technology_fields: null,
+            ipc_classes: null,
+            cpc_classes: null
+          }));
+        } catch (error) {
+          console.error('Failed to parse admin patents:', error);
+        }
+      }
+      
       // Then try to fetch from Supabase as additional data
       let supabaseData: ExtendedPortfolioItem[] = [];
       try {
@@ -164,8 +224,8 @@ const IPPortfolio = () => {
         console.log('Supabase fetch failed, using fallback data');
       }
       
-      // Combine admin data with supabase data (admin data takes precedence)
-      let allData = [...adminData, ...supabaseData];
+      // Combine admin data with patent data and supabase data (admin data takes precedence)
+      let allData = [...adminData, ...patentData, ...supabaseData];
       
       // If no data from either source, use sample data
       if (allData.length === 0) {
@@ -185,11 +245,17 @@ const IPPortfolio = () => {
       }
       
       if (selectedField !== "all") {
-        filteredData = filteredData.filter(item => item.category === selectedField || item.field === selectedField);
+        filteredData = filteredData.filter(item => 
+          (item.category && item.category === selectedField) || 
+          (item.field && item.field === selectedField)
+        );
       }
       
       if (selectedStatus !== "all") {
-        filteredData = filteredData.filter(item => item.status === selectedStatus || item.patent_status === selectedStatus);
+        filteredData = filteredData.filter(item => 
+          (item.status && item.status === selectedStatus) || 
+          (item.patent_status && item.patent_status === selectedStatus)
+        );
       }
       
       // Apply pagination
@@ -224,6 +290,21 @@ const IPPortfolio = () => {
           adminStatuses = Array.from(new Set(parsedTech.map((tech: any) => tech.status).filter(Boolean))) as string[];
         } catch (error) {
           console.error('Failed to parse admin technologies for filters:', error);
+        }
+      }
+      
+      // Get options from admin patents
+      const adminPatents = localStorage.getItem('patents');
+      let patentFields: string[] = [];
+      let patentStatuses: string[] = [];
+      
+      if (adminPatents) {
+        try {
+          const parsedPatents = JSON.parse(adminPatents);
+          patentFields = Array.from(new Set(parsedPatents.map((patent: any) => patent.field).filter(Boolean))) as string[];
+          patentStatuses = Array.from(new Set(parsedPatents.map((patent: any) => patent.status).filter(Boolean))) as string[];
+        } catch (error) {
+          console.error('Failed to parse admin patents for filters:', error);
         }
       }
       
@@ -268,17 +349,19 @@ const IPPortfolio = () => {
           supabaseStatuses = Array.from(new Set(statusResult.data.map((item: PatentStatusData) => item.patent_status))).filter(Boolean) as string[];
         }
         
-        // Combine admin and supabase options
-        const combinedFields = [...new Set([...adminFields, ...supabaseFields])].sort();
-        const combinedStatuses = [...new Set([...adminStatuses, ...supabaseStatuses])].sort();
+        // Combine admin, patent, and supabase options
+        const combinedFields = [...new Set([...adminFields, ...patentFields, ...supabaseFields])].sort();
+        const combinedStatuses = [...new Set([...adminStatuses, ...patentStatuses, ...supabaseStatuses])].sort();
         
         setFieldOptions(combinedFields.length > 0 ? combinedFields : ["Agriculture", "Materials Science", "Food Technology", "Environmental Technology", "Energy Technology", "Information Technology"]);
         setStatusOptions(combinedStatuses.length > 0 ? combinedStatuses : ["Available", "Licensed", "Pending", "Under Review"]);
       } catch (err) {
         console.error("Error fetching filter options:", err);
-        // Use admin options + fallback if Supabase fails
-        setFieldOptions(adminFields.length > 0 ? adminFields : ["Agriculture", "Materials Science", "Food Technology", "Environmental Technology", "Energy Technology", "Information Technology"]);
-        setStatusOptions(adminStatuses.length > 0 ? adminStatuses : ["Available", "Licensed", "Pending", "Under Review"]);
+        // Use admin options + patent options + fallback if Supabase fails
+        const combinedFields = [...new Set([...adminFields, ...patentFields])].sort();
+        const combinedStatuses = [...new Set([...adminStatuses, ...patentStatuses])].sort();
+        setFieldOptions(combinedFields.length > 0 ? combinedFields : ["Agriculture", "Materials Science", "Food Technology", "Environmental Technology", "Energy Technology", "Information Technology"]);
+        setStatusOptions(combinedStatuses.length > 0 ? combinedStatuses : ["Available", "Licensed", "Pending", "Under Review"]);
       }
     } catch (err) {
       console.error("Error fetching filter options:", err);
@@ -562,13 +645,13 @@ const IPPortfolio = () => {
                             </Badge>
                           )}
                         </div>
-                        <span className="text-secondary text-sm font-mono">{item.year || new Date(item.created_at).getFullYear()}</span>
+                        <span className="text-secondary text-sm font-mono">{item.year || new Date(item.created_at || new Date()).getFullYear()}</span>
                       </div>
                       <CardTitle className="text-xl font-roboto group-hover:text-secondary transition-colors">
-                        {item.title}
+                        {item.title || "Untitled Technology"}
                       </CardTitle>
                       <CardDescription className="text-gray-200 line-clamp-3 break-words">
-                        {item.abstract || item.description}
+                        {item.abstract || item.description || "No description available"}
                       </CardDescription>
                     </CardHeader>
                     
@@ -578,7 +661,7 @@ const IPPortfolio = () => {
                           <h4 className="font-semibold text-primary mb-2">Inventors</h4>
                           <div className="flex items-center text-sm text-gray-600">
                             <Users size={16} className="mr-2" />
-                            <span>{item.inventors || 'Not specified'}</span>
+                            <span>{item.inventors || item.inventor || 'Not specified'}</span>
                           </div>
                         </div>
                         
@@ -598,12 +681,9 @@ const IPPortfolio = () => {
                           </div>
                         </div>
                         
-                        <div className="flex justify-between items-center text-sm text-gray-500">
-                          <div className="flex items-center">
-                            <Calendar size={16} className="mr-1" />
-                            <span>{item.year || new Date(item.created_at).getFullYear()}</span>
-                          </div>
-                          <span className="font-medium text-secondary">{item.licensing || 'Available for Licensing'}</span>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Calendar size={16} className="mr-1" />
+                          <span>{item.year || new Date(item.created_at).getFullYear()}</span>
                         </div>
                         
                         <div className="flex gap-2 pt-4">
@@ -613,7 +693,7 @@ const IPPortfolio = () => {
                             className="flex-1"
                             onClick={(e) => {
                               e.stopPropagation();
-                              // Handle contact for licensing
+                              navigate(`/technology/${item.slug}`);
                             }}
                           >
                             Contact for Licensing
