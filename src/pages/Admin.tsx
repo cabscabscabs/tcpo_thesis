@@ -86,6 +86,20 @@ const Admin = () => {
     ];
   });
 
+  // Event form state
+  const [eventForm, setEventForm] = useState({
+    id: null as number | null,
+    title: '',
+    type: 'workshop',
+    date: '',
+    time: '',
+    location: '',
+    capacity: '',
+    description: '',
+    image: null as File | null,
+    registrationOpen: true
+  });
+
   const [services] = useState([
     { id: 1, name: "IP Protection", requests: 15 },
     { id: 2, name: "Technology Licensing", requests: 8 },
@@ -197,18 +211,9 @@ const Admin = () => {
   // Modal state for patent selection
   const [showPatentSelectionModal, setShowPatentSelectionModal] = useState(false);
 
-  // Event form state
-  const [eventForm, setEventForm] = useState({
-    title: '',
-    type: 'workshop',
-    date: '',
-    time: '',
-    location: '',
-    capacity: '',
-    description: '',
-    image: null as File | null,
-    registrationOpen: true
-  });
+  // Modal state for event management
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
 
   // Load saved data on component mount
   useEffect(() => {
@@ -809,34 +814,58 @@ Article Details:
     }
   };
 
-  // Handle creating a new event
+  // Event Management Functions
   const handleCreateEvent = () => {
     if (!eventForm.title || !eventForm.date) {
       alert('❌ Please fill in all required fields (Event Title, Event Date).');
       return;
     }
 
-    const newEvent = {
-      id: Date.now(),
-      title: eventForm.title,
-      type: eventForm.type,
-      date: eventForm.date,
-      time: eventForm.time,
-      location: eventForm.location,
-      capacity: eventForm.capacity ? parseInt(eventForm.capacity) : null,
-      description: eventForm.description,
-      registrationOpen: eventForm.registrationOpen
-    };
+    let updatedEvents;
+    if (editingEvent) {
+      // Update existing event
+      updatedEvents = events.map(event => 
+        event.id === editingEvent.id 
+          ? { 
+              ...event, 
+              title: eventForm.title,
+              type: eventForm.type,
+              date: eventForm.date,
+              time: eventForm.time,
+              location: eventForm.location,
+              capacity: eventForm.capacity ? parseInt(eventForm.capacity) : null,
+              description: eventForm.description,
+              registrationOpen: eventForm.registrationOpen
+            }
+          : event
+      );
+      logActivity('event', 'updated', eventForm.title);
+    } else {
+      // Add new event
+      const newEvent = {
+        id: Date.now(),
+        title: eventForm.title,
+        type: eventForm.type,
+        date: eventForm.date,
+        time: eventForm.time,
+        location: eventForm.location,
+        capacity: eventForm.capacity ? parseInt(eventForm.capacity) : null,
+        description: eventForm.description,
+        registrationOpen: eventForm.registrationOpen
+      };
+      updatedEvents = [...events, newEvent];
+      logActivity('event', 'created', eventForm.title);
+    }
 
-    const updatedEvents = [...events, newEvent];
     setEvents(updatedEvents);
     localStorage.setItem('eventsData', JSON.stringify(updatedEvents));
     
     // Trigger storage event for other components
     window.dispatchEvent(new Event('storage'));
     
-    // Reset form
+    // Reset form and close modal
     setEventForm({
+      id: null,
       title: '',
       type: 'workshop',
       date: '',
@@ -847,8 +876,38 @@ Article Details:
       image: null,
       registrationOpen: true
     });
+    setEditingEvent(null);
+    setShowEventModal(false);
     
-    alert('✅ Event created successfully!');
+    alert(`✅ Event ${editingEvent ? 'updated' : 'created'} successfully!`);
+  };
+
+  const handleEditEvent = (event: any) => {
+    setEditingEvent(event);
+    setEventForm({
+      id: event.id,
+      title: event.title,
+      type: event.type || 'workshop',
+      date: event.date,
+      time: event.time || '',
+      location: event.location || '',
+      capacity: event.capacity ? event.capacity.toString() : '',
+      description: event.description || '',
+      image: null,
+      registrationOpen: event.registrationOpen !== undefined ? event.registrationOpen : true
+    });
+    setShowEventModal(true);
+  };
+
+  const handleDeleteEvent = (eventId: number, title: string) => {
+    if (confirm(`Are you sure you want to delete the event "${title}"? This action cannot be undone.`)) {
+      const updatedEvents = events.filter(event => event.id !== eventId);
+      setEvents(updatedEvents);
+      localStorage.setItem('eventsData', JSON.stringify(updatedEvents));
+      window.dispatchEvent(new Event('storage'));
+      logActivity('event', 'deleted', title);
+      alert(`✅ Event "${title}" has been deleted successfully!`);
+    }
   };
 
   if (!isLoggedIn) {
@@ -1085,24 +1144,57 @@ Article Details:
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="patents-count">Patents Granted</Label>
-                    <Input id="patents-count" type="number" defaultValue={homepageContent.patentsCount} />
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-ustp-blue">45</div>
+                    <div className="text-sm text-muted-foreground">Researchers</div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="partnerships-count">Industry Partners</Label>
-                    <Input id="partnerships-count" type="number" defaultValue={homepageContent.partnersCount} />
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-ustp-blue">23</div>
+                    <div className="text-sm text-muted-foreground">Industry Partners</div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="startups-count">Startups Incubated</Label>
-                    <Input id="startups-count" type="number" defaultValue={homepageContent.startupsCount} />
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-ustp-blue">78</div>
+                    <div className="text-sm text-muted-foreground">Students</div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="technologies-count">Technologies Licensed</Label>
-                    <Input id="technologies-count" type="number" defaultValue={homepageContent.technologiesCount} />
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-ustp-blue">10</div>
+                    <div className="text-sm text-muted-foreground">Admins</div>
                   </div>
                 </div>
-                <Button variant="ustp" className="mt-4" onClick={handleStatisticsUpdate}>Update Statistics</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>Manage user accounts and permissions</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-username">Username</Label>
+                    <Input id="new-username" placeholder="Enter username" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-email">Email</Label>
+                    <Input id="new-email" type="email" placeholder="Enter email" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="user-role">Role</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="researcher">Researcher</SelectItem>
+                        <SelectItem value="industry">Industry Partner</SelectItem>
+                        <SelectItem value="student">Student</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Button variant="ustp">Create User</Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -1328,7 +1420,7 @@ Article Details:
           <TabsContent value="events" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">Event Management</h2>
-              <Button variant="ustp">
+              <Button variant="ustp" onClick={() => { setEditingEvent(null); setShowEventModal(true); }}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Event
               </Button>
@@ -1447,13 +1539,13 @@ Article Details:
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => handleEditEvent(event)}>
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button variant="outline" size="sm">
                           View Registrations
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => handleDeleteEvent(event.id, event.title)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -1887,25 +1979,8 @@ Article Details:
                 <CardTitle>User Statistics</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-ustp-blue">45</div>
-                    <div className="text-sm text-muted-foreground">Researchers</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-ustp-blue">23</div>
-                    <div className="text-sm text-muted-foreground">Industry Partners</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-ustp-blue">78</div>
-                    <div className="text-sm text-muted-foreground">Students</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-ustp-blue">10</div>
-                    <div className="text-sm text-muted-foreground">Admins</div>
-                  </div>
-                </div>
-              </CardContent>
+
+</CardContent>
             </Card>
 
             <Card>
@@ -2369,6 +2444,118 @@ Article Details:
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPatentSelectionModal(false)}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Event Edit Modal */}
+      <Dialog open={showEventModal} onOpenChange={setShowEventModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingEvent ? 'Edit Event' : 'Create Event'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingEvent ? 'Update the event information below.' : 'Fill in the details for the new event.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="modal-event-title">Event Title *</Label>
+                <Input 
+                  id="modal-event-title" 
+                  value={eventForm.title}
+                  onChange={(e) => setEventForm({...eventForm, title: e.target.value})}
+                  placeholder="Enter event title"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="modal-event-type">Event Type</Label>
+                <Select 
+                  value={eventForm.type}
+                  onValueChange={(value) => setEventForm({...eventForm, type: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="workshop">Workshop</SelectItem>
+                    <SelectItem value="seminar">Seminar</SelectItem>
+                    <SelectItem value="conference">Conference</SelectItem>
+                    <SelectItem value="networking">Networking</SelectItem>
+                    <SelectItem value="showcase">Showcase</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="modal-event-date">Event Date *</Label>
+                <Input 
+                  id="modal-event-date" 
+                  type="date" 
+                  value={eventForm.date}
+                  onChange={(e) => setEventForm({...eventForm, date: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="modal-event-time">Event Time</Label>
+                <Input 
+                  id="modal-event-time" 
+                  type="time" 
+                  value={eventForm.time}
+                  onChange={(e) => setEventForm({...eventForm, time: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="modal-event-location">Location</Label>
+                <Input 
+                  id="modal-event-location" 
+                  placeholder="Event venue" 
+                  value={eventForm.location}
+                  onChange={(e) => setEventForm({...eventForm, location: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="modal-event-capacity">Capacity</Label>
+                <Input 
+                  id="modal-event-capacity" 
+                  type="number" 
+                  placeholder="Maximum attendees" 
+                  value={eventForm.capacity}
+                  onChange={(e) => setEventForm({...eventForm, capacity: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="modal-event-description">Event Description</Label>
+              <Textarea 
+                id="modal-event-description" 
+                placeholder="Detailed description of the event" 
+                rows={4} 
+                value={eventForm.description}
+                onChange={(e) => setEventForm({...eventForm, description: e.target.value})}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="modal-event-registration"
+                checked={eventForm.registrationOpen}
+                onChange={(e) => setEventForm({...eventForm, registrationOpen: e.target.checked})}
+                className="h-4 w-4"
+              />
+              <Label htmlFor="modal-event-registration">Registration Open</Label>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEventModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="ustp" onClick={handleCreateEvent}>
+              {editingEvent ? 'Update Event' : 'Create Event'}
             </Button>
           </DialogFooter>
         </DialogContent>

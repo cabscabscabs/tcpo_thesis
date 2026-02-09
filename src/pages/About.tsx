@@ -2,6 +2,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Mail, Phone, MapPin, Linkedin, Award, Users, Target, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,7 +15,8 @@ const About = () => {
       expertise: "",
       education: "",
       email: "",
-      bio: ""
+      bio: "",
+      image: "/images/team/venessa-garcia.jpg"
     },
     {
       name: "Engr. Gladdy Christie Compasan",
@@ -22,7 +24,8 @@ const About = () => {
       expertise: "",
       education: "",
       email: "",
-      bio: ""
+      bio: "",
+      image: "/images/team/gladdy-christie-compasan.jpg"
     },
     {
       name: "Ms. Flora Monica Mabaylan",
@@ -30,7 +33,8 @@ const About = () => {
       expertise: "",
       education: "",
       email: "",
-      bio: ""
+      bio: "",
+      image: "/images/team/flora-monica-mabaylan.jpg"
     },
     {
       name: "Ms. Rhea Suzette Haguisan",
@@ -38,7 +42,8 @@ const About = () => {
       expertise: "",
       education: "",
       email: "",
-      bio: ""
+      bio: "",
+      image: "/images/team/rhea-suzette-haguisan.jpg"
     },
     {
       name: "Engr. Jodie Rey Fernandez",
@@ -46,7 +51,8 @@ const About = () => {
       expertise: "",
       education: "",
       email: "",
-      bio: ""
+      bio: "",
+      image: "/images/team/jodie-rey-fernandez.jpg"
     },
     {
       name: "Engr. Clark Darwin Gozon",
@@ -54,7 +60,8 @@ const About = () => {
       expertise: "",
       education: "",
       email: "",
-      bio: ""
+      bio: "",
+      image: "/images/team/clark-darwin-gozon.jpg"
     },
     {
       name: "Engr. Mark Lister Nalupa",
@@ -62,7 +69,8 @@ const About = () => {
       expertise: "",
       education: "",
       email: "",
-      bio: ""
+      bio: "",
+      image: "/images/team/mark-lister-nalupa.jpg"
     },
     {
       name: "Noreza P. Aleno",
@@ -70,7 +78,8 @@ const About = () => {
       expertise: "",
       education: "",
       email: "",
-      bio: ""
+      bio: "",
+      image: "/images/team/noreza-aleno.jpg"
     },
     {
       name: "Krystia Ces G. Napili",
@@ -78,7 +87,8 @@ const About = () => {
       expertise: "",
       education: "",
       email: "",
-      bio: ""
+      bio: "",
+      image: "/images/team/krystia-ces-napili.jpg"
     },
     {
       name: "Michael J. Cerbito",
@@ -86,7 +96,8 @@ const About = () => {
       expertise: "",
       education: "",
       email: "",
-      bio: ""
+      bio: "",
+      image: "/images/team/michael-cerbito.jpg"
     }
   ];
 
@@ -297,10 +308,13 @@ const About = () => {
             {team.map((member, index) => (
               <Card key={index} className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1">
                 <CardContent className="p-6 text-center">
-                  <div className="w-20 h-20 bg-gradient-ustp rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-white font-roboto font-bold text-xl">
-                      {member.name.split(' ').map(n => n[0]).join('')}
-                    </span>
+                  <div className="mx-auto mb-4">
+                    <Avatar className="w-20 h-20 mx-auto">
+                      <AvatarImage src={member.image} alt={member.name} />
+                      <AvatarFallback className="bg-gradient-ustp text-white font-roboto font-bold text-xl">
+                        {member.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
                   </div>
                   
                   <h3 className="text-xl font-roboto font-bold text-primary mb-1">
@@ -377,10 +391,10 @@ const About = () => {
       <section className="py-16 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4 text-white">
               Our Strategic Partners
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-muted-foreground text-primary-foreground/80">
               Collaborating with leading organizations to drive innovation and economic development
             </p>
           </div>
