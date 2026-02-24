@@ -20,9 +20,9 @@ const Navigation = () => {
   return (
     <nav className="bg-primary shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-16 items-center">
           {/* Logo and Title */}
-          <div className="flex items-center">
+          <div className="flex items-center mr-12">
             <div className="flex-shrink-0 text-white">
               <h1 className="text-xl font-roboto font-bold">USTP TPCO</h1>
               <p className="text-xs text-secondary/90">Technology Transfer Office</p>
@@ -30,7 +30,7 @@ const Navigation = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden lg:flex items-center space-x-8">
             {navItems.map((item) => (
               <button
                 key={item.name}
@@ -47,7 +47,7 @@ const Navigation = () => {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          <div className="lg:hidden flex items-center pl-4">
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-white hover:text-secondary transition-colors"
@@ -59,7 +59,7 @@ const Navigation = () => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 bg-primary border-t border-primary/20">
               {navItems.map((item) => (
                 <button

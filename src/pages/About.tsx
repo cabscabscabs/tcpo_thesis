@@ -200,7 +200,7 @@ const About = () => {
                 <Button 
                   variant="gold-outline" 
                   size="lg"
-                  onClick={() => navigate('/contact')}
+                  onClick={() => window.open('https://maps.app.goo.gl/QADDEJs8reyJs9959', '_blank')}
                 >
                   Visit Our Office
                   <MapPin className="ml-2" />

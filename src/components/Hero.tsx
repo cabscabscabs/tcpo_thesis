@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Award, Users, Lightbulb } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-image.jpg";
 
 const Hero = () => {
+  const navigate = useNavigate();
   const [heroContent, setHeroContent] = useState({
     heroTitle: "Accelerating Innovation Through Technology Transfer",
     heroSubtitle: "USTP Technology and Partnership Commercialization Office - Your gateway to cutting-edge research, intellectual property protection, and industry collaboration in Northern Mindanao.",
@@ -83,11 +85,11 @@ const Hero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button variant="gold" size="xl" className="group">
+            <Button variant="gold" size="xl" className="group" onClick={() => navigate('/ip-portfolio')}>
               Explore Our IP Portfolio
               <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="gold-outline" size="xl">
+            <Button variant="gold-outline" size="xl" onClick={() => navigate('/contact')}>
               Partner With Us
             </Button>
           </div>
