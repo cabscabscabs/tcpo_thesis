@@ -9,6 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Trash2, Edit, Plus, Eye, EyeOff } from "lucide-react";
+import { formatDate } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+
+
 
 const Admin = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -55,12 +59,50 @@ const Admin = () => {
     pendingRequests: 8
   });
 
-  // Recent Activity tracking
-  const [recentActivity, setRecentActivity] = useState([
-    { id: 1, type: "news", action: "published", title: "Innovation Workshop announcement", time: "5 hours ago" },
-    { id: 2, type: "technology", action: "added", title: "Smart Irrigation System", time: "1 day ago" },
-    { id: 3, type: "service", action: "received", title: "Technology licensing inquiry", time: "1 day ago" }
-  ]);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  
+  // Load recent activities from Supabase
+  useEffect(() => {
+    loadRecentActivities();
+  }, []);
+
+  const loadRecentActivities = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('activity_logs' as any)
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Error loading recent activities:', error);
+        // Fallback to demo data if there's an error
+        setRecentActivity([
+          { id: 1, type: "news", action: "published", title: "Innovation Workshop announcement", timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() }, // 5 hours ago
+          { id: 2, type: "technology", action: "added", title: "Smart Irrigation System", timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() }, // 1 day ago
+          { id: 3, type: "service", action: "received", title: "Technology licensing inquiry", timestamp: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString() } // 30 hours ago
+        ]);
+      } else {
+        // Map Supabase data to the expected format
+        const mappedActivities = data?.map((activity: any) => ({
+          id: activity.id,
+          type: activity.activity_type,
+          action: activity.action,
+          title: activity.title,
+          timestamp: activity.created_at
+        })) || [];
+        setRecentActivity(mappedActivities);
+      }
+    } catch (err) {
+      console.error('Unexpected error loading recent activities:', err);
+      // Fallback to demo data if there's an error
+      setRecentActivity([
+        { id: 1, type: "news", action: "published", title: "Innovation Workshop announcement", timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() }, // 5 hours ago
+        { id: 2, type: "technology", action: "added", title: "Smart Irrigation System", timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() }, // 1 day ago
+        { id: 3, type: "service", action: "received", title: "Technology licensing inquiry", timestamp: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString() } // 30 hours ago
+      ]);
+    }
+  };
 
   // News form state
   const [newsForm, setNewsForm] = useState({
@@ -261,15 +303,7 @@ const Admin = () => {
     }
 
     // Load recent activity
-    const savedActivity = localStorage.getItem('recentActivity');
-    if (savedActivity) {
-      try {
-        const parsedActivity = JSON.parse(savedActivity);
-        setRecentActivity(parsedActivity);
-      } catch (error) {
-        console.error('Failed to load recent activity:', error);
-      }
-    }
+
 
     // Load service requests
     const savedServiceRequests = localStorage.getItem('serviceRequests');
@@ -392,18 +426,57 @@ const Admin = () => {
   };
 
   // Activity logging function
-  const logActivity = (type: string, action: string, title: string) => {
-    const newActivity = {
-      id: Date.now(),
-      type,
-      action,
-      title,
-      time: 'just now'
-    };
-    
-    const updatedActivity = [newActivity, ...recentActivity.slice(0, 9)]; // Keep last 10 activities
-    setRecentActivity(updatedActivity);
-    localStorage.setItem('recentActivity', JSON.stringify(updatedActivity));
+  // Activity logging function
+  const logActivity = async (type: string, action: string, title: string) => {
+    try {
+      // Insert the activity into Supabase
+      const { data, error } = await supabase
+        .from('activity_logs' as any)
+        .insert([{
+          activity_type: type,
+          action,
+          title,
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error logging activity:', error);
+        // Fallback: still update local state
+        const newActivity = {
+          id: Date.now(),
+          type,
+          action,
+          title,
+          timestamp: new Date().toISOString()
+        };
+        const updatedActivity = [newActivity, ...recentActivity.slice(0, 9)]; // Keep last 10 activities
+        setRecentActivity(updatedActivity);
+      } else {
+        // Successfully added to Supabase, update local state with the new activity
+        const newActivity = {
+          id: (data as any).id,
+          type: (data as any).activity_type,
+          action: (data as any).action,
+          title: (data as any).title,
+          timestamp: (data as any).created_at
+        };
+        const updatedActivity = [newActivity, ...recentActivity.slice(0, 9)]; // Keep last 10 activities
+        setRecentActivity(updatedActivity);
+      }
+    } catch (err) {
+      console.error('Unexpected error logging activity:', err);
+      // Fallback: still update local state
+      const newActivity = {
+        id: Date.now(),
+        type,
+        action,
+        title,
+        timestamp: new Date().toISOString()
+      };
+      const updatedActivity = [newActivity, ...recentActivity.slice(0, 9)]; // Keep last 10 activities
+      setRecentActivity(updatedActivity);
+    }
   };
 
   // Update dashboard stats
@@ -1045,7 +1118,7 @@ Article Details:
                       }`}></div>
                       <div>
                         <p className="font-medium">{activity.action} {activity.type}</p>
-                        <p className="text-sm text-muted-foreground">{activity.title} - {activity.time}</p>
+                        <p className="text-sm text-muted-foreground">{activity.title} - {formatDate(activity.timestamp)}</p>
                       </div>
                     </div>
                   ))}
