@@ -2894,7 +2894,7 @@ Article Details:
 
             {/* Nested Tabs for Resource Categories */}
             <Tabs value={resourceTab} onValueChange={setResourceTab}>
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-5 text-white">
                 <TabsTrigger value="templates">Templates</TabsTrigger>
                 <TabsTrigger value="tutorials">IP 101 Tutorials</TabsTrigger>
                 <TabsTrigger value="facilities">SSF Facilities</TabsTrigger>
