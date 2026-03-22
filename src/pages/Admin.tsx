@@ -63,7 +63,7 @@ const Admin = () => {
   const loadRecentActivities = async () => {
     try {
       const { data, error } = await supabase
-        .from('activity_logs' as any)
+        .from('activity_logs')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
@@ -327,7 +327,7 @@ const Admin = () => {
   const loadHomepageContent = async () => {
     try {
       const { data, error } = await supabase
-        .from('admin_homepage_content' as any)
+        .from('admin_homepage_content')
         .select('*')
         .limit(1)
         .single();
@@ -352,7 +352,7 @@ const Admin = () => {
   const loadTechnologies = async () => {
     try {
       const { data, error } = await supabase
-        .from('admin_technologies' as any)
+        .from('admin_technologies')
         .select('*')
         .order('order_num', { ascending: true });
       
@@ -377,7 +377,7 @@ const Admin = () => {
   const loadNews = async () => {
     try {
       const { data, error } = await supabase
-        .from('admin_news' as any)
+        .from('admin_news')
         .select('*')
         .order('date', { ascending: false });
       
@@ -402,7 +402,7 @@ const Admin = () => {
   const loadDashboardStats = async () => {
     try {
       const { data, error } = await supabase
-        .from('admin_dashboard_stats' as any)
+        .from('admin_dashboard_stats')
         .select('*')
         .limit(1)
         .single();
@@ -428,7 +428,7 @@ const Admin = () => {
   const loadServiceRequests = async () => {
     try {
       const { data, error } = await supabase
-        .from('admin_service_requests' as any)
+        .from('admin_service_requests')
         .select('*')
         .order('submitted_at', { ascending: false });
       
@@ -458,7 +458,7 @@ const Admin = () => {
   const loadEvents = async () => {
     try {
       const { data, error } = await supabase
-        .from('admin_events' as any)
+        .from('admin_events')
         .select('*')
         .order('date', { ascending: true });
       
@@ -486,7 +486,7 @@ const Admin = () => {
   const loadUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('user_profiles' as any)
+        .from('user_profiles')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -511,7 +511,7 @@ const Admin = () => {
   const loadPatents = async () => {
     try {
       const { data, error } = await supabase
-        .from('admin_patents' as any)
+        .from('admin_patents')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -535,7 +535,7 @@ const Admin = () => {
   const loadResources = async () => {
     try {
       const { data, error } = await supabase
-        .from('resources' as any)
+        .from('resources')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -570,7 +570,7 @@ const Admin = () => {
   const loadBookingInquiries = async () => {
     try {
       const { data, error } = await supabase
-        .from('facility_booking_inquiries' as any)
+        .from('facility_booking_inquiries')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -633,7 +633,7 @@ const Admin = () => {
           };
           
           const { error } = await supabase
-            .from('admin_homepage_content' as any)
+            .from('admin_homepage_content')
             .upsert(updatedContent);
           
           if (error) {
@@ -665,7 +665,7 @@ const Admin = () => {
         };
         
         const { error } = await supabase
-          .from('admin_homepage_content' as any)
+          .from('admin_homepage_content')
           .upsert(updatedContent);
         
         if (error) {
@@ -706,7 +706,7 @@ const Admin = () => {
     };
     
     const { error } = await supabase
-      .from('admin_homepage_content' as any)
+      .from('admin_homepage_content')
       .upsert(updatedContent);
     
     if (error) {
@@ -733,7 +733,7 @@ const Admin = () => {
     try {
       // Insert the activity into Supabase
       const { data, error } = await supabase
-        .from('activity_logs' as any)
+        .from('activity_logs')
         .insert([{
           activity_type: type,
           action,
@@ -787,7 +787,7 @@ const Admin = () => {
     setDashboardStats(updatedStats);
     
     const { error } = await supabase
-      .from('admin_dashboard_stats' as any)
+      .from('admin_dashboard_stats')
       .upsert({
         total_patents: updatedStats.totalPatents,
         patents_this_month: updatedStats.patentsThisMonth,
@@ -842,7 +842,7 @@ const Admin = () => {
 
     if (editingNews) {
       const { error } = await supabase
-        .from('admin_news' as any)
+        .from('admin_news')
         .update(newsData)
         .eq('id', editingNews.id);
       
@@ -855,7 +855,7 @@ const Admin = () => {
       loadNews();
     } else {
       const { error } = await supabase
-        .from('admin_news' as any)
+        .from('admin_news')
         .insert([newsData]);
       
       if (error) {
@@ -925,7 +925,7 @@ const Admin = () => {
 
     if (editingNews) {
       const { error } = await supabase
-        .from('admin_news' as any)
+        .from('admin_news')
         .update(newsData)
         .eq('id', editingNews.id);
       
@@ -937,7 +937,7 @@ const Admin = () => {
       logActivity('news', 'updated draft', newsForm.title);
     } else {
       const { error } = await supabase
-        .from('admin_news' as any)
+        .from('admin_news')
         .insert([newsData]);
       
       if (error) {
@@ -1017,7 +1017,7 @@ Article Details:
       const wasPublished = article?.status === 'Published';
       
       const { error } = await supabase
-        .from('admin_news' as any)
+        .from('admin_news')
         .delete()
         .eq('id', articleId);
       
@@ -1103,7 +1103,7 @@ Article Details:
 
     if (editingTech) {
       const { error } = await supabase
-        .from('admin_technologies' as any)
+        .from('admin_technologies')
         .update(techData)
         .eq('id', editingTech.id);
       
@@ -1115,7 +1115,7 @@ Article Details:
       logActivity('technology', 'updated', techForm.title);
     } else {
       const { error } = await supabase
-        .from('admin_technologies' as any)
+        .from('admin_technologies')
         .insert([techData]);
       
       if (error) {
@@ -1135,7 +1135,7 @@ Article Details:
   const handleDeleteTechnology = async (techId: string, title: string) => {
     if (confirm('Are you sure you want to delete this technology? This action cannot be undone.')) {
       const { error } = await supabase
-        .from('admin_technologies' as any)
+        .from('admin_technologies')
         .delete()
         .eq('id', techId);
       
@@ -1171,7 +1171,7 @@ Article Details:
     };
 
     const { error } = await supabase
-      .from('admin_patents' as any)
+      .from('admin_patents')
       .insert([patentData]);
     
     if (error) {
@@ -1229,7 +1229,7 @@ Article Details:
     };
 
     const { error } = await supabase
-      .from('admin_patents' as any)
+      .from('admin_patents')
       .update(patentData)
       .eq('id', editingPatent.id);
     
@@ -1261,7 +1261,7 @@ Article Details:
   const handleDeletePatent = async (patentId: string, title: string) => {
     if (confirm(`Are you sure you want to delete the patent "${title}"? This action cannot be undone.`)) {
       const { error } = await supabase
-        .from('admin_patents' as any)
+        .from('admin_patents')
         .delete()
         .eq('id', patentId);
       
@@ -1317,7 +1317,7 @@ Article Details:
 
     if (editingEvent) {
       const { error } = await supabase
-        .from('admin_events' as any)
+        .from('admin_events')
         .update(eventData)
         .eq('id', editingEvent.id);
       
@@ -1329,7 +1329,7 @@ Article Details:
       logActivity('event', 'updated', eventForm.title);
     } else {
       const { error } = await supabase
-        .from('admin_events' as any)
+        .from('admin_events')
         .insert([eventData]);
       
       if (error) {
@@ -1381,7 +1381,7 @@ Article Details:
   const handleDeleteEvent = async (eventId: string, title: string) => {
     if (confirm(`Are you sure you want to delete the event "${title}"? This action cannot be undone.`)) {
       const { error } = await supabase
-        .from('admin_events' as any)
+        .from('admin_events')
         .delete()
         .eq('id', eventId);
       
@@ -1532,7 +1532,7 @@ Article Details:
       if (editingUser) {
         // Update existing user profile
         const { error } = await supabase
-          .from('user_profiles' as any)
+          .from('user_profiles')
           .update({
             full_name: userForm.full_name,
             email: userForm.email,
@@ -1573,7 +1573,7 @@ Article Details:
         // But we need to update it with additional fields
         if (authData.user) {
           const { error: profileError } = await supabase
-            .from('user_profiles' as any)
+            .from('user_profiles')
             .update({
               full_name: userForm.full_name,
               department: userForm.department || null,
@@ -1619,7 +1619,7 @@ Article Details:
     try {
       // Delete profile (will cascade delete if set up, or we delete manually)
       const { error } = await supabase
-        .from('user_profiles' as any)
+        .from('user_profiles')
         .delete()
         .eq('id', userId);
       
@@ -1732,14 +1732,14 @@ Article Details:
       let error;
       if (editingResource) {
         const result = await supabase
-          .from('resources' as any)
+          .from('resources')
           .update(resourceData)
           .eq('id', editingResource.id);
         error = result.error;
       } else {
         resourceData.published_at = new Date().toISOString();
         const result = await supabase
-          .from('resources' as any)
+          .from('resources')
           .insert(resourceData);
         error = result.error;
       }
@@ -1767,7 +1767,7 @@ Article Details:
 
     try {
       const { error } = await supabase
-        .from('resources' as any)
+        .from('resources')
         .delete()
         .eq('id', resourceId);
       
@@ -1789,7 +1789,7 @@ Article Details:
   const handleToggleResourcePublish = async (resourceId: string, currentStatus: boolean, resourceTitle: string) => {
     try {
       const { error } = await supabase
-        .from('resources' as any)
+        .from('resources')
         .update({ published: !currentStatus })
         .eq('id', resourceId);
       
@@ -1816,7 +1816,7 @@ Article Details:
   const handleUpdateInquiryStatus = async (inquiryId: string, newStatus: string) => {
     try {
       const { error } = await supabase
-        .from('facility_booking_inquiries' as any)
+        .from('facility_booking_inquiries')
         .update({ status: newStatus })
         .eq('id', inquiryId);
       
@@ -2620,7 +2620,7 @@ Article Details:
                               const updatedTechnologies = [...featuredTechnologies, newFeaturedTech];
                               setFeaturedTechnologies(updatedTechnologies);
                               // Insert to Supabase
-                              supabase.from('admin_technologies' as any).insert([{
+                              supabase.from('admin_technologies').insert([{
                                 title: patent.title,
                                 description: patent.abstract || `Patent in ${patent.field}`,
                                 field: patent.field,
@@ -2808,9 +2808,9 @@ Article Details:
                                 setServiceRequests(updatedRequests);
                                 // Update in Supabase
                                 await supabase
-                                  .from('admin_service_requests' as any)
+                                  .from('admin_service_requests')
                                   .update({ status: value })
-                                  .eq('id', request.id);
+                                  .eq('id', String(request.id));
                                 logActivity('service', 'updated status', request.serviceTitle);
                               }}
                             >
@@ -2834,9 +2834,9 @@ Article Details:
                                   setServiceRequests(updatedRequests);
                                   // Delete from Supabase
                                   await supabase
-                                    .from('admin_service_requests' as any)
+                                    .from('admin_service_requests')
                                     .delete()
-                                    .eq('id', request.id);
+                                    .eq('id', String(request.id));
                                   logActivity('service', 'deleted request', request.serviceTitle);
                                 }
                               }}
@@ -3860,7 +3860,7 @@ Article Details:
                               setFeaturedTechnologies(updatedTechnologies);
                               // Delete from Supabase
                               await supabase
-                                .from('admin_technologies' as any)
+                                .from('admin_technologies')
                                 .delete()
                                 .eq('id', patent.id);
                             }}
@@ -3887,7 +3887,7 @@ Article Details:
                               const updatedTechnologies = [...featuredTechnologies, newFeaturedTech];
                               setFeaturedTechnologies(updatedTechnologies);
                               // Insert to Supabase
-                              await supabase.from('admin_technologies' as any).insert([{
+                              await supabase.from('admin_technologies').insert([{
                                 title: patent.title,
                                 description: patent.abstract || `Patent in ${patent.field}`,
                                 field: patent.field,
