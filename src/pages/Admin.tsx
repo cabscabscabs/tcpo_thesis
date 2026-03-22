@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download } from "lucide-react";
+import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -150,6 +150,38 @@ const Admin = () => {
     status: 'active'
   });
 
+  // Resource Management state
+  const [resources, setResources] = useState<any[]>([]);
+  const [showResourceModal, setShowResourceModal] = useState(false);
+  const [editingResource, setEditingResource] = useState<any>(null);
+  const [resourceTab, setResourceTab] = useState('templates');
+  const [resourceForm, setResourceForm] = useState({
+    id: null as string | null,
+    title: '',
+    slug: '',
+    type: 'download' as 'article' | 'guide' | 'video' | 'download' | 'link',
+    category: 'Templates',
+    content: '',
+    url: '',
+    file_url: '',
+    tags: [] as string[],
+    published: true,
+    // Tutorial fields
+    duration: '',
+    modules_count: 0,
+    level: 'Beginner',
+    // Facility fields
+    capacity: '',
+    hourly_rate: '',
+    booking_lead_time: '',
+    equipment: [] as string[]
+  });
+
+  // Facility Booking Inquiries state
+  const [bookingInquiries, setBookingInquiries] = useState<any[]>([]);
+  const [showInquiryModal, setShowInquiryModal] = useState(false);
+  const [selectedInquiry, setSelectedInquiry] = useState<any>(null);
+
   const [services] = useState([
     { id: 1, name: "IP Protection", requests: 15 },
     { id: 2, name: "Technology Licensing", requests: 8 },
@@ -282,6 +314,8 @@ const Admin = () => {
         loadEvents(),
         loadPatents(),
         loadUsers(),
+        loadResources(),
+        loadBookingInquiries(),
       ]);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -495,6 +529,70 @@ const Admin = () => {
       }
     } catch (error) {
       console.error('Error loading patents:', error);
+    }
+  };
+
+  const loadResources = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('resources' as any)
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (data && !error) {
+        setResources(data.map((resource: any) => ({
+          id: resource.id,
+          title: resource.title,
+          slug: resource.slug,
+          type: resource.type,
+          category: resource.category || 'Guidelines',
+          content: resource.content,
+          url: resource.url,
+          file_url: resource.file_url,
+          tags: resource.tags || [],
+          published: resource.published,
+          duration: resource.duration,
+          modules_count: resource.modules_count,
+          level: resource.level,
+          capacity: resource.capacity,
+          hourly_rate: resource.hourly_rate,
+          booking_lead_time: resource.booking_lead_time,
+          equipment: resource.equipment || [],
+          created_at: resource.created_at,
+          updated_at: resource.updated_at,
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading resources:', error);
+    }
+  };
+
+  const loadBookingInquiries = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('facility_booking_inquiries' as any)
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (data && !error) {
+        setBookingInquiries(data.map((inquiry: any) => ({
+          id: inquiry.id,
+          facility_id: inquiry.facility_id,
+          facility_name: inquiry.facility_name,
+          full_name: inquiry.full_name,
+          email: inquiry.email,
+          phone: inquiry.phone,
+          organization: inquiry.organization,
+          preferred_date: inquiry.preferred_date,
+          preferred_time: inquiry.preferred_time,
+          purpose: inquiry.purpose,
+          additional_notes: inquiry.additional_notes,
+          status: inquiry.status,
+          created_at: inquiry.created_at,
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading booking inquiries:', error);
     }
   };
 
@@ -1540,6 +1638,206 @@ Article Details:
     }
   };
 
+  // Resource Management Handlers
+  const handleOpenResourceModal = (resource?: any) => {
+    if (resource) {
+      setEditingResource(resource);
+      setResourceForm({
+        id: resource.id,
+        title: resource.title,
+        slug: resource.slug,
+        type: resource.type,
+        category: resource.category,
+        content: resource.content || '',
+        url: resource.url || '',
+        file_url: resource.file_url || '',
+        tags: resource.tags || [],
+        published: resource.published,
+        duration: resource.duration || '',
+        modules_count: resource.modules_count || 0,
+        level: resource.level || 'Beginner',
+        capacity: resource.capacity || '',
+        hourly_rate: resource.hourly_rate || '',
+        booking_lead_time: resource.booking_lead_time || '',
+        equipment: resource.equipment || []
+      });
+    } else {
+      setEditingResource(null);
+      setResourceForm({
+        id: null,
+        title: '',
+        slug: '',
+        type: resourceTab === 'templates' ? 'download' : resourceTab === 'tutorials' ? 'video' : resourceTab === 'facilities' ? 'download' : 'guide',
+        category: resourceTab === 'templates' ? 'Templates' : resourceTab === 'tutorials' ? 'IP 101 Tutorials' : resourceTab === 'facilities' ? 'SSF Booking' : 'Guidelines',
+        content: '',
+        url: '',
+        file_url: '',
+        tags: [],
+        published: true,
+        duration: '',
+        modules_count: 0,
+        level: 'Beginner',
+        capacity: '',
+        hourly_rate: '',
+        booking_lead_time: '',
+        equipment: []
+      });
+    }
+    setShowResourceModal(true);
+  };
+
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  };
+
+  const handleSaveResource = async () => {
+    if (!resourceForm.title.trim()) {
+      alert('Please enter a resource title.');
+      return;
+    }
+
+    const slug = resourceForm.slug || generateSlug(resourceForm.title);
+    
+    try {
+      const resourceData: any = {
+        title: resourceForm.title,
+        slug: slug,
+        type: resourceForm.type,
+        category: resourceForm.category,
+        content: resourceForm.content,
+        url: resourceForm.url || null,
+        file_url: resourceForm.file_url || null,
+        tags: [resourceForm.category],
+        published: resourceForm.published,
+      };
+
+      // Add tutorial-specific fields
+      if (resourceForm.category === 'IP 101 Tutorials') {
+        resourceData.duration = resourceForm.duration;
+        resourceData.modules_count = resourceForm.modules_count;
+        resourceData.level = resourceForm.level;
+      }
+
+      // Add facility-specific fields
+      if (resourceForm.category === 'SSF Booking') {
+        resourceData.capacity = resourceForm.capacity;
+        resourceData.hourly_rate = resourceForm.hourly_rate;
+        resourceData.booking_lead_time = resourceForm.booking_lead_time;
+        resourceData.equipment = resourceForm.equipment;
+      }
+
+      let error;
+      if (editingResource) {
+        const result = await supabase
+          .from('resources' as any)
+          .update(resourceData)
+          .eq('id', editingResource.id);
+        error = result.error;
+      } else {
+        resourceData.published_at = new Date().toISOString();
+        const result = await supabase
+          .from('resources' as any)
+          .insert(resourceData);
+        error = result.error;
+      }
+
+      if (error) {
+        console.error('Error saving resource:', error);
+        alert('Error saving resource: ' + error.message);
+        return;
+      }
+
+      logActivity('resource', editingResource ? 'updated' : 'added', resourceForm.title);
+      loadResources();
+      setShowResourceModal(false);
+      alert(`Resource "${resourceForm.title}" has been ${editingResource ? 'updated' : 'added'}.`);
+    } catch (error: any) {
+      console.error('Error saving resource:', error);
+      alert('Error saving resource: ' + error.message);
+    }
+  };
+
+  const handleDeleteResource = async (resourceId: string, resourceTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${resourceTitle}"?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('resources' as any)
+        .delete()
+        .eq('id', resourceId);
+      
+      if (error) {
+        console.error('Error deleting resource:', error);
+        alert('Error deleting resource: ' + error.message);
+        return;
+      }
+
+      logActivity('resource', 'deleted', resourceTitle);
+      loadResources();
+      alert(`Resource "${resourceTitle}" has been deleted.`);
+    } catch (error: any) {
+      console.error('Error deleting resource:', error);
+      alert('Error deleting resource: ' + error.message);
+    }
+  };
+
+  const handleToggleResourcePublish = async (resourceId: string, currentStatus: boolean, resourceTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from('resources' as any)
+        .update({ published: !currentStatus })
+        .eq('id', resourceId);
+      
+      if (error) {
+        console.error('Error updating resource:', error);
+        alert('Error updating resource: ' + error.message);
+        return;
+      }
+
+      logActivity('resource', currentStatus ? 'unpublished' : 'published', resourceTitle);
+      loadResources();
+    } catch (error: any) {
+      console.error('Error updating resource:', error);
+      alert('Error updating resource: ' + error.message);
+    }
+  };
+
+  // Booking Inquiry Handlers
+  const handleViewInquiry = (inquiry: any) => {
+    setSelectedInquiry(inquiry);
+    setShowInquiryModal(true);
+  };
+
+  const handleUpdateInquiryStatus = async (inquiryId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('facility_booking_inquiries' as any)
+        .update({ status: newStatus })
+        .eq('id', inquiryId);
+      
+      if (error) {
+        console.error('Error updating inquiry:', error);
+        alert('Error updating inquiry: ' + error.message);
+        return;
+      }
+
+      loadBookingInquiries();
+      alert(`Inquiry status updated to "${newStatus}".`);
+    } catch (error: any) {
+      console.error('Error updating inquiry:', error);
+      alert('Error updating inquiry: ' + error.message);
+    }
+  };
+
+  const getFilteredResources = (category: string) => {
+    return resources.filter(r => r.category === category);
+  };
+
   const handleResetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -2558,48 +2856,497 @@ Article Details:
           <TabsContent value="resources" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">Resource Management</h2>
-              <Button variant="ustp">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Resource
-              </Button>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Upload New Resource</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="resource-title">Resource Title</Label>
-                    <Input id="resource-title" placeholder="Enter resource title" />
+            {/* Resource Statistics */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-primary">{getFilteredResources('Templates').length}</div>
+                  <div className="text-sm text-muted-foreground">Templates</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-secondary">{getFilteredResources('IP 101 Tutorials').length}</div>
+                  <div className="text-sm text-muted-foreground">Tutorials</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">{getFilteredResources('SSF Booking').length}</div>
+                  <div className="text-sm text-muted-foreground">Facilities</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-purple-600">{getFilteredResources('Guidelines').length}</div>
+                  <div className="text-sm text-muted-foreground">Guidelines</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-orange-600">{bookingInquiries.filter(i => i.status === 'pending').length}</div>
+                  <div className="text-sm text-muted-foreground">Pending Bookings</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Nested Tabs for Resource Categories */}
+            <Tabs value={resourceTab} onValueChange={setResourceTab}>
+              <TabsList className="grid w-full grid-cols-5">
+                <TabsTrigger value="templates">Templates</TabsTrigger>
+                <TabsTrigger value="tutorials">IP 101 Tutorials</TabsTrigger>
+                <TabsTrigger value="facilities">SSF Facilities</TabsTrigger>
+                <TabsTrigger value="guidelines">Guidelines</TabsTrigger>
+                <TabsTrigger value="inquiries">Booking Inquiries</TabsTrigger>
+              </TabsList>
+
+              {/* Templates Tab */}
+              <TabsContent value="templates" className="space-y-4 mt-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Legal Templates & Documents</h3>
+                  <Button variant="ustp" onClick={() => handleOpenResourceModal()}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Template
+                  </Button>
+                </div>
+                
+                <Card>
+                  <CardContent className="p-0">
+                    {getFilteredResources('Templates').length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                        <p>No templates yet. Click "Add Template" to create one.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b bg-gray-50">
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Title</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Description</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Type</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {getFilteredResources('Templates').map((resource) => (
+                              <tr key={resource.id} className="border-b hover:bg-gray-50">
+                                <td className="p-3 font-medium">{resource.title}</td>
+                                <td className="p-3 text-sm text-gray-600 max-w-xs truncate">{resource.content}</td>
+                                <td className="p-3">
+                                  <Badge variant="outline">{resource.type}</Badge>
+                                </td>
+                                <td className="p-3">
+                                  <Badge 
+                                    variant={resource.published ? 'default' : 'secondary'}
+                                    className={resource.published ? 'bg-green-500' : ''}
+                                  >
+                                    {resource.published ? 'Published' : 'Draft'}
+                                  </Badge>
+                                </td>
+                                <td className="p-3">
+                                  <div className="flex items-center gap-1">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleToggleResourcePublish(resource.id, resource.published, resource.title)}
+                                      title={resource.published ? 'Unpublish' : 'Publish'}
+                                    >
+                                      {resource.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleOpenResourceModal(resource)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleDeleteResource(resource.id, resource.title)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* IP 101 Tutorials Tab */}
+              <TabsContent value="tutorials" className="space-y-4 mt-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">IP 101 Learning Modules</h3>
+                  <Button variant="ustp" onClick={() => handleOpenResourceModal()}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Tutorial
+                  </Button>
+                </div>
+                
+                <Card>
+                  <CardContent className="p-0">
+                    {getFilteredResources('IP 101 Tutorials').length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <Video className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                        <p>No tutorials yet. Click "Add Tutorial" to create one.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b bg-gray-50">
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Title</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Description</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Duration</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Level</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {getFilteredResources('IP 101 Tutorials').map((resource) => (
+                              <tr key={resource.id} className="border-b hover:bg-gray-50">
+                                <td className="p-3 font-medium">{resource.title}</td>
+                                <td className="p-3 text-sm text-gray-600 max-w-xs truncate">{resource.content}</td>
+                                <td className="p-3 text-sm">{resource.duration || '-'}</td>
+                                <td className="p-3">
+                                  <Badge variant="outline">{resource.level || 'Beginner'}</Badge>
+                                </td>
+                                <td className="p-3">
+                                  <Badge 
+                                    variant={resource.published ? 'default' : 'secondary'}
+                                    className={resource.published ? 'bg-green-500' : ''}
+                                  >
+                                    {resource.published ? 'Published' : 'Draft'}
+                                  </Badge>
+                                </td>
+                                <td className="p-3">
+                                  <div className="flex items-center gap-1">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleToggleResourcePublish(resource.id, resource.published, resource.title)}
+                                    >
+                                      {resource.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleOpenResourceModal(resource)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleDeleteResource(resource.id, resource.title)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* SSF Facilities Tab */}
+              <TabsContent value="facilities" className="space-y-4 mt-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Shared Service Facilities</h3>
+                  <Button variant="ustp" onClick={() => handleOpenResourceModal()}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Facility
+                  </Button>
+                </div>
+                
+                <Card>
+                  <CardContent className="p-0">
+                    {getFilteredResources('SSF Booking').length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <Building className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                        <p>No facilities yet. Click "Add Facility" to create one.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b bg-gray-50">
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Facility Name</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Capacity</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Hourly Rate</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Lead Time</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {getFilteredResources('SSF Booking').map((resource) => (
+                              <tr key={resource.id} className="border-b hover:bg-gray-50">
+                                <td className="p-3">
+                                  <div className="font-medium">{resource.title}</div>
+                                  <div className="text-xs text-gray-500 max-w-xs truncate">{resource.content}</div>
+                                </td>
+                                <td className="p-3 text-sm">{resource.capacity || '-'}</td>
+                                <td className="p-3 text-sm text-secondary font-medium">
+                                  {resource.hourly_rate ? `₱${resource.hourly_rate}` : '-'}
+                                </td>
+                                <td className="p-3 text-sm">{resource.booking_lead_time || '-'}</td>
+                                <td className="p-3">
+                                  <Badge 
+                                    variant={resource.published ? 'default' : 'secondary'}
+                                    className={resource.published ? 'bg-green-500' : ''}
+                                  >
+                                    {resource.published ? 'Available' : 'Unavailable'}
+                                  </Badge>
+                                </td>
+                                <td className="p-3">
+                                  <div className="flex items-center gap-1">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleToggleResourcePublish(resource.id, resource.published, resource.title)}
+                                    >
+                                      {resource.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleOpenResourceModal(resource)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleDeleteResource(resource.id, resource.title)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Guidelines Tab */}
+              <TabsContent value="guidelines" className="space-y-4 mt-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Research Guidelines & Best Practices</h3>
+                  <Button variant="ustp" onClick={() => handleOpenResourceModal()}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Guideline
+                  </Button>
+                </div>
+                
+                <Card>
+                  <CardContent className="p-0">
+                    {getFilteredResources('Guidelines').length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <BookOpen className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                        <p>No guidelines yet. Click "Add Guideline" to create one.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b bg-gray-50">
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Title</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Description</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Type</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {getFilteredResources('Guidelines').map((resource) => (
+                              <tr key={resource.id} className="border-b hover:bg-gray-50">
+                                <td className="p-3 font-medium">{resource.title}</td>
+                                <td className="p-3 text-sm text-gray-600 max-w-xs truncate">{resource.content}</td>
+                                <td className="p-3">
+                                  <Badge variant="outline">{resource.type}</Badge>
+                                </td>
+                                <td className="p-3">
+                                  <Badge 
+                                    variant={resource.published ? 'default' : 'secondary'}
+                                    className={resource.published ? 'bg-green-500' : ''}
+                                  >
+                                    {resource.published ? 'Published' : 'Draft'}
+                                  </Badge>
+                                </td>
+                                <td className="p-3">
+                                  <div className="flex items-center gap-1">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleToggleResourcePublish(resource.id, resource.published, resource.title)}
+                                    >
+                                      {resource.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleOpenResourceModal(resource)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleDeleteResource(resource.id, resource.title)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Booking Inquiries Tab */}
+              <TabsContent value="inquiries" className="space-y-4 mt-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Facility Booking Inquiries</h3>
+                  <div className="text-sm text-muted-foreground">
+                    {bookingInquiries.filter(i => i.status === 'pending').length} pending inquiries
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="resource-type">Type</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="template">Template</SelectItem>
-                        <SelectItem value="guide">Guide</SelectItem>
-                        <SelectItem value="video">Video</SelectItem>
-                        <SelectItem value="document">Document</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="resource-description">Description</Label>
-                  <Textarea id="resource-description" placeholder="Enter description" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="file-upload">File Upload</Label>
-                  <Input id="file-upload" type="file" />
-                </div>
-                <Button variant="ustp">Upload Resource</Button>
-              </CardContent>
-            </Card>
+                
+                <Card>
+                  <CardContent className="p-0">
+                    {bookingInquiries.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <Calendar className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                        <p>No booking inquiries yet.</p>
+                        <p className="text-sm mt-2">Inquiries will appear here when users submit booking requests from the Facility Booking page.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b bg-gray-50">
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Facility</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Contact</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Preferred Date</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Submitted</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {bookingInquiries.map((inquiry) => (
+                              <tr key={inquiry.id} className="border-b hover:bg-gray-50">
+                                <td className="p-3">
+                                  <div className="font-medium">{inquiry.facility_name}</div>
+                                  <div className="text-xs text-gray-500">{inquiry.organization || 'No organization'}</div>
+                                </td>
+                                <td className="p-3">
+                                  <div className="text-sm">{inquiry.full_name}</div>
+                                  <div className="text-xs text-gray-500">{inquiry.email}</div>
+                                  {inquiry.phone && <div className="text-xs text-gray-500">{inquiry.phone}</div>}
+                                </td>
+                                <td className="p-3 text-sm">
+                                  {inquiry.preferred_date 
+                                    ? new Date(inquiry.preferred_date).toLocaleDateString() 
+                                    : 'Not specified'}
+                                  {inquiry.preferred_time && (
+                                    <div className="text-xs text-gray-500">{inquiry.preferred_time}</div>
+                                  )}
+                                </td>
+                                <td className="p-3 text-sm text-gray-500">
+                                  {formatDate(inquiry.created_at)}
+                                </td>
+                                <td className="p-3">
+                                  <Badge 
+                                    variant={
+                                      inquiry.status === 'pending' ? 'secondary' :
+                                      inquiry.status === 'contacted' ? 'default' :
+                                      inquiry.status === 'confirmed' ? 'default' : 'destructive'
+                                    }
+                                    className={
+                                      inquiry.status === 'confirmed' ? 'bg-green-500' :
+                                      inquiry.status === 'contacted' ? 'bg-blue-500' : ''
+                                    }
+                                  >
+                                    {inquiry.status.charAt(0).toUpperCase() + inquiry.status.slice(1)}
+                                  </Badge>
+                                </td>
+                                <td className="p-3">
+                                  <div className="flex items-center gap-1">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleViewInquiry(inquiry)}
+                                      title="View Details"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleUpdateInquiryStatus(inquiry.id, 'contacted')}
+                                      disabled={inquiry.status !== 'pending'}
+                                      title="Mark as Contacted"
+                                    >
+                                      <Mail className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleUpdateInquiryStatus(inquiry.id, 'confirmed')}
+                                      disabled={inquiry.status === 'confirmed' || inquiry.status === 'cancelled'}
+                                      title="Confirm Booking"
+                                    >
+                                      <CheckCircle className="h-4 w-4 text-green-600" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleUpdateInquiryStatus(inquiry.id, 'cancelled')}
+                                      disabled={inquiry.status === 'cancelled'}
+                                      title="Cancel"
+                                    >
+                                      <XCircle className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
@@ -3601,6 +4348,320 @@ Article Details:
             <Button variant="ustp" onClick={handleAddUser}>
               {editingUser ? 'Update User' : 'Create User'}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resource Modal */}
+      <Dialog open={showResourceModal} onOpenChange={setShowResourceModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingResource ? 'Edit Resource' : 'Add New Resource'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingResource ? 'Update the resource information below.' : 'Fill in the details for the new resource.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="resource-title">Title *</Label>
+                <Input 
+                  id="resource-title" 
+                  value={resourceForm.title}
+                  onChange={(e) => setResourceForm({...resourceForm, title: e.target.value, slug: generateSlug(e.target.value)})}
+                  placeholder="Enter resource title"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="resource-category">Category *</Label>
+                <Select 
+                  value={resourceForm.category} 
+                  onValueChange={(value) => {
+                    const typeMap: Record<string, string> = {
+                      'Templates': 'download',
+                      'IP 101 Tutorials': 'video',
+                      'SSF Booking': 'download',
+                      'Guidelines': 'guide'
+                    };
+                    setResourceForm({
+                      ...resourceForm, 
+                      category: value,
+                      type: typeMap[value] as any
+                    });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Templates">Templates</SelectItem>
+                    <SelectItem value="IP 101 Tutorials">IP 101 Tutorials</SelectItem>
+                    <SelectItem value="SSF Booking">SSF Booking</SelectItem>
+                    <SelectItem value="Guidelines">Guidelines</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="resource-content">Description</Label>
+              <Textarea 
+                id="resource-content" 
+                value={resourceForm.content}
+                onChange={(e) => setResourceForm({...resourceForm, content: e.target.value})}
+                placeholder="Enter description"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="resource-url">External URL (optional)</Label>
+                <Input 
+                  id="resource-url" 
+                  value={resourceForm.url}
+                  onChange={(e) => setResourceForm({...resourceForm, url: e.target.value})}
+                  placeholder="https://example.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="resource-file">File URL (optional)</Label>
+                <Input 
+                  id="resource-file" 
+                  value={resourceForm.file_url}
+                  onChange={(e) => setResourceForm({...resourceForm, file_url: e.target.value})}
+                  placeholder="Link to file"
+                />
+              </div>
+            </div>
+
+            {/* Tutorial-specific fields */}
+            {resourceForm.category === 'IP 101 Tutorials' && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div className="space-y-2">
+                  <Label htmlFor="resource-duration">Duration</Label>
+                  <Input 
+                    id="resource-duration" 
+                    value={resourceForm.duration}
+                    onChange={(e) => setResourceForm({...resourceForm, duration: e.target.value})}
+                    placeholder="e.g., 45 minutes"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="resource-modules">Number of Modules</Label>
+                  <Input 
+                    id="resource-modules" 
+                    type="number"
+                    value={resourceForm.modules_count}
+                    onChange={(e) => setResourceForm({...resourceForm, modules_count: parseInt(e.target.value) || 0})}
+                    placeholder="e.g., 6"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="resource-level">Level</Label>
+                  <Select 
+                    value={resourceForm.level} 
+                    onValueChange={(value) => setResourceForm({...resourceForm, level: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Beginner">Beginner</SelectItem>
+                      <SelectItem value="Intermediate">Intermediate</SelectItem>
+                      <SelectItem value="Advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {/* Facility-specific fields */}
+            {resourceForm.category === 'SSF Booking' && (
+              <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="resource-capacity">Capacity</Label>
+                    <Input 
+                      id="resource-capacity" 
+                      value={resourceForm.capacity}
+                      onChange={(e) => setResourceForm({...resourceForm, capacity: e.target.value})}
+                      placeholder="e.g., 10 researchers"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="resource-rate">Hourly Rate (₱)</Label>
+                    <Input 
+                      id="resource-rate" 
+                      value={resourceForm.hourly_rate}
+                      onChange={(e) => setResourceForm({...resourceForm, hourly_rate: e.target.value})}
+                      placeholder="e.g., 500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="resource-lead">Booking Lead Time</Label>
+                    <Input 
+                      id="resource-lead" 
+                      value={resourceForm.booking_lead_time}
+                      onChange={(e) => setResourceForm({...resourceForm, booking_lead_time: e.target.value})}
+                      placeholder="e.g., 48 hours"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="resource-equipment">Equipment (comma-separated)</Label>
+                  <Input 
+                    id="resource-equipment" 
+                    value={resourceForm.equipment.join(', ')}
+                    onChange={(e) => setResourceForm({...resourceForm, equipment: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
+                    placeholder="e.g., SEM-EDS, XRD, FTIR"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="resource-published"
+                checked={resourceForm.published}
+                onChange={(e) => setResourceForm({...resourceForm, published: e.target.checked})}
+                className="h-4 w-4"
+              />
+              <Label htmlFor="resource-published">Publish immediately</Label>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowResourceModal(false);
+              setEditingResource(null);
+            }}>
+              Cancel
+            </Button>
+            <Button variant="ustp" onClick={handleSaveResource}>
+              {editingResource ? 'Update Resource' : 'Add Resource'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Booking Inquiry Modal */}
+      <Dialog open={showInquiryModal} onOpenChange={setShowInquiryModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Booking Inquiry Details</DialogTitle>
+            <DialogDescription>
+              View and manage this booking inquiry.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedInquiry && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-primary mb-2">{selectedInquiry.facility_name}</h4>
+                <Badge 
+                  variant={
+                    selectedInquiry.status === 'pending' ? 'secondary' :
+                    selectedInquiry.status === 'contacted' ? 'default' :
+                    selectedInquiry.status === 'confirmed' ? 'default' : 'destructive'
+                  }
+                  className={
+                    selectedInquiry.status === 'confirmed' ? 'bg-green-500' :
+                    selectedInquiry.status === 'contacted' ? 'bg-blue-500' : ''
+                  }
+                >
+                  {selectedInquiry.status.charAt(0).toUpperCase() + selectedInquiry.status.slice(1)}
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm text-gray-500">Contact Name</span>
+                  <p className="font-medium">{selectedInquiry.full_name}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Organization</span>
+                  <p className="font-medium">{selectedInquiry.organization || 'Not specified'}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Email</span>
+                  <p className="font-medium">{selectedInquiry.email}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Phone</span>
+                  <p className="font-medium">{selectedInquiry.phone || 'Not provided'}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Preferred Date</span>
+                  <p className="font-medium">
+                    {selectedInquiry.preferred_date 
+                      ? new Date(selectedInquiry.preferred_date).toLocaleDateString() 
+                      : 'Not specified'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Preferred Time</span>
+                  <p className="font-medium">{selectedInquiry.preferred_time || 'Not specified'}</p>
+                </div>
+              </div>
+
+              {selectedInquiry.purpose && (
+                <div>
+                  <span className="text-sm text-gray-500">Purpose</span>
+                  <p className="text-sm bg-gray-50 p-3 rounded mt-1">{selectedInquiry.purpose}</p>
+                </div>
+              )}
+
+              {selectedInquiry.additional_notes && (
+                <div>
+                  <span className="text-sm text-gray-500">Additional Notes</span>
+                  <p className="text-sm bg-gray-50 p-3 rounded mt-1">{selectedInquiry.additional_notes}</p>
+                </div>
+              )}
+
+              <div className="text-sm text-gray-500">
+                Submitted: {formatDate(selectedInquiry.created_at)}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowInquiryModal(false);
+                setSelectedInquiry(null);
+              }}
+            >
+              Close
+            </Button>
+            {selectedInquiry && selectedInquiry.status === 'pending' && (
+              <Button 
+                variant="ustp" 
+                onClick={() => {
+                  handleUpdateInquiryStatus(selectedInquiry.id, 'contacted');
+                  setShowInquiryModal(false);
+                }}
+              >
+                Mark as Contacted
+              </Button>
+            )}
+            {selectedInquiry && selectedInquiry.status !== 'confirmed' && selectedInquiry.status !== 'cancelled' && (
+              <Button 
+                variant="default" 
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => {
+                  handleUpdateInquiryStatus(selectedInquiry.id, 'confirmed');
+                  setShowInquiryModal(false);
+                }}
+              >
+                Confirm Booking
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

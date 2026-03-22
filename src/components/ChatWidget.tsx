@@ -80,6 +80,104 @@ const SourcesAccordion: React.FC<{ sources: string[] }> = ({ sources }) => {
 const getPredefinedResponse = (message: string): string | null => {
   const lowerMessage = message.toLowerCase();
   
+  // About page - Team information
+  if (lowerMessage.includes('team') || lowerMessage.includes('staff') || lowerMessage.includes('who works') || lowerMessage.includes('director')) {
+    return `Our Expert Team at USTP TPCO:
+
+Leadership:
+- Dr. Venessa Garcia - Director, Technology Promotions and Commercialization Office
+
+Unit Managers:
+- Engr. Gladdy Christie Compasan - Manager, Innovation and Technology Support Unit
+- Ms. Flora Monica Mabaylan - Manager, Promotions Management Unit  
+- Ms. Rhea Suzette Haguisan - Manager, Business Development Unit
+
+Technical Staff:
+- Engr. Jodie Rey Fernandez - Technology Promotions Officer
+- Engr. Clark Darwin Gozon - Technical Expert
+- Engr. Mark Lister Nalupa - Technical Expert
+- Noreza P. Aleno - Administrative Staff
+- Krystia Ces G. Napili - Science Research Specialist
+- Michael J. Cerbito - Administrative Assistant
+
+You can view the full team on the About page.`;
+  }
+  
+  // About page - Journey/Milestones
+  if (lowerMessage.includes('journey') || lowerMessage.includes('history') || lowerMessage.includes('started') || lowerMessage.includes('when') || lowerMessage.includes('milestone') || lowerMessage.includes('established')) {
+    return `USTP TPCO Journey:
+
+2018 - TPCO Establishment: Founded as USTP's dedicated technology transfer office
+
+2019 - First Patent Grant: Achieved first successful patent registration
+
+2020 - Industry Partnership Program: Launched formal industry-academe collaboration
+
+2021 - CDO b.i.t.e.s. Partnership: Strategic alliance for startup incubation
+
+2022 - IP Portfolio Milestone: Reached 15 patents granted
+
+2023 - Regional Recognition: Awarded Outstanding Technology Transfer Office in Mindanao
+
+2024 - Innovation Hub Launch: Opened state-of-the-art facility
+
+View the full timeline on the About page.`;
+  }
+  
+  // About page - Partners
+  if (lowerMessage.includes('partner') || lowerMessage.includes('collaborat')) {
+    return `Our Strategic Partners:
+
+- Oro Chamber of Commerce and Industry
+- Ateneo Innovation and Patent Office (IPO)
+- Department of Science and Technology (DOST) Region X
+- Department of Trade and Industry (DTI) Misamis Oriental
+- CDO b.i.t.e.s. (business innovation technology e-startup)
+- Intellectual Property Office of the Philippines (IPOPhil)
+
+Learn more on the About page.`;
+  }
+  
+  // Contact information
+  if (lowerMessage.includes('contact') || lowerMessage.includes('phone') || lowerMessage.includes('email') || lowerMessage.includes('address') || lowerMessage.includes('location')) {
+    return `Contact USTP TPCO:
+
+📍 Address:
+USTP Technology Transfer Office
+Cagayan de Oro Campus
+Cagayan de Oro City, Philippines 9000
+
+📞 Phone:
++63 (088) 856-1738
++63 (088) 856-1739
+
+📧 Email:
+tpco@ustp.edu.ph
+info@ustp.edu.ph
+
+⏰ Office Hours:
+Monday - Friday, 8:00 AM - 5:00 PM
+
+Visit the Contact page to schedule a meeting.`;
+  }
+  
+  // Mission/Vision
+  if (lowerMessage.includes('mission') || lowerMessage.includes('vision') || lowerMessage.includes('values')) {
+    return `USTP TPCO:
+
+Our Mission:
+To accelerate the translation of USTP research innovations into market-ready technologies that address regional and national development needs.
+
+Our Vision:
+To be the premier technology transfer office in the Philippines, recognized for excellence in innovation commercialization.
+
+Our Values:
+- Innovation: Fostering creativity and breakthrough thinking
+- Integrity: Ethical practices in all partnerships
+- Excellence: Commitment to quality
+- Collaboration: Building meaningful partnerships`;
+  }
+  
   if (lowerMessage.includes('reset password') || lowerMessage.includes('forgot password')) {
     return `Here's how to reset your password:
 
@@ -89,16 +187,16 @@ const getPredefinedResponse = (message: string): string | null => {
 4. Check your email for reset instructions
 5. Click the reset link and create a new password
 
-If you're still having trouble, you can contact support by saying "agent".`;
+If you're still having trouble, you can contact support at tpco@ustp.edu.ph.`;
   }
   
   if (lowerMessage.includes('contact support') || lowerMessage.includes('help')) {
     return `Here are your support options:
 
-📧 Email: support@ustp-tpco.com
-💬 Live Chat: Available 24/7 (say "agent")
-📞 Phone: +1 (555) 123-4567
-⏰ Hours: Monday-Friday 9AM-6PM EST
+📧 Email: tpco@ustp.edu.ph
+📞 Phone: +63 (088) 856-1738
+💬 Live Chat: Available during office hours
+⏰ Hours: Monday-Friday 8AM-5PM
 
 What specific issue are you experiencing?`;
   }
@@ -111,16 +209,16 @@ What specific issue are you experiencing?`;
 3. Are you seeing any error messages?
 4. What browser/device are you using?
 
-You can also try refreshing the page or clearing your browser cache. If the issue persists, I can connect you to technical support by saying "agent".`;
+You can also try refreshing the page or clearing your browser cache. If the issue persists, contact us at tpco@ustp.edu.ph.`;
   }
   
   if (lowerMessage.includes('agent') || lowerMessage.includes('human')) {
-    return `I'm connecting you to a human support agent. Please wait while I transfer you... 
+    return `For immediate assistance, please contact us directly:
 
-In the meantime, here's what you can expect:
-- Response time: Usually within 2-3 minutes
-- Available: 24/7 for urgent issues
-- They'll have access to your chat history to help you faster`;
+📧 Email: tpco@ustp.edu.ph
+📞 Phone: +63 (088) 856-1738
+
+Our team is available Monday-Friday, 8:00 AM - 5:00 PM.`;
   }
   
   return null;
@@ -137,11 +235,20 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
-      content: `Hello! I'm your AI assistant for ${appName}. I can help answer questions about:\n\n• Patents and IP protection\n• Technology transfer\n• USTP TPCO processes\n• IPOPHL forms and procedures\n\nHow can I help you today?`,
+      content: `Hello! I'm your AI assistant for ${appName}. I can help answer questions about patents, IP protection, technology transfer, and USTP TPCO processes.`,
       role: 'assistant',
       timestamp: new Date(),
     }
   ]);
+
+  // Suggested questions for users
+  const suggestedQuestions = [
+    "What is a patent?",
+    "How do I file a patent application?",
+    "Who is the TPCO Director?",
+    "What services does TPCO offer?",
+    "How can I contact TPCO?"
+  ];
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -456,6 +563,27 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
               
               <div ref={messagesEndRef} />
             </ScrollArea>
+
+            {/* Suggested Questions */}
+            {messages.length === 1 && !isLoading && (
+              <div className="px-3 py-2 border-t border-gray-100 dark:border-gray-800">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Suggested questions:</p>
+                <div className="flex flex-wrap gap-2">
+                  {suggestedQuestions.map((question, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setInputValue(question);
+                        setTimeout(() => handleSendMessage(), 100);
+                      }}
+                      className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full transition-colors text-left"
+                    >
+                      {question}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
                          {/* Error Display */}
              {error && (

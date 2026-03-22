@@ -3,12 +3,78 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Phone, Mail, MapPin, Calendar, Clock, Users, Wrench } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, Phone, Mail, MapPin, Calendar, Clock, Users, Wrench, Loader2, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const FacilityBooking = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
+  const [facilities, setFacilities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Booking inquiry modal state
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedFacility, setSelectedFacility] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  
+  // Booking form state
+  const [bookingForm, setBookingForm] = useState({
+    full_name: '',
+    email: '',
+    phone: '',
+    organization: '',
+    preferred_date: '',
+    preferred_time: '',
+    purpose: '',
+    additional_notes: ''
+  });
+
+  // Load facilities from Supabase
+  useEffect(() => {
+    loadFacilities();
+  }, []);
+
+  const loadFacilities = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('resources' as any)
+        .select('*')
+        .eq('category', 'SSF Booking')
+        .eq('published', true)
+        .order('title', { ascending: true });
+      
+      if (data && !error) {
+        setFacilities(data.map((facility: any) => ({
+          id: facility.id,
+          name: facility.title,
+          description: facility.content,
+          equipment: facility.equipment || [],
+          capacity: facility.capacity,
+          hourlyRate: facility.hourly_rate ? `₱${facility.hourly_rate}` : 'Contact for pricing',
+          bookingLead: facility.booking_lead_time || 'Contact for details'
+        })));
+      } else {
+        // Use default facilities if no data from Supabase
+        setFacilities(ssfFacilities);
+      }
+    } catch (error) {
+      console.error('Error loading facilities:', error);
+      setFacilities(ssfFacilities);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Default facilities as fallback
   const ssfFacilities = [
     {
       id: 1,
@@ -86,6 +152,82 @@ const FacilityBooking = () => {
 
   const handleEmailTPCO = () => {
     window.open('mailto:tpco@ustp.edu.ph?subject=SSF Facility Booking Inquiry');
+  };
+
+  const handleOpenBookingModal = (facility: any) => {
+    setSelectedFacility(facility);
+    setShowBookingModal(true);
+    setSubmitSuccess(false);
+    setBookingForm({
+      full_name: '',
+      email: '',
+      phone: '',
+      organization: '',
+      preferred_date: '',
+      preferred_time: '',
+      purpose: '',
+      additional_notes: ''
+    });
+  };
+
+  const handleBookingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedFacility) return;
+    
+    // Validate required fields
+    if (!bookingForm.full_name.trim() || !bookingForm.email.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in your full name and email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const { error } = await supabase
+        .from('facility_booking_inquiries' as any)
+        .insert({
+          facility_id: typeof selectedFacility.id === 'string' ? selectedFacility.id : null,
+          facility_name: selectedFacility.name,
+          full_name: bookingForm.full_name.trim(),
+          email: bookingForm.email.trim(),
+          phone: bookingForm.phone.trim() || null,
+          organization: bookingForm.organization.trim() || null,
+          preferred_date: bookingForm.preferred_date || null,
+          preferred_time: bookingForm.preferred_time || null,
+          purpose: bookingForm.purpose.trim() || null,
+          additional_notes: bookingForm.additional_notes.trim() || null,
+          status: 'pending'
+        });
+      
+      if (error) {
+        console.error('Error submitting booking inquiry:', error);
+        toast({
+          title: "Submission Failed",
+          description: "There was an error submitting your inquiry. Please try again or contact us directly.",
+          variant: "destructive"
+        });
+      } else {
+        setSubmitSuccess(true);
+        toast({
+          title: "Inquiry Submitted!",
+          description: `Your booking inquiry for "${selectedFacility.name}" has been submitted. We will contact you at ${bookingForm.email}.`
+        });
+      }
+    } catch (error: any) {
+      console.error('Booking inquiry error:', error);
+      toast({
+        title: "Submission Failed",
+        description: "There was an error submitting your inquiry. Please try again or contact us directly.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -198,7 +340,7 @@ const FacilityBooking = () => {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {ssfFacilities.map((facility) => (
+            {facilities.map((facility) => (
               <Card key={facility.id} className="hover:shadow-card transition-all duration-300">
                 <CardHeader>
                   <CardTitle className="text-xl font-roboto text-primary flex items-center">
@@ -214,7 +356,7 @@ const FacilityBooking = () => {
                     <div>
                       <h4 className="font-semibold text-primary mb-2">Available Equipment:</h4>
                       <div className="grid grid-cols-1 gap-1">
-                        {facility.equipment.map((item, idx) => (
+                        {facility.equipment.map((item: string, idx: number) => (
                           <div key={idx} className="text-sm text-gray-600 flex items-center">
                             <div className="w-1 h-1 bg-secondary rounded-full mr-2"></div>
                             {item}
@@ -241,7 +383,7 @@ const FacilityBooking = () => {
                     </div>
                     
                     <div className="pt-4 border-t">
-                      <Button variant="gold-outline" size="sm" className="w-full" onClick={handleContactTPCO}>
+                      <Button variant="gold-outline" size="sm" className="w-full" onClick={() => handleOpenBookingModal(facility)}>
                         <Calendar size={16} className="mr-2" />
                         Contact for Booking
                       </Button>
@@ -290,6 +432,156 @@ const FacilityBooking = () => {
           </Card>
         </div>
       </section>
+
+      {/* Booking Inquiry Modal */}
+      <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Book Facility</DialogTitle>
+            <DialogDescription>
+              {selectedFacility && (
+                <span>
+                  Submit an inquiry for <strong>"{selectedFacility.name}"</strong>
+                  {selectedFacility.hourlyRate && (
+                    <span className="block mt-1 text-sm">
+                      Rate: {selectedFacility.hourlyRate}/hour | Lead Time: {selectedFacility.bookingLead}
+                    </span>
+                  )}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {submitSuccess ? (
+            <div className="py-6 text-center">
+              <CheckCircle className="mx-auto mb-4 text-green-500" size={64} />
+              <h3 className="text-xl font-semibold mb-2">Inquiry Submitted!</h3>
+              <p className="text-gray-600 mb-4">
+                Thank you for your interest. We will contact you at <strong>{bookingForm.email}</strong> within 24-48 hours to discuss your booking.
+              </p>
+              <Button variant="gold" onClick={() => setShowBookingModal(false)}>
+                Close
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleBookingSubmit}>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="booking-name">Full Name *</Label>
+                  <Input
+                    id="booking-name"
+                    placeholder="Enter your full name"
+                    value={bookingForm.full_name}
+                    onChange={(e) => setBookingForm({...bookingForm, full_name: e.target.value})}
+                    required
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="booking-email">Email Address *</Label>
+                  <Input
+                    id="booking-email"
+                    type="email"
+                    placeholder="your.email@example.com"
+                    value={bookingForm.email}
+                    onChange={(e) => setBookingForm({...bookingForm, email: e.target.value})}
+                    required
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="booking-phone">Phone Number</Label>
+                    <Input
+                      id="booking-phone"
+                      placeholder="+63 XXX XXX XXXX"
+                      value={bookingForm.phone}
+                      onChange={(e) => setBookingForm({...bookingForm, phone: e.target.value})}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="booking-org">Organization</Label>
+                    <Input
+                      id="booking-org"
+                      placeholder="Your organization"
+                      value={bookingForm.organization}
+                      onChange={(e) => setBookingForm({...bookingForm, organization: e.target.value})}
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="booking-date">Preferred Date</Label>
+                    <Input
+                      id="booking-date"
+                      type="date"
+                      value={bookingForm.preferred_date}
+                      onChange={(e) => setBookingForm({...bookingForm, preferred_date: e.target.value})}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="booking-time">Preferred Time</Label>
+                    <Input
+                      id="booking-time"
+                      type="time"
+                      value={bookingForm.preferred_time}
+                      onChange={(e) => setBookingForm({...bookingForm, preferred_time: e.target.value})}
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="booking-purpose">Purpose of Booking</Label>
+                  <Textarea
+                    id="booking-purpose"
+                    placeholder="Briefly describe what you'll be using the facility for"
+                    value={bookingForm.purpose}
+                    onChange={(e) => setBookingForm({...bookingForm, purpose: e.target.value})}
+                    rows={2}
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="booking-notes">Additional Notes</Label>
+                  <Textarea
+                    id="booking-notes"
+                    placeholder="Any special requirements or questions"
+                    value={bookingForm.additional_notes}
+                    onChange={(e) => setBookingForm({...bookingForm, additional_notes: e.target.value})}
+                    rows={2}
+                  />
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setShowBookingModal(false)}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" variant="gold" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      Submit Inquiry
+                      <Calendar size={16} className="ml-2" />
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>

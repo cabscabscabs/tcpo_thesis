@@ -126,16 +126,25 @@ const BrowseResources = () => {
             id: r.id,
             title: r.title,
             description: r.content || '',
-            type: r.type || 'guideline',
-            category: r.tags && r.tags[0] ? r.tags[0] : 'Guidelines',
-            format: r.file_url ? 'Download' : 'Link',
+            type: r.category === 'Templates' ? 'template' : 
+                  r.category === 'IP 101 Tutorials' ? 'tutorial' : 
+                  r.category === 'SSF Booking' ? 'facility' : 'guideline',
+            category: r.category || 'Guidelines',
+            format: r.type === 'video' ? 'Video' : 
+                    r.file_url ? 'Download' : 
+                    r.url ? 'Link' : 'Document',
             lastUpdated: r.updated_at ? new Date(r.updated_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently',
             url: r.url,
-            file: r.file_url
+            file: r.file_url,
+            // Additional fields for display
+            duration: r.duration,
+            level: r.level,
+            capacity: r.capacity,
+            hourlyRate: r.hourly_rate ? `₱${r.hourly_rate}` : null
           }));
           
           // Combine with default resources
-          const combinedResources = [...defaultResources, ...supabaseResources];
+          const combinedResources = [...supabaseResources, ...defaultResources];
           setResources(combinedResources);
           setFilteredResources(combinedResources);
         } else {

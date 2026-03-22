@@ -207,8 +207,8 @@ const Resources = () => {
     loadEvents();
   }, []);
 
-  // Simple static data for resources
-  const templates = [
+  // Load resources from Supabase
+  const [templates, setTemplates] = useState<any[]>([
     {
       id: 1,
       title: "Non-Disclosure Agreement (NDA)",
@@ -222,9 +222,9 @@ const Resources = () => {
       format: "PDF, DOCX", 
       lastUpdated: "February 2024"
     }
-  ];
+  ]);
 
-  const tutorials = [
+  const [tutorials, setTutorials] = useState<any[]>([
     {
       id: 1,
       title: "Introduction to Intellectual Property",
@@ -233,9 +233,9 @@ const Resources = () => {
       modules: 6,
       level: "Beginner"
     }
-  ];
+  ]);
 
-  const facilities = [
+  const [facilities, setFacilities] = useState<any[]>([
     {
       id: 1,
       name: "Advanced Materials Testing Lab",
@@ -243,9 +243,9 @@ const Resources = () => {
       capacity: "10 researchers",
       hourlyRate: "₱500"
     }
-  ];
+  ]);
 
-  const guidelines = [
+  const [guidelines, setGuidelines] = useState<any[]>([
     {
       id: 1,
       title: "USTP Research Ethics Guidelines",
@@ -253,7 +253,71 @@ const Resources = () => {
       pages: 45,
       lastUpdated: "March 2024"
     }
-  ];
+  ]);
+
+  useEffect(() => {
+    const loadResources = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('resources' as any)
+          .select('*')
+          .eq('published', true)
+          .order('created_at', { ascending: false });
+        
+        if (data && !error) {
+          // Separate resources by category
+          const dbTemplates = data.filter((r: any) => r.category === 'Templates').map((r: any) => ({
+            id: r.id,
+            title: r.title,
+            description: r.content || '',
+            format: r.type === 'video' ? 'Video' : r.file_url ? 'Download' : r.url ? 'Link' : 'Document',
+            lastUpdated: r.updated_at ? new Date(r.updated_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently',
+            url: r.url,
+            file_url: r.file_url
+          }));
+
+          const dbTutorials = data.filter((r: any) => r.category === 'IP 101 Tutorials').map((r: any) => ({
+            id: r.id,
+            title: r.title,
+            description: r.content || '',
+            duration: r.duration || 'Self-paced',
+            modules: r.modules_count || 0,
+            level: r.level || 'Beginner',
+            url: r.url
+          }));
+
+          const dbFacilities = data.filter((r: any) => r.category === 'SSF Booking').map((r: any) => ({
+            id: r.id,
+            name: r.title,
+            description: r.content || '',
+            capacity: r.capacity,
+            hourlyRate: r.hourly_rate ? `₱${r.hourly_rate}` : 'Contact for pricing',
+            equipment: r.equipment || []
+          }));
+
+          const dbGuidelines = data.filter((r: any) => r.category === 'Guidelines').map((r: any) => ({
+            id: r.id,
+            title: r.title,
+            description: r.content || '',
+            pages: null,
+            lastUpdated: r.updated_at ? new Date(r.updated_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently',
+            url: r.url,
+            file_url: r.file_url
+          }));
+
+          // Only update if there are resources from DB
+          if (dbTemplates.length > 0) setTemplates(dbTemplates);
+          if (dbTutorials.length > 0) setTutorials(dbTutorials);
+          if (dbFacilities.length > 0) setFacilities(dbFacilities);
+          if (dbGuidelines.length > 0) setGuidelines(dbGuidelines);
+        }
+      } catch (error) {
+        console.warn('Failed to load resources data:', error);
+      }
+    };
+    
+    loadResources();
+  }, []);
 
   // Filter upcoming events with open registration
   const currentDate = new Date();

@@ -44,6 +44,10 @@ OFFICE_KEYWORDS = {
     # Conversation starters (allow greetings/help requests)
     "hello", "hi", "hey", "help", "what can you do", "what do you do",
     "how can you help", "assist", "support", "question", "ask",
+    # Navigation and website help
+    "where", "how to", "how do i", "navigate", "find", "access", "page",
+    "contact", "about", "our ip", "ip portfolio", "services", "resources",
+    "menu", "link", "button", "click", "go to", "location",
 }
 
 # Topics that should be explicitly rejected
