@@ -3,9 +3,15 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, BookOpen, Video, FileText, Users, Calendar, ExternalLink, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Download, BookOpen, Video, FileText, Users, Calendar, ExternalLink, Clock, Loader2, CheckCircle, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 // Helper function to format time - defined at the top to avoid issues
 const formatTime = (timeString) => {
@@ -23,22 +29,182 @@ const formatTime = (timeString) => {
 
 const Resources = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [events, setEvents] = useState([]);
+  
+  // Registration modal state
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
-  // Load events from localStorage safely
-  useEffect(() => {
+  // Event details modal state
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedEventDetails, setSelectedEventDetails] = useState<any>(null);
+  
+  // Registration form state
+  const [registrationForm, setRegistrationForm] = useState({
+    full_name: '',
+    email: '',
+    phone: '',
+    organization: '',
+    position: '',
+    dietary_requirements: '',
+    special_requests: ''
+  });
+
+  // Handle opening registration modal
+  const handleOpenRegistration = (event: any) => {
+    setSelectedEvent(event);
+    setShowRegistrationModal(true);
+    setRegistrationSuccess(false);
+    setRegistrationForm({
+      full_name: '',
+      email: '',
+      phone: '',
+      organization: '',
+      position: '',
+      dietary_requirements: '',
+      special_requests: ''
+    });
+  };
+
+  // Handle registration submission
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedEvent) return;
+    
+    // Validate required fields
+    if (!registrationForm.full_name.trim() || !registrationForm.email.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in your full name and email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
     try {
-      const savedEvents = localStorage.getItem('eventsData');
-      if (savedEvents) {
-        const parsedEvents = JSON.parse(savedEvents);
-        if (Array.isArray(parsedEvents)) {
-          setEvents(parsedEvents);
+      // Debug: Log the event ID being used
+      console.log('Registering for event:', selectedEvent.id, 'Type:', typeof selectedEvent.id);
+      
+      const insertData = {
+        event_id: selectedEvent.id,
+        full_name: registrationForm.full_name.trim(),
+        email: registrationForm.email.trim(),
+        phone: registrationForm.phone.trim() || null,
+        organization: registrationForm.organization.trim() || null,
+        position: registrationForm.position.trim() || null,
+        dietary_requirements: registrationForm.dietary_requirements.trim() || null,
+        special_requests: registrationForm.special_requests.trim() || null,
+        status: 'pending'
+      };
+      console.log('Insert data:', insertData);
+      
+      const { data, error } = await supabase
+        .from('event_registrations')
+        .insert(insertData)
+        .select();
+      
+      console.log('Supabase response - data:', data, 'error:', error);
+      
+      if (error) {
+        if (error.code === '23505') {
+          toast({
+            title: "Already Registered",
+            description: "You have already registered for this event with this email address.",
+            variant: "destructive"
+          });
+        } else {
+          console.error('Supabase error:', error);
+          // Check for common errors
+          if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+            toast({
+              title: "Registration Not Available",
+              description: "The registration system is being set up. Please contact us directly at tpco@ustp.edu.ph",
+              variant: "destructive"
+            });
+          } else {
+            throw error;
+          }
+        }
+      } else {
+        setRegistrationSuccess(true);
+        toast({
+          title: "Registration Successful!",
+          description: `You have been registered for "${selectedEvent.title}". We will contact you at ${registrationForm.email} with further details.`
+        });
+        // Refresh events to update attendee count
+        const { data } = await supabase
+          .from('admin_events' as any)
+          .select('*')
+          .eq('published', true)
+          .order('date', { ascending: true });
+        
+        if (data) {
+          setEvents(data.map((event: any) => ({
+            id: event.id,
+            title: event.title,
+            type: event.type,
+            date: event.date,
+            time: event.time,
+            location: event.location,
+            capacity: event.capacity,
+            description: event.description,
+            registrationOpen: event.registration_open,
+            status: event.status,
+            attendees: event.attendees_count,
+          })));
         }
       }
-    } catch (error) {
-      console.warn('Failed to load events data:', error);
-      // Continue with empty events array
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      const errorMessage = error?.message || "There was an error submitting your registration.";
+      toast({
+        title: "Registration Failed",
+        description: `${errorMessage} Please try again or contact us at tpco@ustp.edu.ph`,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  // Load events from Supabase
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('admin_events' as any)
+          .select('*')
+          .eq('published', true)
+          .order('date', { ascending: true });
+        
+        if (data && !error) {
+          setEvents(data.map((event: any) => ({
+            id: event.id,
+            title: event.title,
+            type: event.type,
+            date: event.date,
+            time: event.time,
+            location: event.location,
+            capacity: event.capacity,
+            description: event.description,
+            registrationOpen: event.registration_open,
+            status: event.status,
+            attendees: event.attendees_count,
+            image: event.image_url,
+          })));
+        }
+      } catch (error) {
+        console.warn('Failed to load events data:', error);
+      }
+    };
+    
+    loadEvents();
   }, []);
 
   // Simple static data for resources
@@ -379,9 +545,6 @@ const Resources = () => {
                     <CardTitle className="text-xl font-roboto text-primary">
                       {event.title}
                     </CardTitle>
-                    <CardDescription>
-                      {event.description}
-                    </CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="space-y-2 mb-4">
@@ -406,26 +569,34 @@ const Resources = () => {
                         </span>
                       </div>
                     </div>
-                    <Button 
-                      variant="gold" 
-                      size="sm" 
-                      className="w-full"
-                      disabled={!event.registrationOpen}
-                      onClick={() => {
-                        if (event.registrationOpen) {
-                          alert(`Registration for "${event.title}"
-
-To register, please contact us at:
-Email: tpco@ustp.edu.ph
-Phone: (088) 856-1738
-
-Online registration coming soon!`);
-                        }
-                      }}
-                    >
-                      {event.registrationOpen ? 'Register Now' : 'Registration Closed'}
-                      <Users size={16} className="ml-2" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline"
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => {
+                          setSelectedEventDetails(event);
+                          setShowDetailsModal(true);
+                        }}
+                      >
+                        <Info size={16} className="mr-2" />
+                        View Details
+                      </Button>
+                      <Button 
+                        variant="gold" 
+                        size="sm" 
+                        className="flex-1"
+                        disabled={!event.registrationOpen}
+                        onClick={() => {
+                          if (event.registrationOpen) {
+                            handleOpenRegistration(event);
+                          }
+                        }}
+                      >
+                        {event.registrationOpen ? 'Register Now' : 'Registration Closed'}
+                        <Users size={16} className="ml-2" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))
@@ -452,6 +623,228 @@ Online registration coming soon!`);
           )}
         </div>
       </section>
+
+      {/* Event Details Modal */}
+      <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
+        <DialogContent className="sm:max-w-[520px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-roboto text-primary">
+              {selectedEventDetails?.title}
+            </DialogTitle>
+            <DialogDescription asChild>
+              <div className="flex items-center gap-2 mt-1">
+                <Calendar size={14} className="text-secondary" />
+                <span className="text-sm text-secondary font-medium">
+                  {selectedEventDetails && (() => {
+                    try {
+                      return new Date(selectedEventDetails.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                    } catch { return 'Date TBA'; }
+                  })()}
+                </span>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedEventDetails && (
+            <div className="space-y-4">
+              {selectedEventDetails.image && (
+                <div
+                  className="h-48 bg-cover bg-center rounded-lg"
+                  style={{ backgroundImage: `url(${selectedEventDetails.image})` }}
+                />
+              )}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Clock size={15} className="text-secondary" />
+                  <span>{selectedEventDetails.time ? formatTime(selectedEventDetails.time) : 'TBA'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Users size={15} className="text-secondary" />
+                  <span>{selectedEventDetails.capacity ? `${selectedEventDetails.capacity} participants` : 'Capacity TBA'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600 col-span-2">
+                  <ExternalLink size={15} className="text-secondary" />
+                  <span>{selectedEventDetails.location || 'Location TBA'}</span>
+                </div>
+              </div>
+              {selectedEventDetails.description && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">About this Event</h4>
+                  <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{selectedEventDetails.description}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowDetailsModal(false)}>Close</Button>
+            {selectedEventDetails?.registrationOpen && (
+              <Button
+                variant="gold"
+                onClick={() => {
+                  setShowDetailsModal(false);
+                  handleOpenRegistration(selectedEventDetails);
+                }}
+              >
+                Register Now
+                <Users size={16} className="ml-2" />
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Event Registration Modal */}
+      <Dialog open={showRegistrationModal} onOpenChange={setShowRegistrationModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Event Registration</DialogTitle>
+            <DialogDescription>
+              {selectedEvent && (
+                <span>
+                  Register for <strong>"{selectedEvent.title}"</strong>
+                  {selectedEvent.date && (
+                    <span className="block mt-1 text-sm">
+                      {new Date(selectedEvent.date).toLocaleDateString('en-US', { 
+                        weekday: 'long',
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      })}
+                      {selectedEvent.time && ` at ${formatTime(selectedEvent.time)}`}
+                    </span>
+                  )}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {registrationSuccess ? (
+            <div className="py-6 text-center">
+              <CheckCircle className="mx-auto mb-4 text-green-500" size={64} />
+              <h3 className="text-xl font-semibold mb-2">Registration Successful!</h3>
+              <p className="text-gray-600 mb-4">
+                Thank you for registering. You will receive a confirmation email at <strong>{registrationForm.email}</strong>
+              </p>
+              <Button variant="gold" onClick={() => setShowRegistrationModal(false)}>
+                Close
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleRegisterSubmit}>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="full_name">Full Name *</Label>
+                  <Input
+                    id="full_name"
+                    placeholder="Enter your full name"
+                    value={registrationForm.full_name}
+                    onChange={(e) => setRegistrationForm({...registrationForm, full_name: e.target.value})}
+                    required
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email Address *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your.email@example.com"
+                    value={registrationForm.email}
+                    onChange={(e) => setRegistrationForm({...registrationForm, email: e.target.value})}
+                    required
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      placeholder="+63 XXX XXX XXXX"
+                      value={registrationForm.phone}
+                      onChange={(e) => setRegistrationForm({...registrationForm, phone: e.target.value})}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="position">Position/Role</Label>
+                    <Input
+                      id="position"
+                      placeholder="Your position"
+                      value={registrationForm.position}
+                      onChange={(e) => setRegistrationForm({...registrationForm, position: e.target.value})}
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="organization">Organization/Institution</Label>
+                  <Input
+                    id="organization"
+                    placeholder="Your organization or institution"
+                    value={registrationForm.organization}
+                    onChange={(e) => setRegistrationForm({...registrationForm, organization: e.target.value})}
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="dietary_requirements">Dietary Requirements</Label>
+                  <Input
+                    id="dietary_requirements"
+                    placeholder="Any dietary restrictions or preferences"
+                    value={registrationForm.dietary_requirements}
+                    onChange={(e) => setRegistrationForm({...registrationForm, dietary_requirements: e.target.value})}
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="special_requests">Special Requests/Comments</Label>
+                  <Textarea
+                    id="special_requests"
+                    placeholder="Any special requests or additional comments"
+                    value={registrationForm.special_requests}
+                    onChange={(e) => setRegistrationForm({...registrationForm, special_requests: e.target.value})}
+                    rows={3}
+                  />
+                </div>
+                
+                {selectedEvent?.capacity && (
+                  <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
+                    <Users size={16} />
+                    <span>
+                      {selectedEvent.attendees || 0} of {selectedEvent.capacity} spots filled
+                    </span>
+                  </div>
+                )}
+              </div>
+              
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setShowRegistrationModal(false)}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" variant="gold" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Registering...
+                    </>
+                  ) : (
+                    <>
+                      Submit Registration
+                      <Users size={16} className="ml-2" />
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>

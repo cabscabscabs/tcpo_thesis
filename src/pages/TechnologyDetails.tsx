@@ -32,41 +32,42 @@ const TechnologyDetails = () => {
       setLoading(true);
       console.log("Fetching technology with slug:", slug);
       
-      // First, try to find in admin-managed technologies (localStorage)
-      const adminTechnologies = localStorage.getItem('featuredTechnologies');
-      if (adminTechnologies) {
-        try {
-          const parsedTech = JSON.parse(adminTechnologies);
-          const adminTech = parsedTech.find((tech: any) => {
-            // Use the slug field if it exists, otherwise generate it
-            const techSlug = tech.slug || tech.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      // First, try to find in admin_technologies in Supabase
+      try {
+        const { data: techData, error: techError } = await supabase
+          .from('admin_technologies' as any)
+          .select('*')
+          .eq('published', true);
+        
+        if (techData && !techError) {
+          const adminTech = techData.find((tech: any) => {
+            const techSlug = tech.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             return techSlug === slug;
           });
           
           if (adminTech) {
-            // Transform admin tech to ExtendedPortfolioItem format
+            const tech = adminTech as any;
             const transformedTech: ExtendedPortfolioItem = {
-              id: adminTech.id.toString(),
-              title: adminTech.title,
+              id: tech.id,
+              title: tech.title,
               slug: slug || '',
-              description: adminTech.description,
-              image_url: "/placeholder.svg?height=400&width=600",
+              description: tech.description,
+              image_url: tech.image_url || "//placeholder.svg?height=400&width=600",
               link_url: "#",
-              category: adminTech.field,
-              tags: [adminTech.field, adminTech.status, 'USTP', 'Innovation'],
+              category: tech.field,
+              tags: [tech.field, tech.status, 'USTP', 'Innovation'],
               published: true,
               published_at: new Date().toISOString(),
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              inventors: adminTech.inventors,
-              field: adminTech.field,
-              status: adminTech.status,
-              year: adminTech.year,
-              abstract: adminTech.abstract || adminTech.description,
-              licensing: adminTech.status === 'Licensed' ? 'Already Licensed' : 'Available for licensing through USTP TPCO',
-              applications: [adminTech.field, 'Innovation', 'Research'],
+              created_at: tech.created_at,
+              updated_at: tech.updated_at,
+              inventors: tech.inventors,
+              field: tech.field,
+              status: tech.status,
+              year: tech.year,
+              abstract: tech.abstract || tech.description,
+              licensing: tech.status === 'Licensed' ? 'Already Licensed' : 'Available for licensing through USTP TPCO',
+              applications: [tech.field, 'Innovation', 'Research'],
               contact: "tpco@ustp.edu.ph",
-              // Set all optional fields to null for admin technologies
               inventor: null,
               patent_status: null,
               patent_number: null,
@@ -88,7 +89,7 @@ const TechnologyDetails = () => {
               cited_by_patents: null,
               family_size: null,
               priority_claims: null,
-              technology_fields: [adminTech.field],
+              technology_fields: [tech.field],
               ipc_classes: null,
               cpc_classes: null
             };
@@ -97,51 +98,52 @@ const TechnologyDetails = () => {
             setLoading(false);
             return;
           }
-        } catch (error) {
-          console.error('Failed to parse admin technologies:', error);
         }
+      } catch (error) {
+        console.error('Failed to fetch admin technologies:', error);
       }
       
-      // Second, try to find in admin-managed patents (localStorage)
-      const adminPatents = localStorage.getItem('patents');
-      if (adminPatents) {
-        try {
-          const parsedPatents = JSON.parse(adminPatents);
-          const adminPatent = parsedPatents.find((patent: any) => {
-            // Use the slug field if it exists, otherwise generate it
-            const patentSlug = patent.slug || patent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      // Second, try to find in admin_patents in Supabase
+      try {
+        const { data: patentData, error: patentError } = await supabase
+          .from('admin_patents' as any)
+          .select('*')
+          .eq('published', true);
+        
+        if (patentData && !patentError) {
+          const adminPatent = patentData.find((patent: any) => {
+            const patentSlug = patent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             return patentSlug === slug;
           });
           
           if (adminPatent) {
-            // Transform admin patent to ExtendedPortfolioItem format
+            const patent = adminPatent as any;
             const transformedPatent: ExtendedPortfolioItem = {
-              id: adminPatent.id.toString(),
-              title: adminPatent.title,
+              id: patent.id,
+              title: patent.title,
               slug: slug || '',
-              description: adminPatent.abstract || `Patent in ${adminPatent.field || 'Unknown Field'}`,
-              image_url: "/placeholder.svg?height=400&width=600",
+              description: patent.abstract || `Patent in ${patent.field || 'Unknown Field'}`,
+              image_url: patent.image_url || "//placeholder.svg?height=400&width=600",
               link_url: "#",
-              category: adminPatent.field || "General",
-              tags: [adminPatent.field, adminPatent.status, 'USTP Patent'].filter(Boolean),
+              category: patent.field || "General",
+              tags: [patent.field, patent.status, 'USTP Patent'].filter(Boolean),
               published: true,
               published_at: new Date().toISOString(),
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              inventors: adminPatent.inventors || "Dr. USTP Researcher",
-              field: adminPatent.field || "General",
-              status: adminPatent.status || "Pending",
-              year: new Date().getFullYear().toString(),
-              abstract: adminPatent.abstract || `Patent abstract for ${adminPatent.title || 'Untitled Patent'}`,
-              licensing: adminPatent.status === 'Licensed' ? 'Already Licensed' : 'Available for licensing through USTP TPCO',
-              applications: [adminPatent.field, 'Innovation', 'Research'].filter(Boolean),
+              created_at: patent.created_at,
+              updated_at: patent.updated_at,
+              inventors: patent.inventors || "Dr. USTP Researcher",
+              field: patent.field || "General",
+              status: patent.status || "Pending",
+              year: patent.year || new Date().getFullYear().toString(),
+              abstract: patent.abstract || `Patent abstract for ${patent.title || 'Untitled Patent'}`,
+              licensing: patent.status === 'Licensed' ? 'Already Licensed' : 'Available for licensing through USTP TPCO',
+              applications: [patent.field, 'Innovation', 'Research'].filter(Boolean),
               contact: "tpco@ustp.edu.ph",
-              // Set all optional fields to null for admin patents
               inventor: null,
               patent_status: null,
-              patent_number: adminPatent.patentId || null,
+              patent_number: patent.patent_number || null,
               filing_date: null,
-              grant_date: null,
+              grant_date: patent.grant_date || null,
               assignee: "University of Science and Technology of Southern Philippines",
               ipc_codes: null,
               cpc_codes: null,
@@ -158,7 +160,7 @@ const TechnologyDetails = () => {
               cited_by_patents: null,
               family_size: null,
               priority_claims: null,
-              technology_fields: [adminPatent.field].filter(Boolean),
+              technology_fields: [patent.field].filter(Boolean),
               ipc_classes: null,
               cpc_classes: null
             };
@@ -167,12 +169,12 @@ const TechnologyDetails = () => {
             setLoading(false);
             return;
           }
-        } catch (error) {
-          console.error('Failed to parse admin patents:', error);
         }
+      } catch (error) {
+        console.error('Failed to fetch admin patents:', error);
       }
       
-      // If not found in admin data, try Supabase
+      // If not found in admin data, try portfolio_items
       const { data, error } = await supabase
         .from("portfolio_items")
         .select("*")

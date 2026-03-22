@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar, User, ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const HomepageLatestNews = () => {
   const navigate = useNavigate();
@@ -50,35 +51,38 @@ const HomepageLatestNews = () => {
     }
   ];
 
-  // Load news from localStorage (admin panel data)
+  // Load news from Supabase (admin panel data)
   useEffect(() => {
-    const loadNewsData = () => {
+    const loadNewsData = async () => {
       try {
-        const savedNews = localStorage.getItem('newsArticles');
-        if (savedNews) {
-          const parsedNews = JSON.parse(savedNews);
-          // Only show published articles on the frontend, sorted by date (latest first)
-          const publishedNews = parsedNews
-            .filter(article => article.status === 'Published')
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) // Sort latest first
-            .slice(0, 3) // Limit to 3 most recent articles
-            .map((article, index) => ({
-              ...article,
-              // Use the admin-uploaded image if available, otherwise use placeholder
-              image: article.image || `https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=600&fit=crop&q=80`,
-              // Generate tags from category and title
-              tags: article.tags || [article.category, 'USTP', 'News'],
-              featured: index === 0 // Make first (most recent) article featured
-            }));
+        const { data, error } = await supabase
+          .from('admin_news' as any)
+          .select('*')
+          .eq('published', true)
+          .order('date', { ascending: false })
+          .limit(3);
+        
+        if (data && !error) {
+          const publishedNews = data.map((article: any, index: number) => ({
+            id: article.id,
+            title: article.title,
+            excerpt: article.excerpt,
+            date: article.date,
+            category: article.category,
+            author: article.author,
+            image: article.cover_image_url || `https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=600&fit=crop&q=80`,
+            tags: article.tags || [article.category, 'USTP', 'News'],
+            status: article.status,
+            content: article.content,
+            featured: index === 0
+          }));
           
           if (publishedNews.length > 0) {
             setNewsArticles(publishedNews);
           } else {
-            // Use fallback data if no published articles exist
             setNewsArticles(fallbackNewsItems.slice(0, 3));
           }
         } else {
-          // Use fallback data if no saved news exists
           setNewsArticles(fallbackNewsItems.slice(0, 3));
         }
       } catch (error) {
@@ -87,20 +91,7 @@ const HomepageLatestNews = () => {
       }
     };
 
-    // Load initially
     loadNewsData();
-
-    // Listen for storage changes (when admin updates news)
-    const handleStorageChange = () => {
-      loadNewsData();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, []);
 
   const formatDate = (dateString: string) => {

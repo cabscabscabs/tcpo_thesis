@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Filter, Calendar, User, ExternalLink, ArrowRight, ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const LatestNews = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const LatestNews = () => {
   const [selectedYear, setSelectedYear] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
   const [newsArticles, setNewsArticles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Mock fallback data in case no admin data exists
   const fallbackNewsItems = [
@@ -58,25 +60,30 @@ const LatestNews = () => {
     }
   ];
 
-  // Load news from localStorage (admin panel data)
+  // Load news from Supabase (admin panel data)
   useEffect(() => {
-    const loadNewsData = () => {
+    const loadNewsData = async () => {
       try {
-        const savedNews = localStorage.getItem('newsArticles');
-        if (savedNews) {
-          const parsedNews = JSON.parse(savedNews);
-          // Only show published articles on the frontend
-          const publishedNews = parsedNews
-            .filter(article => article.status === 'Published')
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) // Sort latest first
-            .map(article => ({
-              ...article,
-              // Use the admin-uploaded image if available, otherwise use placeholder
-              image: article.image || `https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=600&fit=crop&q=80`,
-              // Generate tags from category and title
-              tags: article.tags || [article.category, 'USTP', 'News'],
-              featured: false // Initially set all to false
-            }));
+        const { data, error } = await supabase
+          .from('admin_news' as any)
+          .select('*')
+          .eq('published', true)
+          .order('date', { ascending: false });
+        
+        if (data && !error) {
+          const publishedNews = data.map((article: any) => ({
+            id: article.id,
+            title: article.title,
+            excerpt: article.excerpt,
+            date: article.date,
+            category: article.category,
+            author: article.author,
+            image: article.cover_image_url || `https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=600&fit=crop&q=80`,
+            tags: article.tags || [article.category, 'USTP', 'News'],
+            status: article.status,
+            content: article.content,
+            featured: false
+          }));
           
           // Set the most recent article as featured
           if (publishedNews.length > 0) {
@@ -86,33 +93,20 @@ const LatestNews = () => {
           if (publishedNews.length > 0) {
             setNewsArticles(publishedNews);
           } else {
-            // Use fallback data if no published articles exist
             setNewsArticles(fallbackNewsItems);
           }
         } else {
-          // Use fallback data if no saved news exists
           setNewsArticles(fallbackNewsItems);
         }
       } catch (error) {
         console.error('Failed to load news data:', error);
         setNewsArticles(fallbackNewsItems);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    // Load initially
     loadNewsData();
-
-    // Listen for storage changes (when admin updates news)
-    const handleStorageChange = () => {
-      loadNewsData();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, []);
 
   // Use newsArticles instead of allNewsItems
@@ -289,7 +283,27 @@ const LatestNews = () => {
         </div>
 
         {/* News Grid */}
-        {filteredNews.length === 0 ? (
+        {isLoading ? (
+          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Featured skeleton */}
+            <div className="lg:col-span-2 lg:row-span-2">
+              <div className="h-full rounded-lg overflow-hidden animate-pulse">
+                <div className="h-[500px] bg-gray-200 rounded-lg" />
+              </div>
+            </div>
+            {/* Regular article skeletons */}
+            {[1, 2].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-[240px] bg-gray-200 rounded-t-lg" />
+                <div className="p-4 bg-white border border-gray-100 rounded-b-lg space-y-2">
+                  <div className="h-3 bg-gray-200 rounded w-1/3" />
+                  <div className="h-5 bg-gray-200 rounded w-3/4" />
+                  <div className="h-3 bg-gray-200 rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredNews.length === 0 ? (
           <div className="text-center py-16">
             <Filter className="mx-auto h-16 w-16 text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No news found</h3>

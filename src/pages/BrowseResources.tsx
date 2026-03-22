@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Download, Search, Filter, FileText, Video, Calendar, ArrowLeft, ExternalLink } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const BrowseResources = () => {
   const navigate = useNavigate();
@@ -110,39 +111,45 @@ const BrowseResources = () => {
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterType, setFilterType] = useState('all');
 
-  // Load resources from admin panel
+  // Load resources from Supabase
   useEffect(() => {
-    const loadResources = () => {
+    const loadResources = async () => {
       try {
-        const savedResources = localStorage.getItem('resourcesData');
-        let combinedResources = [...defaultResources]; // Start with default resources
+        const { data, error } = await supabase
+          .from('resources' as any)
+          .select('*')
+          .eq('published', true)
+          .order('published_at', { ascending: false });
         
-        if (savedResources) {
-          const parsedResources = JSON.parse(savedResources);
-          // Merge admin resources with default resources
-          // Admin resources take priority, but we keep default resources as fallback
-          combinedResources = [...defaultResources, ...parsedResources];
+        if (data && !error) {
+          const supabaseResources = data.map((r: any) => ({
+            id: r.id,
+            title: r.title,
+            description: r.content || '',
+            type: r.type || 'guideline',
+            category: r.tags && r.tags[0] ? r.tags[0] : 'Guidelines',
+            format: r.file_url ? 'Download' : 'Link',
+            lastUpdated: r.updated_at ? new Date(r.updated_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently',
+            url: r.url,
+            file: r.file_url
+          }));
+          
+          // Combine with default resources
+          const combinedResources = [...defaultResources, ...supabaseResources];
+          setResources(combinedResources);
+          setFilteredResources(combinedResources);
+        } else {
+          setResources(defaultResources);
+          setFilteredResources(defaultResources);
         }
-        
-        setResources(combinedResources);
-        setFilteredResources(combinedResources);
       } catch (error) {
         console.error('Failed to load resources:', error);
-        // Fallback to default resources if there's an error
         setResources(defaultResources);
         setFilteredResources(defaultResources);
       }
     };
 
     loadResources();
-
-    // Listen for storage changes
-    const handleStorageChange = () => {
-      loadResources();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   // Filter resources based on search and filters

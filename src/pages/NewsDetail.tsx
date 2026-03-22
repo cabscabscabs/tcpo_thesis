@@ -14,6 +14,7 @@ import {
   Tag,
   ExternalLink
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NewsArticle {
   id: number;
@@ -36,16 +37,19 @@ const NewsDetail = () => {
   const [relatedArticles, setRelatedArticles] = useState<NewsArticle[]>([]);
 
   useEffect(() => {
-    const loadNewsArticle = () => {
+    const loadNewsArticle = async () => {
       try {
-        // Load from localStorage (admin-managed news)
-        const savedNews = localStorage.getItem('newsArticles');
-        if (savedNews) {
-          const parsedNews = JSON.parse(savedNews);
-          const publishedNews = parsedNews.filter((article: NewsArticle) => article.status === 'Published');
+        // Load from Supabase (admin-managed news)
+        const { data, error } = await supabase
+          .from('admin_news' as any)
+          .select('*')
+          .eq('published', true);
+        
+        if (data && !error) {
+          const publishedNews = data;
           
           // Find article by slug (convert title to slug format)
-          const foundArticle = publishedNews.find((article: NewsArticle) => {
+          const foundArticle = publishedNews.find((article: any) => {
             const articleSlug = article.title.toLowerCase()
               .replace(/[^a-z0-9]+/g, '-')
               .replace(/(^-|-$)/g, '');
@@ -53,12 +57,36 @@ const NewsDetail = () => {
           });
 
           if (foundArticle) {
-            setArticle(foundArticle);
+            const article = foundArticle as any;
+            setArticle({
+              id: article.id,
+              title: article.title,
+              excerpt: article.excerpt || '',
+              content: article.content || '',
+              date: article.date,
+              category: article.category || 'News',
+              author: article.author || 'Admin',
+              image: article.cover_image_url,
+              tags: article.tags || [],
+              status: article.status
+            });
             
             // Get related articles (same category, excluding current)
             const related = publishedNews
-              .filter((a: NewsArticle) => a.category === foundArticle.category && a.id !== foundArticle.id)
-              .slice(0, 3);
+              .filter((a: any) => a.category === article.category && a.id !== article.id)
+              .slice(0, 3)
+              .map((a: any) => ({
+                id: a.id,
+                title: a.title,
+                excerpt: a.excerpt || '',
+                content: a.content || '',
+                date: a.date,
+                category: a.category || 'News',
+                author: a.author || 'Admin',
+                image: a.cover_image_url,
+                tags: a.tags || [],
+                status: a.status
+              }));
             setRelatedArticles(related);
           }
         }

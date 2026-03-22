@@ -70,27 +70,29 @@ const IPPortfolio = () => {
       setLoading(true);
       setError(null);
       
-      // First, try to load from admin panel (localStorage)
-      const adminTechnologies = localStorage.getItem('featuredTechnologies');
+      // Load technologies from admin_technologies table in Supabase
       let adminData: ExtendedPortfolioItem[] = [];
       
-      if (adminTechnologies) {
-        try {
-          const parsedTech = JSON.parse(adminTechnologies);
-          // Transform admin data to ExtendedPortfolioItem format
-          adminData = parsedTech.map((tech: any, index: number) => ({
-            id: tech.id.toString(),
+      try {
+        const { data: techData, error: techError } = await supabase
+          .from('admin_technologies' as any)
+          .select('*')
+          .eq('published', true);
+        
+        if (techData && !techError) {
+          adminData = techData.map((tech: any) => ({
+            id: tech.id,
             title: tech.title,
             slug: tech.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
             description: tech.description,
-            image_url: "/placeholder.svg?height=200&width=300",
+            image_url: tech.image_url || "/placeholder.svg?height=200&width=300",
             link_url: "#",
             category: tech.field,
             tags: [tech.field, tech.status, 'USTP'],
             published: true,
             published_at: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+            created_at: tech.created_at,
+            updated_at: tech.updated_at,
             inventors: tech.inventors,
             field: tech.field,
             status: tech.status,
@@ -99,7 +101,6 @@ const IPPortfolio = () => {
             licensing: tech.status === 'Licensed' ? 'Already Licensed' : 'Available for licensing',
             applications: [tech.field, 'Innovation', 'Research'],
             contact: "tpco@ustp.edu.ph",
-            // Set all optional fields to null
             inventor: null,
             patent_status: null,
             patent_number: null,
@@ -125,32 +126,34 @@ const IPPortfolio = () => {
             ipc_classes: null,
             cpc_classes: null
           }));
-        } catch (error) {
-          console.error('Failed to parse admin technologies:', error);
         }
+      } catch (error) {
+        console.error('Failed to fetch admin technologies:', error);
       }
       
-      // Load patents from admin panel (localStorage)
-      const adminPatents = localStorage.getItem('patents');
+      // Load patents from admin_patents table in Supabase
       let patentData: ExtendedPortfolioItem[] = [];
       
-      if (adminPatents) {
-        try {
-          const parsedPatents = JSON.parse(adminPatents);
-          // Transform patent data to ExtendedPortfolioItem format
-          patentData = parsedPatents.map((patent: any, index: number) => ({
-            id: patent.id.toString(),
+      try {
+        const { data: patentsData, error: patentsError } = await supabase
+          .from('admin_patents' as any)
+          .select('*')
+          .eq('published', true);
+        
+        if (patentsData && !patentsError) {
+          patentData = patentsData.map((patent: any) => ({
+            id: patent.id,
             title: patent.title || "Untitled Patent",
             slug: patent.title ? patent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : `patent-${patent.id}`,
-            description: patent.abstract || patent.description || `Patent in ${patent.field || 'Unknown Field'}`,
-            image_url: "/placeholder.svg?height=200&width=300",
+            description: patent.abstract || `Patent in ${patent.field || 'Unknown Field'}`,
+            image_url: patent.image_url || "/placeholder.svg?height=200&width=300",
             link_url: "#",
             category: patent.field || "General",
             tags: [patent.field, patent.status, 'USTP Patent'].filter(Boolean),
             published: true,
             published_at: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+            created_at: patent.created_at,
+            updated_at: patent.updated_at,
             inventors: patent.inventors || "Dr. USTP Researcher",
             field: patent.field || "General",
             status: patent.status || "Pending",
@@ -159,12 +162,11 @@ const IPPortfolio = () => {
             licensing: patent.status === 'Licensed' ? 'Already Licensed' : 'Available for licensing',
             applications: [patent.field, 'Innovation', 'Research'].filter(Boolean),
             contact: "tpco@ustp.edu.ph",
-            // Set all optional fields to null
             inventor: null,
             patent_status: null,
-            patent_number: patent.patentId || null,
+            patent_number: patent.patent_number || null,
             filing_date: null,
-            grant_date: null,
+            grant_date: patent.grant_date || null,
             assignee: null,
             ipc_codes: null,
             cpc_codes: null,
@@ -181,13 +183,13 @@ const IPPortfolio = () => {
             cited_by_patents: null,
             family_size: null,
             priority_claims: null,
-            technology_fields: null,
+            technology_fields: patent.technology_fields || null,
             ipc_classes: null,
             cpc_classes: null
           }));
-        } catch (error) {
-          console.error('Failed to parse admin patents:', error);
         }
+      } catch (error) {
+        console.error('Failed to fetch admin patents:', error);
       }
       
       // Then try to fetch from Supabase as additional data
@@ -278,34 +280,38 @@ const IPPortfolio = () => {
 
   const fetchFilterOptions = useCallback(async () => {
     try {
-      // Get options from admin technologies first
-      const adminTechnologies = localStorage.getItem('featuredTechnologies');
+      // Get options from admin_technologies in Supabase
       let adminFields: string[] = [];
       let adminStatuses: string[] = [];
       
-      if (adminTechnologies) {
-        try {
-          const parsedTech = JSON.parse(adminTechnologies);
-          adminFields = Array.from(new Set(parsedTech.map((tech: any) => tech.field).filter(Boolean))) as string[];
-          adminStatuses = Array.from(new Set(parsedTech.map((tech: any) => tech.status).filter(Boolean))) as string[];
-        } catch (error) {
-          console.error('Failed to parse admin technologies for filters:', error);
+      try {
+        const { data: techData } = await supabase
+          .from('admin_technologies' as any)
+          .select('field, status');
+        
+        if (techData) {
+          adminFields = Array.from(new Set(techData.map((tech: any) => tech.field).filter(Boolean))) as string[];
+          adminStatuses = Array.from(new Set(techData.map((tech: any) => tech.status).filter(Boolean))) as string[];
         }
+      } catch (error) {
+        console.error('Failed to fetch admin technologies for filters:', error);
       }
       
-      // Get options from admin patents
-      const adminPatents = localStorage.getItem('patents');
+      // Get options from admin_patents in Supabase
       let patentFields: string[] = [];
       let patentStatuses: string[] = [];
       
-      if (adminPatents) {
-        try {
-          const parsedPatents = JSON.parse(adminPatents);
-          patentFields = Array.from(new Set(parsedPatents.map((patent: any) => patent.field).filter(Boolean))) as string[];
-          patentStatuses = Array.from(new Set(parsedPatents.map((patent: any) => patent.status).filter(Boolean))) as string[];
-        } catch (error) {
-          console.error('Failed to parse admin patents for filters:', error);
+      try {
+        const { data: patentData } = await supabase
+          .from('admin_patents' as any)
+          .select('field, status');
+        
+        if (patentData) {
+          patentFields = Array.from(new Set(patentData.map((patent: any) => patent.field).filter(Boolean))) as string[];
+          patentStatuses = Array.from(new Set(patentData.map((patent: any) => patent.status).filter(Boolean))) as string[];
         }
+      } catch (error) {
+        console.error('Failed to fetch admin patents for filters:', error);
       }
       
       // Try to get additional options from Supabase

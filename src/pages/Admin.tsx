@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Trash2, Edit, Plus, Eye, EyeOff } from "lucide-react";
+import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -20,14 +20,8 @@ const Admin = () => {
   const [loginData, setLoginData] = useState({ username: "", password: "" });
 
   // Patent management state
-  const [patents, setPatents] = useState<any[]>(() => {
-    const savedPatents = localStorage.getItem('patents');
-    return savedPatents ? JSON.parse(savedPatents) : [
-      { id: 1, title: "Smart Irrigation System", status: "Granted", field: "Agriculture" },
-      { id: 2, title: "Bio-degradable Packaging", status: "Pending", field: "Materials Science" },
-      { id: 3, title: "Food Preservation Method", status: "Granted", field: "Food Technology" }
-    ];
-  });
+  const [patents, setPatents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Patent form state
   const [patentForm, setPatentForm] = useState({
@@ -42,9 +36,9 @@ const Admin = () => {
 
   // News management
   const [news, setNews] = useState([
-    { id: 1, title: "TPCO-CET Convergence 2025 Announced", status: "Published", date: "2024-01-15", category: "Events", author: "Admin", excerpt: "Join us for the premier technology commercialization event in Northern Mindanao.", content: "The TPCO-CET Convergence 2025 will bring together researchers, industry partners, and innovators..." },
-    { id: 2, title: "New Patent Filing Workshop Series", status: "Draft", date: "2024-01-10", category: "Education", author: "Dr. Maria Santos", excerpt: "Learn the fundamentals of patent filing and intellectual property protection.", content: "Our comprehensive workshop series covers all aspects of patent filing..." },
-    { id: 3, title: "Industry Partnership with ABC Corp", status: "Published", date: "2024-01-08", category: "Partnerships", author: "Admin", excerpt: "Exciting new partnership opens doors for technology commercialization.", content: "We are pleased to announce our strategic partnership with ABC Corp..." }
+    { id: "1", title: "TPCO-CET Convergence 2025 Announced", status: "Published", date: "2024-01-15", category: "Events", author: "Admin", excerpt: "Join us for the premier technology commercialization event in Northern Mindanao.", content: "The TPCO-CET Convergence 2025 will bring together researchers, industry partners, and innovators..." },
+    { id: "2", title: "New Patent Filing Workshop Series", status: "Draft", date: "2024-01-10", category: "Education", author: "Dr. Maria Santos", excerpt: "Learn the fundamentals of patent filing and intellectual property protection.", content: "Our comprehensive workshop series covers all aspects of patent filing..." },
+    { id: "3", title: "Industry Partnership with ABC Corp", status: "Published", date: "2024-01-08", category: "Partnerships", author: "Admin", excerpt: "Exciting new partnership opens doors for technology commercialization.", content: "We are pleased to announce our strategic partnership with ABC Corp..." }
   ]);
 
   // Dashboard statistics
@@ -119,14 +113,13 @@ const Admin = () => {
   const [showNewsModal, setShowNewsModal] = useState(false);
   const [editingNews, setEditingNews] = useState<any>(null);
 
-  const [events, setEvents] = useState(() => {
-    const savedEvents = localStorage.getItem('eventsData');
-    return savedEvents ? JSON.parse(savedEvents) : [
-      { id: 1, title: "Morning with IP Workshop", date: "2024-02-15", status: "Upcoming", attendees: 45 },
-      { id: 2, title: "Technology Showcase 2024", date: "2024-03-20", status: "Planning", attendees: 120 },
-      { id: 3, title: "Innovation Forum", date: "2024-01-20", status: "Completed", attendees: 85 }
-    ];
-  });
+  const [events, setEvents] = useState<any[]>([]);
+    
+    // Event Registrations state
+    const [showRegistrationsModal, setShowRegistrationsModal] = useState(false);
+    const [selectedEventForRegistrations, setSelectedEventForRegistrations] = useState<any>(null);
+    const [eventRegistrations, setEventRegistrations] = useState<any[]>([]);
+    const [loadingRegistrations, setLoadingRegistrations] = useState(false);
 
   // Event form state
   const [eventForm, setEventForm] = useState({
@@ -140,6 +133,21 @@ const Admin = () => {
     description: '',
     image: null as File | null,
     registrationOpen: true
+  });
+
+  // User Management state
+  const [users, setUsers] = useState<any[]>([]);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [userForm, setUserForm] = useState({
+    full_name: '',
+    email: '',
+    password: '',
+    department: '',
+    employee_id: '',
+    phone: '',
+    role: 'user',
+    status: 'active'
   });
 
   const [services] = useState([
@@ -198,7 +206,7 @@ const Admin = () => {
   // Featured Technologies management
   const [featuredTechnologies, setFeaturedTechnologies] = useState([
     {
-      id: 1,
+      id: "1",
       title: "Smart Irrigation System",
       description: "IoT-based irrigation system that reduces water usage by 40% while optimizing crop yields.",
       field: "Agriculture",
@@ -208,7 +216,7 @@ const Admin = () => {
       abstract: "Revolutionary smart irrigation technology using AI-powered sensors."
     },
     {
-      id: 2,
+      id: "2",
       title: "Bio-plastic Innovation",
       description: "Biodegradable plastic made from agricultural waste that decomposes within 6 months.",
       field: "Materials Science",
@@ -218,7 +226,7 @@ const Admin = () => {
       abstract: "Sustainable packaging solution using local agricultural byproducts."
     },
     {
-      id: 3,
+      id: "3",
       title: "Food Processing Tech",
       description: "Advanced food preservation method that extends shelf life by 300% naturally.",
       field: "Food Technology",
@@ -230,7 +238,7 @@ const Admin = () => {
   ]);
 
   // State for featured technology selection
-  const [selectedFeaturedTech, setSelectedFeaturedTech] = useState<number[]>([]);
+  const [selectedFeaturedTech, setSelectedFeaturedTech] = useState<string[]>([]);
 
   // Modal states for technology management
   const [showTechModal, setShowTechModal] = useState(false);
@@ -257,76 +265,238 @@ const Admin = () => {
   const [showEventModal, setShowEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
 
-  // Load saved data on component mount
+  // Load saved data on component mount from Supabase
   useEffect(() => {
-    const savedContent = localStorage.getItem('homepageContent');
-    if (savedContent) {
-      try {
-        const parsedContent = JSON.parse(savedContent);
-        setHomepageContent(parsedContent);
-      } catch (error) {
-        console.error('Failed to load saved homepage content:', error);
-      }
-    }
-
-    // Load saved featured technologies
-    const savedTech = localStorage.getItem('featuredTechnologies');
-    if (savedTech) {
-      try {
-        const parsedTech = JSON.parse(savedTech);
-        setFeaturedTechnologies(parsedTech);
-      } catch (error) {
-        console.error('Failed to load saved featured technologies:', error);
-      }
-    }
-
-    // Load saved news
-    const savedNews = localStorage.getItem('newsArticles');
-    if (savedNews) {
-      try {
-        const parsedNews = JSON.parse(savedNews);
-        setNews(parsedNews);
-      } catch (error) {
-        console.error('Failed to load saved news:', error);
-      }
-    }
-
-    // Load dashboard stats
-    const savedStats = localStorage.getItem('dashboardStats');
-    if (savedStats) {
-      try {
-        const parsedStats = JSON.parse(savedStats);
-        setDashboardStats(parsedStats);
-      } catch (error) {
-        console.error('Failed to load dashboard stats:', error);
-      }
-    }
-
-    // Load recent activity
-
-
-    // Load service requests
-    const savedServiceRequests = localStorage.getItem('serviceRequests');
-    if (savedServiceRequests) {
-      try {
-        const parsedRequests = JSON.parse(savedServiceRequests);
-        setServiceRequests(parsedRequests);
-      } catch (error) {
-        console.error('Failed to load service requests:', error);
-      }
-    }
-
-    // Load events
-    const savedEvents = localStorage.getItem('eventsData');
-    if (savedEvents) {
-      try {
-        const parsedEvents = JSON.parse(savedEvents);
-        setEvents(parsedEvents);
-      } catch (error) {
-        console.error('Failed to load events:', error);
-      }
-    }
+    loadAllData();
   }, []);
+
+  const loadAllData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        loadHomepageContent(),
+        loadTechnologies(),
+        loadNews(),
+        loadDashboardStats(),
+        loadServiceRequests(),
+        loadEvents(),
+        loadPatents(),
+        loadUsers(),
+      ]);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadHomepageContent = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_homepage_content' as any)
+        .select('*')
+        .limit(1)
+        .single();
+      
+      if (data && !error) {
+        const content = data as any;
+        setHomepageContent({
+          heroTitle: content.hero_title,
+          heroSubtitle: content.hero_subtitle,
+          heroImage: content.hero_image_url,
+          patentsCount: content.patents_count,
+          partnersCount: content.partners_count,
+          startupsCount: content.startups_count,
+          technologiesCount: content.technologies_count,
+        });
+      }
+    } catch (error) {
+      console.error('Error loading homepage content:', error);
+    }
+  };
+
+  const loadTechnologies = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_technologies' as any)
+        .select('*')
+        .order('order_num', { ascending: true });
+      
+      if (data && !error) {
+        setFeaturedTechnologies(data.map((tech: any) => ({
+          id: tech.id,
+          title: tech.title,
+          description: tech.description,
+          field: tech.field,
+          status: tech.status,
+          inventors: tech.inventors,
+          year: tech.year,
+          abstract: tech.abstract,
+          image: tech.image_url,
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading technologies:', error);
+    }
+  };
+
+  const loadNews = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_news' as any)
+        .select('*')
+        .order('date', { ascending: false });
+      
+      if (data && !error) {
+        setNews(data.map((article: any) => ({
+          id: article.id,
+          title: article.title,
+          excerpt: article.excerpt,
+          content: article.content,
+          category: article.category,
+          author: article.author,
+          status: article.status,
+          date: article.date,
+          image: article.cover_image_url,
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading news:', error);
+    }
+  };
+
+  const loadDashboardStats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_dashboard_stats' as any)
+        .select('*')
+        .limit(1)
+        .single();
+      
+      if (data && !error) {
+        const stats = data as any;
+        setDashboardStats({
+          totalPatents: stats.total_patents,
+          patentsThisMonth: stats.patents_this_month,
+          publishedNews: stats.published_news,
+          newsThisWeek: stats.news_this_week,
+          upcomingEvents: stats.upcoming_events,
+          nextEventDate: stats.next_event_date,
+          serviceRequests: stats.service_requests_count,
+          pendingRequests: stats.pending_requests,
+        });
+      }
+    } catch (error) {
+      console.error('Error loading dashboard stats:', error);
+    }
+  };
+
+  const loadServiceRequests = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_service_requests' as any)
+        .select('*')
+        .order('submitted_at', { ascending: false });
+      
+      if (data && !error) {
+        setServiceRequests(data.map((req: any) => ({
+          id: req.id,
+          name: req.name,
+          email: req.email,
+          phone: req.phone,
+          organization: req.organization,
+          service: req.service_type,
+          serviceTitle: req.service_title,
+          preferredDate: req.preferred_date,
+          participants: req.participants,
+          specificNeeds: req.specific_needs,
+          budget: req.budget,
+          timeline: req.timeline,
+          status: req.status,
+          submittedAt: req.submitted_at,
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading service requests:', error);
+    }
+  };
+
+  const loadEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_events' as any)
+        .select('*')
+        .order('date', { ascending: true });
+      
+      if (data && !error) {
+        setEvents(data.map((event: any) => ({
+          id: event.id,
+          title: event.title,
+          type: event.type,
+          date: event.date,
+          time: event.time,
+          location: event.location,
+          capacity: event.capacity,
+          description: event.description,
+          registrationOpen: event.registration_open,
+          status: event.status,
+          attendees: event.attendees_count,
+          image: event.image_url,
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading events:', error);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles' as any)
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (data && !error) {
+        setUsers(data.map((user: any) => ({
+          id: user.id,
+          full_name: user.full_name,
+          email: user.email,
+          department: user.department,
+          employee_id: user.employee_id,
+          phone: user.phone,
+          role: user.role,
+          status: user.status,
+          created_at: user.created_at,
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  };
+
+  const loadPatents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_patents' as any)
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (data && !error) {
+        setPatents(data.map((patent: any) => ({
+          id: patent.id,
+          title: patent.title,
+          patentId: patent.patent_number,
+          inventors: patent.inventors,
+          field: patent.field,
+          abstract: patent.abstract,
+          status: patent.status,
+          year: patent.year,
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading patents:', error);
+    }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -351,78 +521,112 @@ const Admin = () => {
         
         // Convert image to base64 for storage
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           heroImageUrl = e.target?.result as string;
           
-          // Update content with new image
           const updatedContent = {
+            hero_title: heroTitle,
+            hero_subtitle: heroSubtitle,
+            hero_image_url: heroImageUrl,
+            patents_count: homepageContent.patentsCount,
+            partners_count: homepageContent.partnersCount,
+            startups_count: homepageContent.startupsCount,
+            technologies_count: homepageContent.technologiesCount,
+          };
+          
+          const { error } = await supabase
+            .from('admin_homepage_content' as any)
+            .upsert(updatedContent);
+          
+          if (error) {
+            console.error('Error updating homepage:', error);
+            alert('Error updating homepage content');
+            return;
+          }
+          
+          setHomepageContent({
             ...homepageContent,
             heroTitle,
             heroSubtitle,
             heroImage: heroImageUrl
-          };
+          });
           
-          setHomepageContent(updatedContent);
-          
-          // Store in localStorage to persist across sessions
-          localStorage.setItem('homepageContent', JSON.stringify(updatedContent));
-          
-          // Trigger a custom event to notify other components
           window.dispatchEvent(new Event('storage'));
-          
-          // Show success message
-          alert('✅ Homepage content and image updated successfully! The changes are now live on the homepage.');
+          alert('Homepage content and image updated successfully!');
         };
         reader.readAsDataURL(file);
       } else {
-        // Update content without new image
         const updatedContent = {
+          hero_title: heroTitle,
+          hero_subtitle: heroSubtitle,
+          hero_image_url: heroImageUrl,
+          patents_count: homepageContent.patentsCount,
+          partners_count: homepageContent.partnersCount,
+          startups_count: homepageContent.startupsCount,
+          technologies_count: homepageContent.technologiesCount,
+        };
+        
+        const { error } = await supabase
+          .from('admin_homepage_content' as any)
+          .upsert(updatedContent);
+        
+        if (error) {
+          console.error('Error updating homepage:', error);
+          alert('Error updating homepage content');
+          return;
+        }
+        
+        setHomepageContent({
           ...homepageContent,
           heroTitle,
           heroSubtitle
-        };
+        });
         
-        setHomepageContent(updatedContent);
-        
-        // Store in localStorage to persist across sessions
-        localStorage.setItem('homepageContent', JSON.stringify(updatedContent));
-        
-        // Trigger a custom event to notify other components
         window.dispatchEvent(new Event('storage'));
-        
-        // Show success message
-        alert('✅ Homepage content updated successfully! The changes are now live on the homepage.');
+        alert('Homepage content updated successfully!');
       }
     } else {
-      alert('❌ Please fill in both title and subtitle fields.');
+      alert('Please fill in both title and subtitle fields.');
     }
   };
 
   // Handle statistics update
-  const handleStatisticsUpdate = () => {
+  const handleStatisticsUpdate = async () => {
     const patentsCount = parseInt((document.getElementById('patents-count') as HTMLInputElement)?.value) || 24;
     const partnersCount = parseInt((document.getElementById('partnerships-count') as HTMLInputElement)?.value) || 50;
     const startupsCount = parseInt((document.getElementById('startups-count') as HTMLInputElement)?.value) || 15;
     const technologiesCount = parseInt((document.getElementById('technologies-count') as HTMLInputElement)?.value) || 8;
     
     const updatedContent = {
+      hero_title: homepageContent.heroTitle,
+      hero_subtitle: homepageContent.heroSubtitle,
+      hero_image_url: homepageContent.heroImage,
+      patents_count: patentsCount,
+      partners_count: partnersCount,
+      startups_count: startupsCount,
+      technologies_count: technologiesCount,
+    };
+    
+    const { error } = await supabase
+      .from('admin_homepage_content' as any)
+      .upsert(updatedContent);
+    
+    if (error) {
+      console.error('Error updating statistics:', error);
+      alert('Error updating statistics');
+      return;
+    }
+    
+    setHomepageContent({
       ...homepageContent,
       patentsCount,
       partnersCount,
       startupsCount,
       technologiesCount
-    };
+    });
     
-    setHomepageContent(updatedContent);
-    
-    // Store in localStorage to persist across sessions
-    localStorage.setItem('homepageContent', JSON.stringify(updatedContent));
-    
-    // Trigger a custom event to notify other components
     window.dispatchEvent(new Event('storage'));
-    
-    // Show success message
-    alert('✅ Statistics updated successfully! The changes are now live on the homepage.');
+    alert('Statistics updated successfully!');
   };
 
   // Activity logging function
@@ -480,22 +684,37 @@ const Admin = () => {
   };
 
   // Update dashboard stats
-  const updateDashboardStats = (updates: any) => {
+  const updateDashboardStats = async (updates: any) => {
     const updatedStats = { ...dashboardStats, ...updates };
     setDashboardStats(updatedStats);
-    localStorage.setItem('dashboardStats', JSON.stringify(updatedStats));
+    
+    const { error } = await supabase
+      .from('admin_dashboard_stats' as any)
+      .upsert({
+        total_patents: updatedStats.totalPatents,
+        patents_this_month: updatedStats.patentsThisMonth,
+        published_news: updatedStats.publishedNews,
+        news_this_week: updatedStats.newsThisWeek,
+        upcoming_events: updatedStats.upcomingEvents,
+        next_event_date: updatedStats.nextEventDate,
+        service_requests_count: updatedStats.serviceRequests,
+        pending_requests: updatedStats.pendingRequests,
+      });
+    
+    if (error) {
+      console.error('Error updating dashboard stats:', error);
+    }
   };
 
   // News Management Functions
   const handlePublishNews = async () => {
     if (!newsForm.title || !newsForm.content || !newsForm.category) {
-      alert('❌ Please fill in all required fields (Title, Content, Category).');
+      alert('Please fill in all required fields (Title, Content, Category).');
       return;
     }
 
     let imageUrl = null;
     
-    // Handle image upload if present
     if (newsForm.image) {
       try {
         const reader = new FileReader();
@@ -506,39 +725,55 @@ const Admin = () => {
         });
       } catch (error) {
         console.error('Failed to process image:', error);
-        alert('❌ Failed to process image. Article will be saved without image.');
+        alert('Failed to process image. Article will be saved without image.');
       }
     }
 
-    let updatedNews;
     const newsData = {
-      ...newsForm,
-      image: imageUrl, // Store the base64 image data
+      title: newsForm.title,
+      excerpt: newsForm.excerpt,
+      content: newsForm.content,
+      category: newsForm.category,
+      author: newsForm.author,
+      date: newsForm.date,
+      cover_image_url: imageUrl,
       status: 'Published',
-      id: editingNews ? editingNews.id : Math.max(...news.map(n => n.id)) + 1
+      published: true,
+      tags: [newsForm.category, 'USTP', 'News'],
     };
 
     if (editingNews) {
-      updatedNews = news.map(article => 
-        article.id === editingNews.id ? newsData : article
-      );
-      logActivity('news', 'updated', newsForm.title);
-    } else {
-      updatedNews = [...news, newsData];
-      logActivity('news', 'published', newsForm.title);
+      const { error } = await supabase
+        .from('admin_news' as any)
+        .update(newsData)
+        .eq('id', editingNews.id);
       
-      // Update dashboard stats
-      updateDashboardStats({
+      if (error) {
+        console.error('Error updating news:', error);
+        alert('Error updating news article');
+        return;
+      }
+      logActivity('news', 'updated', newsForm.title);
+      loadNews();
+    } else {
+      const { error } = await supabase
+        .from('admin_news' as any)
+        .insert([newsData]);
+      
+      if (error) {
+        console.error('Error creating news:', error);
+        alert('Error creating news article');
+        return;
+      }
+      logActivity('news', 'published', newsForm.title);
+      loadNews();
+      
+      await updateDashboardStats({
         publishedNews: dashboardStats.publishedNews + 1,
         newsThisWeek: dashboardStats.newsThisWeek + 1
       });
     }
 
-    setNews(updatedNews);
-    localStorage.setItem('newsArticles', JSON.stringify(updatedNews));
-    window.dispatchEvent(new Event('storage'));
-    
-    // Reset form
     setNewsForm({
       title: '',
       category: '',
@@ -549,18 +784,20 @@ const Admin = () => {
       image: null
     });
     
-    alert(`✅ News article ${editingNews ? 'updated' : 'published'} successfully!`);
+    setShowNewsModal(false);
+    setEditingNews(null);
+    
+    alert(`News article ${editingNews ? 'updated' : 'published'} successfully!`);
   };
 
   const handleSaveDraft = async () => {
     if (!newsForm.title || !newsForm.content) {
-      alert('❌ Please fill in Title and Content to save as draft.');
+      alert('Please fill in Title and Content to save as draft.');
       return;
     }
 
     let imageUrl = null;
     
-    // Handle image upload if present
     if (newsForm.image) {
       try {
         const reader = new FileReader();
@@ -571,32 +808,50 @@ const Admin = () => {
         });
       } catch (error) {
         console.error('Failed to process image:', error);
-        alert('❌ Failed to process image. Article will be saved without image.');
+        alert('Failed to process image. Article will be saved without image.');
       }
     }
 
-    let updatedNews;
     const newsData = {
-      ...newsForm,
-      image: imageUrl, // Store the base64 image data
+      title: newsForm.title,
+      excerpt: newsForm.excerpt,
+      content: newsForm.content,
+      category: newsForm.category,
+      author: newsForm.author,
+      date: newsForm.date,
+      cover_image_url: imageUrl,
       status: 'Draft',
-      id: editingNews ? editingNews.id : Math.max(...news.map(n => n.id)) + 1
+      published: false,
+      tags: [newsForm.category || 'News', 'USTP', 'Draft'],
     };
 
     if (editingNews) {
-      updatedNews = news.map(article => 
-        article.id === editingNews.id ? newsData : article
-      );
+      const { error } = await supabase
+        .from('admin_news' as any)
+        .update(newsData)
+        .eq('id', editingNews.id);
+      
+      if (error) {
+        console.error('Error updating draft:', error);
+        alert('Error saving draft');
+        return;
+      }
       logActivity('news', 'updated draft', newsForm.title);
     } else {
-      updatedNews = [...news, newsData];
+      const { error } = await supabase
+        .from('admin_news' as any)
+        .insert([newsData]);
+      
+      if (error) {
+        console.error('Error saving draft:', error);
+        alert('Error saving draft');
+        return;
+      }
       logActivity('news', 'saved draft', newsForm.title);
     }
 
-    setNews(updatedNews);
-    localStorage.setItem('newsArticles', JSON.stringify(updatedNews));
-    
-    // Reset form
+    loadNews();
+
     setNewsForm({
       title: '',
       category: '',
@@ -607,7 +862,10 @@ const Admin = () => {
       image: null
     });
     
-    alert(`✅ News article saved as draft successfully!`);
+    setShowNewsModal(false);
+    setEditingNews(null);
+    
+    alert('News article saved as draft successfully!');
   };
 
   const handleEditNews = (article: any) => {
@@ -646,7 +904,7 @@ const Admin = () => {
     alert(`📋 Article duplicated! You can now edit the copy of "${article.title}" and save it as a new article.`);
   };
 
-  const handleDeleteNews = (articleId: number, title: string) => {
+  const handleDeleteNews = async (articleId: string, title: string) => {
     const article = news.find(a => a.id === articleId);
     const confirmMessage = `Are you sure you want to delete "${title}"?
 
@@ -658,26 +916,30 @@ Article Details:
 - Date: ${article?.date}`;
     
     if (confirm(confirmMessage)) {
-      const articleToDelete = news.find(a => a.id === articleId);
-      const wasPublished = articleToDelete?.status === 'Published';
+      const wasPublished = article?.status === 'Published';
       
-      const updatedNews = news.filter(article => article.id !== articleId);
-      setNews(updatedNews);
-      localStorage.setItem('newsArticles', JSON.stringify(updatedNews));
-      window.dispatchEvent(new Event('storage'));
+      const { error } = await supabase
+        .from('admin_news' as any)
+        .delete()
+        .eq('id', articleId);
       
+      if (error) {
+        console.error('Error deleting news:', error);
+        alert('Error deleting news article');
+        return;
+      }
+      
+      loadNews();
       logActivity('news', 'deleted', title);
       
-      // Update dashboard stats only if it was a published article
       if (wasPublished) {
-        updateDashboardStats({
+        await updateDashboardStats({
           publishedNews: Math.max(0, dashboardStats.publishedNews - 1)
         });
       }
       
-      alert(`✅ Article "${title}" has been deleted successfully!`);
+      alert(`Article "${title}" has been deleted successfully!`);
       
-      // Clear editing state if the deleted article was being edited
       if (editingNews && editingNews.id === articleId) {
         setEditingNews(null);
         setNewsForm({
@@ -723,85 +985,106 @@ Article Details:
     setShowTechModal(true);
   };
 
-  const handleSaveTechnology = () => {
+  const handleSaveTechnology = async () => {
     if (!techForm.title || !techForm.description || !techForm.field) {
-      alert('❌ Please fill in all required fields (Title, Description, Field).');
+      alert('Please fill in all required fields (Title, Description, Field).');
       return;
     }
 
-    let updatedTechnologies;
-    
+    const techData = {
+      title: techForm.title,
+      description: techForm.description,
+      field: techForm.field,
+      status: techForm.status,
+      inventors: techForm.inventors,
+      year: techForm.year,
+      abstract: techForm.abstract,
+      featured: true,
+      published: true,
+    };
+
     if (editingTech) {
-      // Update existing technology
-      updatedTechnologies = featuredTechnologies.map(tech => 
-        tech.id === editingTech.id ? { ...editingTech, ...techForm } : tech
-      );
+      const { error } = await supabase
+        .from('admin_technologies' as any)
+        .update(techData)
+        .eq('id', editingTech.id);
+      
+      if (error) {
+        console.error('Error updating technology:', error);
+        alert('Error updating technology');
+        return;
+      }
       logActivity('technology', 'updated', techForm.title);
     } else {
-      // Add new technology
-      const newTech = {
-        id: Math.max(...featuredTechnologies.map(t => t.id)) + 1,
-        ...techForm
-      };
-      updatedTechnologies = [...featuredTechnologies, newTech];
+      const { error } = await supabase
+        .from('admin_technologies' as any)
+        .insert([techData]);
+      
+      if (error) {
+        console.error('Error creating technology:', error);
+        alert('Error creating technology');
+        return;
+      }
       logActivity('technology', 'added', techForm.title);
     }
 
-    setFeaturedTechnologies(updatedTechnologies);
-    
-    // Store in localStorage
-    localStorage.setItem('featuredTechnologies', JSON.stringify(updatedTechnologies));
-    
-    // Trigger storage event for other components
+    loadTechnologies();
     window.dispatchEvent(new Event('storage'));
-    
     setShowTechModal(false);
-    alert(`✅ Technology ${editingTech ? 'updated' : 'added'} successfully! Changes are now live on the homepage and IP Portfolio.`);
+    alert(`Technology ${editingTech ? 'updated' : 'added'} successfully!`);
   };
 
-  const handleDeleteTechnology = (techId: number, title: string) => {
+  const handleDeleteTechnology = async (techId: string, title: string) => {
     if (confirm('Are you sure you want to delete this technology? This action cannot be undone.')) {
-      const updatedTechnologies = featuredTechnologies.filter(tech => tech.id !== techId);
-      setFeaturedTechnologies(updatedTechnologies);
+      const { error } = await supabase
+        .from('admin_technologies' as any)
+        .delete()
+        .eq('id', techId);
       
-      // Store in localStorage
-      localStorage.setItem('featuredTechnologies', JSON.stringify(updatedTechnologies));
+      if (error) {
+        console.error('Error deleting technology:', error);
+        alert('Error deleting technology');
+        return;
+      }
       
-      // Trigger storage event
+      loadTechnologies();
       window.dispatchEvent(new Event('storage'));
-      
       logActivity('technology', 'deleted', title);
-      
-      alert('✅ Technology deleted successfully!');
+      alert('Technology deleted successfully!');
     }
   };
 
   // Handle saving a new patent
-  const handleSavePatent = () => {
+  const handleSavePatent = async () => {
     if (!patentForm.title || !patentForm.field) {
-      alert('❌ Please fill in all required fields (Title, Field).');
+      alert('Please fill in all required fields (Title, Field).');
       return;
     }
 
-    const newPatent = {
-      id: Date.now(), // Unique ID for new patents
+    const patentData = {
       title: patentForm.title,
-      patentId: patentForm.patentId,
+      patent_number: patentForm.patentId,
       inventors: patentForm.inventors,
       field: patentForm.field,
       abstract: patentForm.abstract,
-      status: patentForm.status || "Pending", // Default status
-      year: patentForm.year || new Date().getFullYear().toString()
+      status: patentForm.status || 'Pending',
+      year: patentForm.year || new Date().getFullYear().toString(),
+      published: true,
     };
 
-    const updatedPatents = [...patents, newPatent];
-    setPatents(updatedPatents);
-    localStorage.setItem('patents', JSON.stringify(updatedPatents));
+    const { error } = await supabase
+      .from('admin_patents' as any)
+      .insert([patentData]);
     
-    // Trigger storage event for other components
+    if (error) {
+      console.error('Error creating patent:', error);
+      alert('Error creating patent');
+      return;
+    }
+
+    loadPatents();
     window.dispatchEvent(new Event('storage'));
     
-    // Reset form
     setPatentForm({
       title: '',
       patentId: '',
@@ -812,7 +1095,7 @@ Article Details:
       year: new Date().getFullYear().toString()
     });
     
-    alert('✅ Patent saved successfully!');
+    alert('Patent saved successfully!');
   };
 
   // Handle editing a patent
@@ -831,35 +1114,36 @@ Article Details:
   };
 
   // Handle updating a patent
-  const handleUpdatePatent = () => {
+  const handleUpdatePatent = async () => {
     if (!patentForm.title || !patentForm.field) {
-      alert('❌ Please fill in all required fields (Title, Field).');
+      alert('Please fill in all required fields (Title, Field).');
       return;
     }
 
-    // Update the patent in the list
-    const updatedPatents = patents.map(patent => 
-      patent.id === editingPatent.id 
-        ? { 
-            ...patent, 
-            title: patentForm.title,
-            patentId: patentForm.patentId,
-            inventors: patentForm.inventors,
-            field: patentForm.field,
-            abstract: patentForm.abstract,
-            status: patentForm.status,
-            year: patentForm.year
-          }
-        : patent
-    );
+    const patentData = {
+      title: patentForm.title,
+      patent_number: patentForm.patentId,
+      inventors: patentForm.inventors,
+      field: patentForm.field,
+      abstract: patentForm.abstract,
+      status: patentForm.status,
+      year: patentForm.year,
+    };
 
-    setPatents(updatedPatents);
-    localStorage.setItem('patents', JSON.stringify(updatedPatents));
+    const { error } = await supabase
+      .from('admin_patents' as any)
+      .update(patentData)
+      .eq('id', editingPatent.id);
     
-    // Trigger storage event for other components
+    if (error) {
+      console.error('Error updating patent:', error);
+      alert('Error updating patent');
+      return;
+    }
+
+    loadPatents();
     window.dispatchEvent(new Event('storage'));
     
-    // Close modal and reset form
     setShowPatentModal(false);
     setEditingPatent(null);
     setPatentForm({
@@ -872,71 +1156,95 @@ Article Details:
       year: new Date().getFullYear().toString()
     });
     
-    alert('✅ Patent updated successfully!');
+    alert('Patent updated successfully!');
   };
 
   // Handle deleting a patent
-  const handleDeletePatent = (patentId: number, title: string) => {
+  const handleDeletePatent = async (patentId: string, title: string) => {
     if (confirm(`Are you sure you want to delete the patent "${title}"? This action cannot be undone.`)) {
-      const updatedPatents = patents.filter(patent => patent.id !== patentId);
-      setPatents(updatedPatents);
-      localStorage.setItem('patents', JSON.stringify(updatedPatents));
+      const { error } = await supabase
+        .from('admin_patents' as any)
+        .delete()
+        .eq('id', patentId);
+      
+      if (error) {
+        console.error('Error deleting patent:', error);
+        alert('Error deleting patent');
+        return;
+      }
+      
+      loadPatents();
       window.dispatchEvent(new Event('storage'));
       logActivity('patent', 'deleted', title);
-      alert(`✅ Patent "${title}" has been deleted successfully!`);
+      alert(`Patent "${title}" has been deleted successfully!`);
     }
   };
 
   // Event Management Functions
-  const handleCreateEvent = () => {
+  const handleCreateEvent = async () => {
     if (!eventForm.title || !eventForm.date) {
-      alert('❌ Please fill in all required fields (Event Title, Event Date).');
+      alert('Please fill in all required fields (Event Title, Event Date).');
       return;
     }
 
-    let updatedEvents;
+    // Process image if provided
+    let imageUrl = null;
+    if (eventForm.image) {
+      try {
+        const reader = new FileReader();
+        imageUrl = await new Promise<string>((resolve, reject) => {
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(eventForm.image!);
+        });
+      } catch (error) {
+        console.error('Failed to process image:', error);
+        alert('Failed to process image. Event will be saved without image.');
+      }
+    }
+
+    const eventData = {
+      title: eventForm.title,
+      type: eventForm.type,
+      date: eventForm.date,
+      time: eventForm.time,
+      location: eventForm.location,
+      capacity: eventForm.capacity ? parseInt(eventForm.capacity) : null,
+      description: eventForm.description,
+      registration_open: eventForm.registrationOpen,
+      status: 'Upcoming',
+      published: true,
+      image_url: imageUrl,
+    };
+
     if (editingEvent) {
-      // Update existing event
-      updatedEvents = events.map(event => 
-        event.id === editingEvent.id 
-          ? { 
-              ...event, 
-              title: eventForm.title,
-              type: eventForm.type,
-              date: eventForm.date,
-              time: eventForm.time,
-              location: eventForm.location,
-              capacity: eventForm.capacity ? parseInt(eventForm.capacity) : null,
-              description: eventForm.description,
-              registrationOpen: eventForm.registrationOpen
-            }
-          : event
-      );
+      const { error } = await supabase
+        .from('admin_events' as any)
+        .update(eventData)
+        .eq('id', editingEvent.id);
+      
+      if (error) {
+        console.error('Error updating event:', error);
+        alert('Error updating event');
+        return;
+      }
       logActivity('event', 'updated', eventForm.title);
     } else {
-      // Add new event
-      const newEvent = {
-        id: Date.now(),
-        title: eventForm.title,
-        type: eventForm.type,
-        date: eventForm.date,
-        time: eventForm.time,
-        location: eventForm.location,
-        capacity: eventForm.capacity ? parseInt(eventForm.capacity) : null,
-        description: eventForm.description,
-        registrationOpen: eventForm.registrationOpen
-      };
-      updatedEvents = [...events, newEvent];
+      const { error } = await supabase
+        .from('admin_events' as any)
+        .insert([eventData]);
+      
+      if (error) {
+        console.error('Error creating event:', error);
+        alert('Error creating event');
+        return;
+      }
       logActivity('event', 'created', eventForm.title);
     }
 
-    setEvents(updatedEvents);
-    localStorage.setItem('eventsData', JSON.stringify(updatedEvents));
-    
-    // Trigger storage event for other components
+    loadEvents();
     window.dispatchEvent(new Event('storage'));
     
-    // Reset form and close modal
     setEventForm({
       id: null,
       title: '',
@@ -952,7 +1260,7 @@ Article Details:
     setEditingEvent(null);
     setShowEventModal(false);
     
-    alert(`✅ Event ${editingEvent ? 'updated' : 'created'} successfully!`);
+    alert(`Event ${editingEvent ? 'updated' : 'created'} successfully!`);
   };
 
   const handleEditEvent = (event: any) => {
@@ -972,14 +1280,282 @@ Article Details:
     setShowEventModal(true);
   };
 
-  const handleDeleteEvent = (eventId: number, title: string) => {
+  const handleDeleteEvent = async (eventId: string, title: string) => {
     if (confirm(`Are you sure you want to delete the event "${title}"? This action cannot be undone.`)) {
-      const updatedEvents = events.filter(event => event.id !== eventId);
-      setEvents(updatedEvents);
-      localStorage.setItem('eventsData', JSON.stringify(updatedEvents));
+      const { error } = await supabase
+        .from('admin_events' as any)
+        .delete()
+        .eq('id', eventId);
+      
+      if (error) {
+        console.error('Error deleting event:', error);
+        alert('Error deleting event');
+        return;
+      }
+      
+      loadEvents();
       window.dispatchEvent(new Event('storage'));
       logActivity('event', 'deleted', title);
-      alert(`✅ Event "${title}" has been deleted successfully!`);
+      alert(`Event "${title}" has been deleted successfully!`);
+    }
+  };
+
+  // Handle viewing event registrations
+  const handleViewRegistrations = async (event: any) => {
+    setSelectedEventForRegistrations(event);
+    setLoadingRegistrations(true);
+    setShowRegistrationsModal(true);
+    
+    try {
+      const { data, error } = await supabase
+        .from('event_registrations')
+        .select('*')
+        .eq('event_id', event.id)
+        .order('registered_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error loading registrations:', error);
+        setEventRegistrations([]);
+      } else {
+        setEventRegistrations(data || []);
+      }
+    } catch (err) {
+      console.error('Unexpected error loading registrations:', err);
+      setEventRegistrations([]);
+    } finally {
+      setLoadingRegistrations(false);
+    }
+  };
+
+  // Handle updating registration status
+  const handleUpdateRegistrationStatus = async (registrationId: string, newStatus: string) => {
+    try {
+      const updateData: any = { status: newStatus };
+      if (newStatus === 'confirmed') {
+        updateData.confirmed_at = new Date().toISOString();
+      }
+      
+      const { error } = await supabase
+        .from('event_registrations')
+        .update(updateData)
+        .eq('id', registrationId);
+      
+      if (error) {
+        console.error('Error updating registration status:', error);
+        alert('Error updating registration status');
+      } else {
+        // Refresh registrations
+        if (selectedEventForRegistrations) {
+          handleViewRegistrations(selectedEventForRegistrations);
+        }
+      }
+    } catch (err) {
+      console.error('Unexpected error updating registration:', err);
+      alert('Error updating registration status');
+    }
+  };
+
+  // Export registrations to CSV
+  const handleExportRegistrations = () => {
+    if (eventRegistrations.length === 0) {
+      alert('No registrations to export');
+      return;
+    }
+    
+    const headers = ['Full Name', 'Email', 'Phone', 'Organization', 'Position', 'Dietary Requirements', 'Special Requests', 'Status', 'Registered At'];
+    const csvContent = [
+      headers.join(','),
+      ...eventRegistrations.map(reg => [
+        `"${reg.full_name}"`,
+        `"${reg.email}"`,
+        `"${reg.phone || ''}"`,
+        `"${reg.organization || ''}"`,
+        `"${reg.position || ''}"`,
+        `"${reg.dietary_requirements || ''}"`,
+        `"${reg.special_requests || ''}"`,
+        `"${reg.status}"`,
+        `"${new Date(reg.registered_at).toLocaleString()}"`
+      ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `registrations_${selectedEventForRegistrations?.title?.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  // User Management Functions
+  const handleOpenUserModal = (user?: any) => {
+    if (user) {
+      setEditingUser(user);
+      setUserForm({
+        full_name: user.full_name,
+        email: user.email,
+        password: '',
+        department: user.department || '',
+        employee_id: user.employee_id || '',
+        phone: user.phone || '',
+        role: user.role,
+        status: user.status
+      });
+    } else {
+      setEditingUser(null);
+      setUserForm({
+        full_name: '',
+        email: '',
+        password: '',
+        department: '',
+        employee_id: '',
+        phone: '',
+        role: 'user',
+        status: 'active'
+      });
+    }
+    setShowUserModal(true);
+  };
+
+  const handleAddUser = async () => {
+    if (!userForm.full_name || !userForm.email) {
+      alert('Please fill in Full Name and Email.');
+      return;
+    }
+
+    if (!editingUser && !userForm.password) {
+      alert('Please enter a temporary password for the new user.');
+      return;
+    }
+
+    try {
+      if (editingUser) {
+        // Update existing user profile
+        const { error } = await supabase
+          .from('user_profiles' as any)
+          .update({
+            full_name: userForm.full_name,
+            email: userForm.email,
+            department: userForm.department || null,
+            employee_id: userForm.employee_id || null,
+            phone: userForm.phone || null,
+            role: userForm.role,
+            status: userForm.status
+          })
+          .eq('id', editingUser.id);
+        
+        if (error) {
+          console.error('Error updating user:', error);
+          alert('Error updating user: ' + error.message);
+          return;
+        }
+        logActivity('user', 'updated', userForm.full_name);
+        alert(`User "${userForm.full_name}" has been updated successfully!`);
+      } else {
+        // Create new user with Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: userForm.email,
+          password: userForm.password,
+          options: {
+            data: {
+              full_name: userForm.full_name
+            }
+          }
+        });
+
+        if (authError) {
+          console.error('Error creating auth user:', authError);
+          alert('Error creating user account: ' + authError.message);
+          return;
+        }
+
+        // The trigger will create the user_profiles entry automatically
+        // But we need to update it with additional fields
+        if (authData.user) {
+          const { error: profileError } = await supabase
+            .from('user_profiles' as any)
+            .update({
+              full_name: userForm.full_name,
+              department: userForm.department || null,
+              employee_id: userForm.employee_id || null,
+              phone: userForm.phone || null,
+              role: userForm.role,
+              status: userForm.status
+            })
+            .eq('id', authData.user.id);
+          
+          if (profileError) {
+            console.error('Error updating profile:', profileError);
+          }
+        }
+        logActivity('user', 'created', userForm.full_name);
+        alert(`User "${userForm.full_name}" has been created successfully!\nThey can log in with email: ${userForm.email}`);
+      }
+
+      loadUsers();
+      setShowUserModal(false);
+      setEditingUser(null);
+      setUserForm({
+        full_name: '',
+        email: '',
+        password: '',
+        department: '',
+        employee_id: '',
+        phone: '',
+        role: 'user',
+        status: 'active'
+      });
+    } catch (error: any) {
+      console.error('Error saving user:', error);
+      alert('Error saving user: ' + error.message);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!confirm(`Are you sure you want to delete user "${userName}"?\nThis will also delete their auth account.`)) {
+      return;
+    }
+
+    try {
+      // Delete profile (will cascade delete if set up, or we delete manually)
+      const { error } = await supabase
+        .from('user_profiles' as any)
+        .delete()
+        .eq('id', userId);
+      
+      if (error) {
+        console.error('Error deleting user:', error);
+        alert('Error deleting user: ' + error.message);
+        return;
+      }
+
+      logActivity('user', 'deleted', userName);
+      loadUsers();
+      alert(`User "${userName}" has been deleted.`);
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      alert('Error deleting user: ' + error.message);
+    }
+  };
+
+  const handleResetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password'
+      });
+
+      if (error) {
+        console.error('Error sending reset email:', error);
+        alert('Error sending password reset email: ' + error.message);
+        return;
+      }
+
+      alert(`Password reset email has been sent to ${email}`);
+    } catch (error: any) {
+      console.error('Error resetting password:', error);
+      alert('Error sending password reset email');
     }
   };
 
@@ -1052,7 +1628,7 @@ Article Details:
 
       <main className="container mx-auto px-4 py-8 ">
         <Tabs defaultValue="dashboard" className="space-y-6 ">
-          <TabsList className="grid w-full grid-cols-7 text-[#f7f7f7]">
+          <TabsList className="grid w-full grid-cols-8 text-[#f7f7f7]">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="news">News</TabsTrigger>
@@ -1060,6 +1636,7 @@ Article Details:
             <TabsTrigger value="patents">Patents</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="resources">Resources</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
@@ -1234,40 +1811,6 @@ Article Details:
                     <div className="text-sm text-muted-foreground">Admins</div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Manage user accounts and permissions</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="new-username">Username</Label>
-                    <Input id="new-username" placeholder="Enter username" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="new-email">Email</Label>
-                    <Input id="new-email" type="email" placeholder="Enter email" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="user-role">Role</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="researcher">Researcher</SelectItem>
-                        <SelectItem value="industry">Industry Partner</SelectItem>
-                        <SelectItem value="student">Student</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <Button variant="ustp">Create User</Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -1615,8 +2158,9 @@ Article Details:
                         <Button variant="outline" size="sm" onClick={() => handleEditEvent(event)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
-                          View Registrations
+                        <Button variant="outline" size="sm" onClick={() => handleViewRegistrations(event)}>
+                          <Users className="h-4 w-4 mr-1" />
+                          Registrations
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => handleDeleteEvent(event.id, event.title)}>
                           <Trash2 className="h-4 w-4" />
@@ -1777,8 +2321,20 @@ Article Details:
                               };
                               const updatedTechnologies = [...featuredTechnologies, newFeaturedTech];
                               setFeaturedTechnologies(updatedTechnologies);
-                              localStorage.setItem('featuredTechnologies', JSON.stringify(updatedTechnologies));
-                              window.dispatchEvent(new Event('storage'));
+                              // Insert to Supabase
+                              supabase.from('admin_technologies' as any).insert([{
+                                title: patent.title,
+                                description: patent.abstract || `Patent in ${patent.field}`,
+                                field: patent.field,
+                                status: patent.status,
+                                inventors: patent.inventors || "Dr. USTP Researcher",
+                                year: new Date().getFullYear().toString(),
+                                abstract: patent.abstract || `Patent abstract for ${patent.title}`,
+                                featured: true,
+                                published: true
+                              }]).then(() => {
+                                loadTechnologies();
+                              });
                               alert(`✅ ${patent.title} added to featured technologies!`);
                             } else {
                               alert(`⚠️ ${patent.title} is already featured.`);
@@ -1947,12 +2503,16 @@ Article Details:
                           <div className="flex flex-col gap-2">
                             <Select 
                               value={request.status} 
-                              onValueChange={(value) => {
+                              onValueChange={async (value) => {
                                 const updatedRequests = serviceRequests.map(req => 
                                   req.id === request.id ? { ...req, status: value } : req
                                 );
                                 setServiceRequests(updatedRequests);
-                                localStorage.setItem('serviceRequests', JSON.stringify(updatedRequests));
+                                // Update in Supabase
+                                await supabase
+                                  .from('admin_service_requests' as any)
+                                  .update({ status: value })
+                                  .eq('id', request.id);
                                 logActivity('service', 'updated status', request.serviceTitle);
                               }}
                             >
@@ -1970,11 +2530,15 @@ Article Details:
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => {
+                              onClick={async () => {
                                 if (confirm('Are you sure you want to delete this service request?')) {
                                   const updatedRequests = serviceRequests.filter(req => req.id !== request.id);
                                   setServiceRequests(updatedRequests);
-                                  localStorage.setItem('serviceRequests', JSON.stringify(updatedRequests));
+                                  // Delete from Supabase
+                                  await supabase
+                                    .from('admin_service_requests' as any)
+                                    .delete()
+                                    .eq('id', request.id);
                                   logActivity('service', 'deleted request', request.serviceTitle);
                                 }
                               }}
@@ -2041,52 +2605,125 @@ Article Details:
           <TabsContent value="users" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">User Management</h2>
-              <Button variant="ustp">
+              <Button variant="ustp" onClick={() => handleOpenUserModal()}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add User
               </Button>
             </div>
 
+            {/* User Statistics */}
             <Card>
               <CardHeader>
                 <CardTitle>User Statistics</CardTitle>
               </CardHeader>
               <CardContent>
-
-</CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Manage user accounts and permissions</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="new-username">Username</Label>
-                    <Input id="new-username" placeholder="Enter username" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-primary/10 rounded-lg p-4 text-center">
+                    <div className="text-3xl font-bold text-primary">{users.filter(u => u.role === 'admin').length}</div>
+                    <div className="text-sm text-muted-foreground">Admins</div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="new-email">Email</Label>
-                    <Input id="new-email" type="email" placeholder="Enter email" />
+                  <div className="bg-secondary/10 rounded-lg p-4 text-center">
+                    <div className="text-3xl font-bold text-secondary">{users.filter(u => u.role === 'faculty').length}</div>
+                    <div className="text-sm text-muted-foreground">Faculty</div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="user-role">Role</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="researcher">Researcher</SelectItem>
-                        <SelectItem value="industry">Industry Partner</SelectItem>
-                        <SelectItem value="student">Student</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="bg-gray-100 rounded-lg p-4 text-center">
+                    <div className="text-3xl font-bold text-gray-600">{users.filter(u => u.role === 'user').length}</div>
+                    <div className="text-sm text-muted-foreground">Users</div>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-4 text-center">
+                    <div className="text-3xl font-bold text-green-600">{users.filter(u => u.status === 'active').length}</div>
+                    <div className="text-sm text-muted-foreground">Active</div>
                   </div>
                 </div>
-                <Button variant="ustp">Create User</Button>
+              </CardContent>
+            </Card>
+
+            {/* Users Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>All Users</CardTitle>
+                <CardDescription>Manage user accounts, roles, and permissions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {users.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Users className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                    <p>No users found. Click "Add User" to create the first user.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b bg-gray-50">
+                          <th className="text-left p-3 text-sm font-semibold text-gray-700">Name</th>
+                          <th className="text-left p-3 text-sm font-semibold text-gray-700">Email</th>
+                          <th className="text-left p-3 text-sm font-semibold text-gray-700">Department</th>
+                          <th className="text-left p-3 text-sm font-semibold text-gray-700">Role</th>
+                          <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
+                          <th className="text-left p-3 text-sm font-semibold text-gray-700">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {users.map((user) => (
+                          <tr key={user.id} className="border-b hover:bg-gray-50">
+                            <td className="p-3">
+                              <div>
+                                <div className="font-medium">{user.full_name}</div>
+                                {user.employee_id && (
+                                  <div className="text-xs text-muted-foreground">ID: {user.employee_id}</div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-3 text-sm">{user.email}</td>
+                            <td className="p-3 text-sm">{user.department || '-'}</td>
+                            <td className="p-3">
+                              <Badge variant={
+                                user.role === 'admin' ? 'default' :
+                                user.role === 'faculty' ? 'secondary' : 'outline'
+                              }>
+                                {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                              </Badge>
+                            </td>
+                            <td className="p-3">
+                              <Badge variant={
+                                user.status === 'active' ? 'default' :
+                                user.status === 'inactive' ? 'secondary' : 'destructive'
+                              } className={user.status === 'active' ? 'bg-green-500' : ''}>
+                                {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                              </Badge>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center gap-1">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleOpenUserModal(user)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleResetPassword(user.email)}
+                                  title="Send password reset email"
+                                >
+                                  <Mail className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleDeleteUser(user.id, user.full_name)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -2470,12 +3107,15 @@ Article Details:
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => {
+                            onClick={async () => {
                               // Remove from featured technologies
                               const updatedTechnologies = featuredTechnologies.filter(tech => tech.id !== patent.id);
                               setFeaturedTechnologies(updatedTechnologies);
-                              localStorage.setItem('featuredTechnologies', JSON.stringify(updatedTechnologies));
-                              window.dispatchEvent(new Event('storage'));
+                              // Delete from Supabase
+                              await supabase
+                                .from('admin_technologies' as any)
+                                .delete()
+                                .eq('id', patent.id);
                             }}
                           >
                             Remove
@@ -2484,7 +3124,7 @@ Article Details:
                           <Button 
                             variant="ustp" 
                             size="sm"
-                            onClick={() => {
+                            onClick={async () => {
                               // Add to featured technologies
                               const newFeaturedTech = {
                                 id: patent.id,
@@ -2499,8 +3139,18 @@ Article Details:
                               };
                               const updatedTechnologies = [...featuredTechnologies, newFeaturedTech];
                               setFeaturedTechnologies(updatedTechnologies);
-                              localStorage.setItem('featuredTechnologies', JSON.stringify(updatedTechnologies));
-                              window.dispatchEvent(new Event('storage'));
+                              // Insert to Supabase
+                              await supabase.from('admin_technologies' as any).insert([{
+                                title: patent.title,
+                                description: patent.abstract || `Patent in ${patent.field}`,
+                                field: patent.field,
+                                status: patent.status,
+                                inventors: patent.inventors || "Dr. USTP Researcher",
+                                year: new Date().getFullYear().toString(),
+                                abstract: patent.abstract || `Patent abstract for ${patent.title}`,
+                                featured: true,
+                                published: true
+                              }]);
                             }}
                           >
                             Add
@@ -2629,6 +3279,327 @@ Article Details:
             </Button>
             <Button variant="ustp" onClick={handleCreateEvent}>
               {editingEvent ? 'Update Event' : 'Create Event'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Event Registrations Modal */}
+      <Dialog open={showRegistrationsModal} onOpenChange={setShowRegistrationsModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Event Registrations
+            </DialogTitle>
+            <DialogDescription>
+              {selectedEventForRegistrations && (
+                <span>
+                  <strong>{selectedEventForRegistrations.title}</strong>
+                  {selectedEventForRegistrations.date && (
+                    <span className="ml-2 text-muted-foreground">
+                      - {new Date(selectedEventForRegistrations.date).toLocaleDateString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      })}
+                    </span>
+                  )}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {loadingRegistrations ? (
+            <div className="py-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading registrations...</p>
+            </div>
+          ) : eventRegistrations.length === 0 ? (
+            <div className="py-8 text-center">
+              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No registrations found for this event.</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Registrations will appear here when users sign up through the resources page.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <Badge variant="outline" className="text-sm">
+                  {eventRegistrations.length} Total Registrations
+                </Badge>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleExportRegistrations}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Export CSV
+                </Button>
+              </div>
+              
+              <div className="rounded-md border">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200 bg-gray-50">
+                        <th className="p-3 text-left font-medium text-gray-700">Name</th>
+                        <th className="p-3 text-left font-medium text-gray-700">Email</th>
+                        <th className="p-3 text-left font-medium text-gray-700">Organization</th>
+                        <th className="p-3 text-left font-medium text-gray-700">Status</th>
+                        <th className="p-3 text-left font-medium text-gray-700">Registered</th>
+                        <th className="p-3 text-left font-medium text-gray-700">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {eventRegistrations.map((reg) => (
+                        <tr key={reg.id} className="border-b border-gray-200 hover:bg-gray-50">
+                          <td className="p-3">
+                            <div className="font-medium">{reg.full_name}</div>
+                            {reg.phone && (
+                              <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                <Phone className="h-3 w-3" />
+                                {reg.phone}
+                              </div>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-1">
+                              <Mail className="h-3 w-3 text-muted-foreground" />
+                              {reg.email}
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            {reg.organization ? (
+                              <div>
+                                <div className="flex items-center gap-1">
+                                  <Building className="h-3 w-3 text-muted-foreground" />
+                                  {reg.organization}
+                                </div>
+                                {reg.position && (
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {reg.position}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            <Badge 
+                              variant={
+                                reg.status === 'confirmed' ? 'default' : 
+                                reg.status === 'cancelled' ? 'destructive' : 
+                                reg.status === 'attended' ? 'default' : 'secondary'
+                              }
+                              className={
+                                reg.status === 'attended' ? 'bg-green-600 hover:bg-green-700' : ''
+                              }
+                            >
+                              {reg.status}
+                            </Badge>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <Calendar className="h-3 w-3" />
+                              {new Date(reg.registered_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex gap-1">
+                              {reg.status !== 'confirmed' && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="h-7 px-2 text-green-600 hover:text-green-700 hover:border-green-300"
+                                  onClick={() => handleUpdateRegistrationStatus(reg.id, 'confirmed')}
+                                  title="Confirm registration"
+                                >
+                                  <CheckCircle className="h-3 w-3" />
+                                </Button>
+                              )}
+                              {reg.status !== 'cancelled' && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="h-7 px-2 text-red-600 hover:text-red-700 hover:border-red-300"
+                                  onClick={() => handleUpdateRegistrationStatus(reg.id, 'cancelled')}
+                                  title="Cancel registration"
+                                >
+                                  <XCircle className="h-3 w-3" />
+                                </Button>
+                              )}
+                              {reg.status !== 'attended' && reg.status === 'confirmed' && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="h-7 px-2 text-blue-600 hover:text-blue-700 hover:border-blue-300"
+                                  onClick={() => handleUpdateRegistrationStatus(reg.id, 'attended')}
+                                  title="Mark as attended"
+                                >
+                                  <CheckCircle className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              {eventRegistrations.some((reg: any) => reg.dietary_requirements || reg.special_requests) && (
+                <div className="mt-4">
+                  <h4 className="font-medium mb-2 text-gray-700">Special Notes</h4>
+                  <div className="space-y-2">
+                    {eventRegistrations
+                      .filter((reg: any) => reg.dietary_requirements || reg.special_requests)
+                      .map((reg: any) => (
+                        <div key={reg.id} className="p-3 bg-gray-50 border border-gray-200 rounded-md text-sm">
+                          <span className="font-medium text-gray-800">{reg.full_name}:</span>
+                          {reg.dietary_requirements && (
+                            <span className="ml-2 text-orange-600">
+                              Dietary: {reg.dietary_requirements}
+                            </span>
+                          )}
+                          {reg.special_requests && (
+                            <span className="ml-2 text-gray-600">
+                              Notes: {reg.special_requests}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRegistrationsModal(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* User Add/Edit Modal */}
+      <Dialog open={showUserModal} onOpenChange={setShowUserModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {editingUser ? 'Edit User' : 'Add New User'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingUser ? 'Update the user information below.' : 'Create a new user account. The user will be able to log in with the email and temporary password.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="user-full-name">Full Name *</Label>
+                <Input 
+                  id="user-full-name" 
+                  value={userForm.full_name}
+                  onChange={(e) => setUserForm({...userForm, full_name: e.target.value})}
+                  placeholder="Enter full name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="user-email">Email *</Label>
+                <Input 
+                  id="user-email" 
+                  type="email"
+                  value={userForm.email}
+                  onChange={(e) => setUserForm({...userForm, email: e.target.value})}
+                  placeholder="Enter email address"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="user-password">
+                  {editingUser ? 'New Password (leave blank to keep current)' : 'Temporary Password *'}
+                </Label>
+                <Input 
+                  id="user-password" 
+                  type="password"
+                  value={userForm.password}
+                  onChange={(e) => setUserForm({...userForm, password: e.target.value})}
+                  placeholder={editingUser ? 'Leave blank to keep current' : 'Enter temporary password'}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="user-employee-id">Employee/Faculty ID</Label>
+                <Input 
+                  id="user-employee-id" 
+                  value={userForm.employee_id}
+                  onChange={(e) => setUserForm({...userForm, employee_id: e.target.value})}
+                  placeholder="Enter ID number"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="user-department">Department/College</Label>
+                <Input 
+                  id="user-department" 
+                  value={userForm.department}
+                  onChange={(e) => setUserForm({...userForm, department: e.target.value})}
+                  placeholder="e.g. College of Engineering"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="user-phone">Phone Number</Label>
+                <Input 
+                  id="user-phone" 
+                  value={userForm.phone}
+                  onChange={(e) => setUserForm({...userForm, phone: e.target.value})}
+                  placeholder="Enter phone number"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="user-role">Role *</Label>
+                <Select value={userForm.role} onValueChange={(value) => setUserForm({...userForm, role: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="faculty">Faculty</SelectItem>
+                    <SelectItem value="user">User</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="user-status">Status</Label>
+                <Select value={userForm.status} onValueChange={(value) => setUserForm({...userForm, status: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowUserModal(false);
+              setEditingUser(null);
+            }}>
+              Cancel
+            </Button>
+            <Button variant="ustp" onClick={handleAddUser}>
+              {editingUser ? 'Update User' : 'Create User'}
             </Button>
           </DialogFooter>
         </DialogContent>

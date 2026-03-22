@@ -24,6 +24,7 @@ import {
   Rocket
 } from "lucide-react";
 import servicesImage from "@/assets/services-bg.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
 const ServiceRequest = () => {
   const [searchParams] = useSearchParams();
@@ -120,7 +121,7 @@ const ServiceRequest = () => {
 
   const currentService = services[serviceType as keyof typeof services] || services['ip-protection'];
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate required fields
@@ -157,26 +158,29 @@ Preferred Contact: ${formData.preferredContact}`,
       submittedAt: new Date().toISOString()
     };
 
-    // Get existing requests from localStorage
-    const existingRequests = JSON.parse(localStorage.getItem('serviceRequests') || '[]');
+    // Get existing requests from Supabase
+    const { error: insertError } = await supabase
+      .from('admin_service_requests' as any)
+      .insert([{
+        name: newRequest.name,
+        email: newRequest.email,
+        phone: newRequest.phone,
+        organization: newRequest.organization,
+        service_type: newRequest.service,
+        service_title: newRequest.serviceTitle,
+        preferred_date: newRequest.preferredDate,
+        participants: newRequest.participants,
+        specific_needs: newRequest.specificNeeds,
+        budget: newRequest.budget,
+        timeline: newRequest.timeline,
+        status: newRequest.status,
+      }]);
     
-    // Add new request to the list
-    const updatedRequests = [newRequest, ...existingRequests];
-    
-    // Save to localStorage
-    localStorage.setItem('serviceRequests', JSON.stringify(updatedRequests));
-    
-    // Update recent activity
-    const recentActivity = JSON.parse(localStorage.getItem('recentActivity') || '[]');
-    const newActivity = {
-      id: Date.now() + 1,
-      type: 'service',
-      action: 'received',
-      title: `${currentService.title} request from ${formData.name}`,
-      time: 'just now'
-    };
-    const updatedActivity = [newActivity, ...recentActivity.slice(0, 9)];
-    localStorage.setItem('recentActivity', JSON.stringify(updatedActivity));
+    if (insertError) {
+      console.error('Error submitting service request:', insertError);
+      alert('There was an error submitting your request. Please try again.');
+      return;
+    }
     
     // Trigger storage event to notify admin panel
     window.dispatchEvent(new Event('storage'));

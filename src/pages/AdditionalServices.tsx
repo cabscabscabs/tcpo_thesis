@@ -28,6 +28,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import servicesImage from "@/assets/services-bg.jpg";
 
 const AdditionalServices = () => {
@@ -151,7 +152,7 @@ const AdditionalServices = () => {
     }
   ];
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate required fields
@@ -164,54 +165,41 @@ const AdditionalServices = () => {
     const selectedServiceObj = services.find(s => s.id === selectedService);
     const serviceTitle = selectedServiceObj ? selectedServiceObj.title : 'Unknown Service';
 
-    // Create new service request object
-    const newRequest = {
-      id: Date.now(), // Simple ID generation
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      organization: formData.organization,
-      service: selectedService,
-      serviceTitle: serviceTitle,
-      preferredDate: formData.preferredDate,
-      participants: formData.participants,
-      specificNeeds: formData.specificNeeds,
-      budget: formData.budget,
-      timeline: formData.timeline,
-      status: 'Pending',
-      submittedAt: new Date().toISOString()
-    };
-
-    // Get existing requests from localStorage
-    const existingRequests = JSON.parse(localStorage.getItem('serviceRequests') || '[]');
+    // Submit to Supabase
+    const { data, error: insertError } = await supabase
+      .from('admin_service_requests' as any)
+      .insert([{
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        organization: formData.organization,
+        service_type: selectedService,
+        service_title: serviceTitle,
+        preferred_date: formData.preferredDate,
+        participants: formData.participants,
+        specific_needs: formData.specificNeeds,
+        budget: formData.budget,
+        timeline: formData.timeline,
+        status: 'Pending',
+      }])
+      .select();
     
-    // Add new request to the list
-    const updatedRequests = [newRequest, ...existingRequests];
-    
-    // Save to localStorage
-    localStorage.setItem('serviceRequests', JSON.stringify(updatedRequests));
-    
-    // Update recent activity
-    const recentActivity = JSON.parse(localStorage.getItem('recentActivity') || '[]');
-    const newActivity = {
-      id: Date.now() + 1,
-      type: 'service',
-      action: 'received',
-      title: `${serviceTitle} request from ${formData.name}`,
-      time: 'just now'
-    };
-    const updatedActivity = [newActivity, ...recentActivity.slice(0, 9)];
-    localStorage.setItem('recentActivity', JSON.stringify(updatedActivity));
+    if (insertError) {
+      console.error('Error submitting service request:', insertError);
+      alert('There was an error submitting your request. Please try again.');
+      return;
+    }
     
     // Trigger storage event to notify admin panel
     window.dispatchEvent(new Event('storage'));
     
     // Show success message
+    const requestId = data && data[0] ? (data[0] as any).id : 'Submitted';
     alert(
       `Thank you for your service request!\n\n` +
       `Service: ${serviceTitle}\n` +
-      `We will contact you at ${formData.email} within 24 hours to discuss your requirements.\n\n` +
-      `Request ID: ${newRequest.id}`
+      `We will contact you at ${formData.phone} within 24 hours to discuss your requirements.\n\n` +
+      `Request ID: ${requestId}`
     );
     
     // Reset form

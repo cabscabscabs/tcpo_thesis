@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExternalLink, Calendar, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const FeaturedTechnologies = () => {
   const navigate = useNavigate();
@@ -40,39 +41,70 @@ const FeaturedTechnologies = () => {
     }
   ]);
 
-  // Load featured technologies from localStorage
+  // Load featured technologies from Supabase
   useEffect(() => {
-    const savedTechnologies = localStorage.getItem('featuredTechnologies');
-    if (savedTechnologies) {
+    const loadTechnologies = async () => {
       try {
-        const parsedTechnologies = JSON.parse(savedTechnologies);
-        if (parsedTechnologies.length > 0) {
-          setTechnologies(parsedTechnologies);
+        const { data, error } = await supabase
+          .from('admin_technologies' as any)
+          .select('*')
+          .eq('published', true)
+          .order('order_num', { ascending: true });
+        
+        if (data && !error && data.length > 0) {
+          const techs = data.map((tech: any) => ({
+            id: tech.id,
+            title: tech.title,
+            description: tech.description,
+            field: tech.field,
+            status: tech.status,
+            inventors: tech.inventors,
+            year: tech.year,
+            abstract: tech.abstract
+          }));
+          setTechnologies(techs);
         }
       } catch (error) {
         console.error('Failed to load featured technologies:', error);
       }
-    }
+    };
+    
+    loadTechnologies();
   }, []);
 
-  // Listen for storage changes from admin panel
+  // Refresh data when window gains focus
   useEffect(() => {
-    const handleStorageChange = () => {
-      const savedTechnologies = localStorage.getItem('featuredTechnologies');
-      if (savedTechnologies) {
+    const handleFocus = () => {
+      const loadTechnologies = async () => {
         try {
-          const parsedTechnologies = JSON.parse(savedTechnologies);
-          if (parsedTechnologies.length > 0) {
-            setTechnologies(parsedTechnologies);
+          const { data, error } = await supabase
+            .from('admin_technologies' as any)
+            .select('*')
+            .eq('published', true)
+            .order('order_num', { ascending: true });
+          
+          if (data && !error && data.length > 0) {
+            const techs = data.map((tech: any) => ({
+              id: tech.id,
+              title: tech.title,
+              description: tech.description,
+              field: tech.field,
+              status: tech.status,
+              inventors: tech.inventors,
+              year: tech.year,
+              abstract: tech.abstract
+            }));
+            setTechnologies(techs);
           }
         } catch (error) {
           console.error('Failed to load featured technologies:', error);
         }
-      }
+      };
+      loadTechnologies();
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const handleLearnMore = (tech: any) => {
@@ -120,7 +152,7 @@ const FeaturedTechnologies = () => {
                   </Badge>
                   <span className="text-secondary text-sm font-semibold">{tech.field}</span>
                 </div>
-                <CardTitle className="text-lg font-roboto group-hover:text-primary transition-colors">
+                <CardTitle className="text-lg font-roboto group-hover:text-gray-300 transition-colors">
                   {tech.title}
                 </CardTitle>
                 <CardDescription className="text-primary-foreground/80">

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Award, Users, Lightbulb } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-image.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -15,50 +16,34 @@ const Hero = () => {
     technologiesCount: 100
   });
 
-  // Load saved homepage content from localStorage
+  // Load saved homepage content from Supabase
   useEffect(() => {
-    const savedContent = localStorage.getItem('homepageContent');
-    if (savedContent) {
+    const loadHomepageContent = async () => {
       try {
-        const parsedContent = JSON.parse(savedContent);
-        setHeroContent({
-          heroTitle: parsedContent.heroTitle || heroContent.heroTitle,
-          heroSubtitle: parsedContent.heroSubtitle || heroContent.heroSubtitle,
-          heroImage: parsedContent.heroImage || heroContent.heroImage,
-          patentsCount: parsedContent.patentsCount || heroContent.patentsCount,
-          partnersCount: parsedContent.partnersCount || heroContent.partnersCount,
-          technologiesCount: parsedContent.technologiesCount || heroContent.technologiesCount
-        });
-      } catch (error) {
-        console.error('Failed to load saved homepage content:', error);
-      }
-    }
-  }, []);
-
-  // Listen for localStorage changes (when admin updates content)
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const savedContent = localStorage.getItem('homepageContent');
-      if (savedContent) {
-        try {
-          const parsedContent = JSON.parse(savedContent);
+        const { data, error } = await supabase
+          .from('admin_homepage_content' as any)
+          .select('*')
+          .limit(1)
+          .single();
+        
+        if (data && !error) {
+          const content = data as any;
           setHeroContent({
-            heroTitle: parsedContent.heroTitle || heroContent.heroTitle,
-            heroSubtitle: parsedContent.heroSubtitle || heroContent.heroSubtitle,
-            heroImage: parsedContent.heroImage || heroContent.heroImage,
-            patentsCount: parsedContent.patentsCount || heroContent.patentsCount,
-            partnersCount: parsedContent.partnersCount || heroContent.partnersCount,
-            technologiesCount: parsedContent.technologiesCount || heroContent.technologiesCount
+            heroTitle: content.hero_title || heroContent.heroTitle,
+            heroSubtitle: content.hero_subtitle || heroContent.heroSubtitle,
+            heroImage: content.hero_image_url || heroContent.heroImage,
+            patentsCount: content.patents_count || heroContent.patentsCount,
+            partnersCount: content.partners_count || heroContent.partnersCount,
+            technologiesCount: content.technologies_count || heroContent.technologiesCount
           });
-        } catch (error) {
-          console.error('Failed to load saved homepage content:', error);
         }
+      } catch (error) {
+        console.error('Failed to load homepage content:', error);
       }
     };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [heroContent.heroTitle, heroContent.heroSubtitle, heroContent.patentsCount, heroContent.partnersCount, heroContent.technologiesCount]);
+    
+    loadHomepageContent();
+  }, []);
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}

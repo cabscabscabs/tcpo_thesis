@@ -1,0 +1,86 @@
+MISTRAL RAG Pipeline - User Instructions
+==========================================
+
+OVERVIEW
+--------
+MISTRAL is a Retrieval-Augmented Generation (RAG) pipeline that allows you to:
+- Ingest documents (PDF, DOCX, TXT) into a vector database
+- Query the documents using natural language
+- Get AI-generated responses based on retrieved context
+
+SETUP
+-----
+1. Install requirements:
+   pip install -r requirements.txt
+
+2. Configure the application:
+   - Edit config.py to set your Mistral API key
+   - Or set environment variable: MISTRAL_API_KEY=your_api_key
+
+3. The vector database will be created automatically in the ./chroma_db directory
+
+USAGE
+-----
+
+1. INGEST DOCUMENTS
+   -----------------
+   Add documents to the vector store:
+   
+   python ingest.py <path_to_document>
+   
+   Examples:
+   python ingest.py documents/myfile.pdf
+   python ingest.py documents/
+   
+   Supported formats: PDF, DOCX, TXT
+
+2. QUERY DOCUMENTS (Command Line)
+   -------------------------------
+   Ask questions about your documents:
+   
+   python query_cli.py "Your question here?"
+   
+   Example:
+   python query_cli.py "What are the main topics discussed in the documents?"
+
+3. RUN API SERVER
+   ---------------
+   Start the REST API server:
+   
+   python api_server.py
+   
+   The server will start on http://localhost:8000
+   
+   API Endpoints:
+   - POST /query - Query the RAG pipeline
+     Request body: {"query": "Your question?"}
+   
+   - POST /ingest - Ingest a document
+     Request body: {"file_path": "/path/to/document.pdf"}
+
+CONFIGURATION
+-------------
+Edit config.py to customize:
+- MISTRAL_API_KEY: Your Mistral AI API key
+- CHROMA_DB_PATH: Path to vector database (default: ./chroma_db)
+- COLLECTION_NAME: Name of the document collection
+- EMBEDDING_MODEL: Sentence transformer model for embeddings
+- CHUNK_SIZE: Size of text chunks for splitting documents
+- CHUNK_OVERLAP: Overlap between chunks
+- TOP_K: Number of relevant chunks to retrieve
+- MAX_TOKENS: Maximum tokens in generated response
+- TEMPERATURE: Response creativity (0.0 - 1.0)
+
+WORKFLOW
+--------
+1. Place your documents in the documents/ folder
+2. Run ingest.py to add them to the vector database
+3. Use query_cli.py or the API to ask questions
+4. The system retrieves relevant context and generates answers
+
+NOTES
+-----
+- First ingestion may take time as it downloads embedding models
+- The vector database persists between sessions
+- Re-ingesting the same document will add duplicate entries
+- Ensure you have a valid Mistral API key for generation to work
