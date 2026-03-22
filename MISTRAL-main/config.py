@@ -5,10 +5,10 @@ from pathlib import Path
 
 
 class Settings(BaseSettings):
-    # Ollama settings
-    ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "mistral"
-    ollama_timeout: int = 120
+    # Mistral Cloud API settings
+    mistral_api_key: str = ""  # Set via MISTRAL_API_KEY env var or .env file
+    mistral_model: str = "mistral-small-latest"  # Options: mistral-small-latest, mistral-medium-latest, mistral-large-latest
+    mistral_timeout: int = 120
 
     # Embedding settings
     embedding_model: str = "all-MiniLM-L6-v2"
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
-        env_prefix = "OFFICE_RAG_"
+        env_prefix = ""  # Allow direct env var names like MISTRAL_API_KEY
 
 
 settings = Settings()

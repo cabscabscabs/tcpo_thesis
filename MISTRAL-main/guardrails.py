@@ -6,8 +6,14 @@ responses stay within the office domain.
 
 import re
 
-# Core office-related keyword categories
+# Core IP/TPCO-related keyword categories
 OFFICE_KEYWORDS = {
+    # IP & Patent related
+    "patent", "patents", "ip", "intellectual property", "copyright",
+    "trademark", "invention", "inventor", "utility model", "industrial design",
+    "technology transfer", "commercialization", "licensing", "royalty",
+    "ipophl", "ip registration", "patent application", "patent search",
+    "prior art", "claims", "specification", "drawing", "abstract",
     # Facilities & spaces
     "office", "meeting room", "conference room", "facility", "workspace",
     "desk", "parking", "cafeteria", "kitchen", "lobby", "reception",
@@ -33,6 +39,11 @@ OFFICE_KEYWORDS = {
     "onboarding", "orientation",
     # Safety & emergency
     "fire drill", "emergency", "evacuation", "first aid", "safety",
+    # USTP/TPCO specific
+    "ustp", "tpco", "technology", "innovation", "research", "r&d",
+    # Conversation starters (allow greetings/help requests)
+    "hello", "hi", "hey", "help", "what can you do", "what do you do",
+    "how can you help", "assist", "support", "question", "ask",
 }
 
 # Topics that should be explicitly rejected
@@ -49,12 +60,13 @@ BLOCKED_TOPICS = {
 
 # Refusal messages
 REFUSAL_OUT_OF_SCOPE = (
-    "I can only answer questions related to office operations and policies. "
-    "Please ask me about office facilities, procedures, equipment, or related topics."
+    "I can only answer questions related to intellectual property, patents, "
+    "technology transfer, and USTP TPCO operations. Please ask me about patents, "
+    "IP procedures, technology commercialization, or related topics."
 )
 
 REFUSAL_NO_CONTEXT = (
-    "I don't have information about this in the current office documentation. "
+    "I don't have information about this in the current documentation. "
     "The topic may not be covered in the documents that have been loaded."
 )
 

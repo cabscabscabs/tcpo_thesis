@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Optional
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.schema import Document
+from langchain_core.documents import Document
 
 
 def load_txt(file_path: str) -> str:
@@ -42,10 +42,53 @@ def load_docx(file_path: str) -> str:
     return "\n\n".join(text_parts)
 
 
+def load_xlsx(file_path: str) -> str:
+    """Load an XLSX (Excel) file and extract text from all cells."""
+    from openpyxl import load_workbook
+
+    wb = load_workbook(file_path, data_only=True)
+    text_parts = []
+    
+    for sheet_name in wb.sheetnames:
+        sheet = wb[sheet_name]
+        text_parts.append(f"Sheet: {sheet_name}")
+        
+        for row in sheet.iter_rows():
+            row_text = []
+            for cell in row:
+                if cell.value is not None:
+                    row_text.append(str(cell.value))
+            if row_text:
+                text_parts.append(" | ".join(row_text))
+    
+    return "\n".join(text_parts)
+
+
+def load_pptx(file_path: str) -> str:
+    """Load a PPTX (PowerPoint) file and extract text from all slides."""
+    from pptx import Presentation
+
+    prs = Presentation(file_path)
+    text_parts = []
+    
+    for i, slide in enumerate(prs.slides, 1):
+        text_parts.append(f"Slide {i}:")
+        
+        for shape in slide.shapes:
+            if hasattr(shape, "text") and shape.text.strip():
+                text_parts.append(shape.text.strip())
+        
+        text_parts.append("")  # Empty line between slides
+    
+    return "\n\n".join(text_parts)
+
+
 LOADERS = {
     ".txt": load_txt,
     ".pdf": load_pdf,
     ".docx": load_docx,
+    ".xlsx": load_xlsx,
+    ".pptx": load_pptx,
 }
 
 

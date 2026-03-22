@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, X, Send, Bot, User, Loader2, AlertCircle } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Loader2, AlertCircle, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Types
@@ -14,6 +14,7 @@ interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   timestamp: Date;
   isError?: boolean;
+  sources?: string[];
 }
 
 interface ChatWidgetProps {
@@ -42,6 +43,37 @@ const maskSensitiveData = (text: string): string => {
 
 const generateId = (): string => {
   return Math.random().toString(36).substr(2, 9);
+};
+
+// Expandable Sources Component
+const SourcesAccordion: React.FC<{ sources: string[] }> = ({ sources }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  if (!sources || sources.length === 0) return null;
+  
+  return (
+    <div className="mt-3 border-t border-gray-200 dark:border-gray-700 pt-2">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center space-x-2 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+      >
+        <FileText className="h-3 w-3" />
+        <span>{sources.length} source{sources.length > 1 ? 's' : ''}</span>
+        {isOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+      </button>
+      
+      {isOpen && (
+        <div className="mt-2 space-y-1">
+          {sources.map((source, index) => (
+            <div key={index} className="flex items-start space-x-2 text-xs text-gray-600 dark:text-gray-400">
+              <span className="text-gray-400">•</span>
+              <span className="break-all">{source}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
 
 // Predefined responses for common intents
@@ -96,7 +128,7 @@ In the meantime, here's what you can expect:
 
 export const ChatWidget: React.FC<ChatWidgetProps> = ({
   className,
-  apiEndpoint = '/api/chat',
+  apiEndpoint = 'http://localhost:8000/query',
   openAIKey,
   appName = 'USTP TPCO',
   position = 'bottom-right'
@@ -105,7 +137,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
-      content: `Hello! I'm your AI assistant for ${appName}. I can help you navigate the app, troubleshoot issues, and answer questions. How can I help you today?`,
+      content: `Hello! I'm your AI assistant for ${appName}. I can help answer questions about:\n\n• Patents and IP protection\n• Technology transfer\n• USTP TPCO processes\n• IPOPHL forms and procedures\n\nHow can I help you today?`,
       role: 'assistant',
       timestamp: new Date(),
     }
@@ -189,80 +221,67 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
     }
 
     try {
-      // Try to use OpenAI API if key is provided
-      if (openAIKey) {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${openAIKey}`,
-          },
-          body: JSON.stringify({
-            model: 'gpt-3.5-turbo',
-            messages: [
-              {
-                role: 'system',
-                content: `You're a helpful assistant for ${appName}. Guide users through features, troubleshoot issues, and provide documentation links when relevant. Be concise and friendly. If you're uncertain about something, suggest they contact human support by saying "agent".`
-              },
-              ...messages.slice(-5).map(msg => ({
-                role: msg.role,
-                content: msg.content
-              })),
-              {
-                role: 'user',
-                content: userMessage
-              }
-            ],
-            temperature: 0.7,
-            max_tokens: 256,
-          }),
-        });
+      // Call MISTRAL RAG API
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: userMessage,
+        }),
+      });
 
-        if (!response.ok) {
-          throw new Error(`OpenAI API error: ${response.status}`);
-        }
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
 
-        const data = await response.json();
-        const assistantContent = data.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
-        
-        const assistantMsg: ChatMessage = {
-          id: generateId(),
-          content: assistantContent,
-          role: 'assistant',
-          timestamp: new Date(),
-        };
-        
-        setMessages(prev => [...prev, assistantMsg]);
-      } else {
-        // Fallback to local processing
-        const fallbackResponse = `I understand you're asking about "${userMessage}". While I can help with basic navigation and common questions, for more specific assistance, I recommend:
-
-1. Checking our FAQ section
-2. Using the search function
-3. Contacting human support by saying "agent"
-
-What specific aspect would you like help with?`;
-        
+      const data = await response.json();
+      const assistantContent = data.answer || 'I apologize, but I encountered an error processing your request.';
+      
+      // Only include sources if they exist and the answer actually references documents
+      const hasSources = data.sources && data.sources.length > 0 && 
+                        !assistantContent.toLowerCase().includes('how can you help') &&
+                        !assistantContent.toLowerCase().includes('you can ask questions') &&
+                        !assistantContent.toLowerCase().includes('how can i assist you');
+      
+      const assistantMsg: ChatMessage = {
+        id: generateId(),
+        content: assistantContent,
+        role: 'assistant',
+        timestamp: new Date(),
+        sources: hasSources ? data.sources : undefined,
+      };
+      
+      setMessages(prev => [...prev, assistantMsg]);
+    } catch (err) {
+      console.error('Chat error:', err);
+      // Show detailed error in console for debugging
+      if (err instanceof Error) {
+        console.error('Error details:', err.message);
+      }
+      
+      // Fallback to predefined responses if API fails
+      const fallbackResponse = getPredefinedResponse(userMessage);
+      if (fallbackResponse) {
         const assistantMsg: ChatMessage = {
           id: generateId(),
           content: fallbackResponse,
           role: 'assistant',
           timestamp: new Date(),
         };
-        
         setMessages(prev => [...prev, assistantMsg]);
+      } else {
+        const errorMsg: ChatMessage = {
+          id: generateId(),
+          content: `Error: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again or contact support.`,
+          role: 'assistant',
+          timestamp: new Date(),
+          isError: true,
+        };
+        setMessages(prev => [...prev, errorMsg]);
+        setError('Failed to get response. Please try again.');
       }
-    } catch (err) {
-      console.error('Chat error:', err);
-      const errorMsg: ChatMessage = {
-        id: generateId(),
-        content: 'I apologize, but I encountered an error processing your request. Please try again or contact support by saying "agent".',
-        role: 'assistant',
-        timestamp: new Date(),
-        isError: true,
-      };
-      setMessages(prev => [...prev, errorMsg]);
-      setError('Failed to get response. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -412,6 +431,9 @@ What specific aspect would you like help with?`;
                        </span>
                      </div>
                      <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
+                     {message.sources && message.sources.length > 0 && (
+                       <SourcesAccordion sources={message.sources} />
+                     )}
                    </div>
                  </div>
                ))}

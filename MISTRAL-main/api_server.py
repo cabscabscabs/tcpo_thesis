@@ -7,6 +7,7 @@ Usage:
 """
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from config import settings
@@ -17,6 +18,15 @@ app = FastAPI(
     title="Office RAG API",
     description="Retrieval-Augmented Generation API for office document queries",
     version="1.0.0",
+)
+
+# Add CORS middleware to allow frontend requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins (for development)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 # Initialize pipeline at startup

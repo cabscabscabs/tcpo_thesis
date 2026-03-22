@@ -1,10 +1,10 @@
 """RAG pipeline module.
 
-Orchestrates retrieval, prompt construction, and Mistral-7B generation
-via Ollama for office-related questions.
+Orchestrates retrieval, prompt construction, and Mistral generation
+via Mistral Cloud API for office-related questions.
 """
 
-import requests
+from mistralai.client import Mistral
 
 from config import settings
 from vector_store import VectorStore
@@ -12,29 +12,33 @@ from guardrails import format_guardrail_refusal, validate_response, REFUSAL_NO_C
 
 
 SYSTEM_PROMPT = """\
-You are an Office Information Assistant specialized in answering questions ONLY about company office operations, policies, facilities, and documentation. Your knowledge is strictly limited to the provided context from office documents.
+You are a USTP TPCO (Technology Transfer Office) Information Assistant specialized in answering questions ONLY about intellectual property, patents, technology transfer, and related documentation. Your knowledge is strictly limited to the provided context from USTP TPCO documents.
 
 # GUARDRAILS & BOUNDARIES:
 1. ONLY answer questions related to:
-   - Office policies, procedures, and guidelines
-   - Facility information (meeting rooms, equipment, amenities)
-   - Employee resources and office services
-   - Documented office protocols and standards
-   - Company-specific office operations
+   - Patent applications, procedures, and requirements
+   - Intellectual property (IP) protection and management
+   - Technology transfer and commercialization
+   - Copyright and trademark registration
+   - USTP TPCO services and processes
+   - IPOPHL forms and procedures
 
 2. STRICTLY REFUSE to answer questions about:
-   - Personal matters unrelated to office operations
-   - Technical IT support beyond basic office equipment
-   - Financial, legal, or HR matters unless specifically in office context
+   - Personal matters unrelated to IP/TPCO operations
+   - Technical IT support
+   - Financial, legal, or HR matters unless specifically in IP context
    - External topics, news, or unrelated subjects
-   - Speculative or hypothetical scenarios outside office scope
+   - Speculative or hypothetical scenarios outside IP scope
 
 # RESPONSE PROTOCOL:
 - Use ONLY information from the provided context
-- If context doesn't contain the answer, say: "I don't have information about this in the office documentation."
-- If the question is outside office scope, say: "I can only answer questions related to office operations and policies."
+- If the user greets you (says "hello", "hi", etc.), respond warmly and ask how you can help with IP/patent questions
+- If the user asks what you can do, explain that you can answer questions about patents, IP, and technology transfer
+- If context doesn't contain the answer, say: "I don't have information about this in the documentation."
+- If the question is outside IP/TPCO scope, say: "I can only answer questions related to intellectual property, patents, and technology transfer."
 - Never speculate or use external knowledge
-- Be concise and reference specific office documents when possible
+- Be concise and reference specific documents when possible
+- DO NOT use Markdown formatting (no **, *, #, or bullet points). Use plain text only.
 """
 
 
@@ -66,14 +70,14 @@ def build_context(chunks: list[dict], max_tokens: int | None = None) -> str:
 
 
 def build_prompt(context: str, question: str) -> list[dict]:
-    """Build the message list for Ollama's chat API.
+    """Build the message list for Mistral Cloud API.
 
     Args:
         context: Formatted context from retrieved documents.
         question: The user's question.
 
     Returns:
-        List of message dicts for the Ollama chat endpoint.
+        List of message dicts for the Mistral chat endpoint.
     """
     user_content = f"""# CONTEXT FROM OFFICE DOCUMENTS:
 {context}
@@ -89,8 +93,8 @@ Answer the question using ONLY the context above. If the answer is not in the co
     ]
 
 
-def call_ollama(messages: list[dict]) -> str:
-    """Send a chat completion request to the Ollama API.
+def call_mistral_cloud(messages: list[dict]) -> str:
+    """Send a chat completion request to the Mistral Cloud API.
 
     Args:
         messages: List of message dicts with role and content.
@@ -99,34 +103,26 @@ def call_ollama(messages: list[dict]) -> str:
         The assistant's response text.
 
     Raises:
-        ConnectionError: If Ollama is not reachable.
+        ValueError: If API key is not configured.
         RuntimeError: If the API returns an error.
     """
-    url = f"{settings.ollama_base_url}/api/chat"
-    payload = {
-        "model": settings.ollama_model,
-        "messages": messages,
-        "stream": False,
-        "options": {
-            "temperature": settings.temperature,
-        },
-    }
+    if not settings.mistral_api_key:
+        raise ValueError(
+            "MISTRAL_API_KEY is not set. Please set it in config.py or as an environment variable."
+        )
+
+    client = Mistral(api_key=settings.mistral_api_key)
 
     try:
-        resp = requests.post(url, json=payload, timeout=settings.ollama_timeout)
-    except requests.ConnectionError:
-        raise ConnectionError(
-            f"Cannot connect to Ollama at {settings.ollama_base_url}. "
-            "Make sure Ollama is running (ollama serve)."
+        response = client.chat.complete(
+            model=settings.mistral_model,
+            messages=messages,
+            temperature=settings.temperature,
         )
+    except Exception as e:
+        raise RuntimeError(f"Mistral API error: {str(e)}")
 
-    if resp.status_code != 200:
-        raise RuntimeError(
-            f"Ollama returned status {resp.status_code}: {resp.text}"
-        )
-
-    data = resp.json()
-    return data.get("message", {}).get("content", "").strip()
+    return response.choices[0].message.content.strip()
 
 
 class RAGPipeline:
@@ -146,7 +142,7 @@ class RAGPipeline:
           1. Guardrail check
           2. Retrieve relevant document chunks
           3. Build context and prompt
-          4. Generate response via Ollama/Mistral
+          4. Generate response via Mistral Cloud API
           5. Validate response
 
         Args:
@@ -187,7 +183,7 @@ class RAGPipeline:
         messages = build_prompt(context, question)
 
         # Step 4: Generate response
-        raw_response = call_ollama(messages)
+        raw_response = call_mistral_cloud(messages)
 
         # Step 5: Validate response
         final_response = validate_response(raw_response, filtered_chunks)
