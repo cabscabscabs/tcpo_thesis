@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench } from "lucide-react";
+import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -176,6 +176,9 @@ const Admin = () => {
     booking_lead_time: '',
     equipment: [] as string[]
   });
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
 
   // Facility Booking Inquiries state
   const [bookingInquiries, setBookingInquiries] = useState<any[]>([]);
@@ -1661,6 +1664,7 @@ Article Details:
         booking_lead_time: resource.booking_lead_time || '',
         equipment: resource.equipment || []
       });
+      setUploadedFileName(resource.file_url ? resource.file_url.split('/').pop() || '' : '');
     } else {
       setEditingResource(null);
       setResourceForm({
@@ -1682,7 +1686,9 @@ Article Details:
         booking_lead_time: '',
         equipment: []
       });
+      setUploadedFileName('');
     }
+    setUploadFile(null);
     setShowResourceModal(true);
   };
 
@@ -1700,8 +1706,36 @@ Article Details:
     }
 
     const slug = resourceForm.slug || generateSlug(resourceForm.title);
+    setUploading(true);
     
     try {
+      let fileUrl = resourceForm.file_url;
+
+      // Handle file upload if a new file is selected
+      if (uploadFile) {
+        const fileExt = uploadFile.name.split('.').pop();
+        const fileName = `${slug}-${Date.now()}.${fileExt}`;
+        const filePath = `resources/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('resources')
+          .upload(filePath, uploadFile);
+
+        if (uploadError) {
+          console.error('Error uploading file:', uploadError);
+          alert('Error uploading file: ' + uploadError.message);
+          setUploading(false);
+          return;
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('resources')
+          .getPublicUrl(filePath);
+
+        fileUrl = urlData.publicUrl;
+      }
+
       const resourceData: any = {
         title: resourceForm.title,
         slug: slug,
@@ -1709,7 +1743,7 @@ Article Details:
         category: resourceForm.category,
         content: resourceForm.content,
         url: resourceForm.url || null,
-        file_url: resourceForm.file_url || null,
+        file_url: fileUrl || null,
         tags: [resourceForm.category],
         published: resourceForm.published,
       };
@@ -1753,10 +1787,14 @@ Article Details:
       logActivity('resource', editingResource ? 'updated' : 'added', resourceForm.title);
       loadResources();
       setShowResourceModal(false);
+      setUploadFile(null);
+      setUploadedFileName('');
       alert(`Resource "${resourceForm.title}" has been ${editingResource ? 'updated' : 'added'}.`);
     } catch (error: any) {
       console.error('Error saving resource:', error);
       alert('Error saving resource: ' + error.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -4404,6 +4442,24 @@ Article Details:
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="resource-type">Resource Type *</Label>
+                <Select 
+                  value={resourceForm.type} 
+                  onValueChange={(value) => setResourceForm({...resourceForm, type: value as any})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="article">Article</SelectItem>
+                    <SelectItem value="guide">Guide</SelectItem>
+                    <SelectItem value="video">Video</SelectItem>
+                    <SelectItem value="download">Download</SelectItem>
+                    <SelectItem value="link">Link</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -4436,6 +4492,60 @@ Article Details:
                   placeholder="Link to file"
                 />
               </div>
+            </div>
+
+            {/* File Upload Section */}
+            <div className="space-y-3 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-medium">Upload File</Label>
+                <span className="text-xs text-gray-500">Accepted: PDF, DOCX, XLSX, TXT</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Input
+                  id="resource-upload"
+                  type="file"
+                  accept=".pdf,.docx,.xlsx,.txt"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const allowedTypes = [
+                        'application/pdf',
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        'text/plain'
+                      ];
+                      if (!allowedTypes.includes(file.type) && 
+                          !file.name.match(/\.(pdf|docx|xlsx|txt)$/i)) {
+                        alert('Please upload a PDF, DOCX, XLSX, or TXT file.');
+                        return;
+                      }
+                      setUploadFile(file);
+                      setUploadedFileName(file.name);
+                    }
+                  }}
+                  className="flex-1"
+                />
+              </div>
+              {uploadedFileName && (
+                <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-2 rounded">
+                  <FileText size={16} />
+                  <span className="truncate">{uploadedFileName}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUploadFile(null);
+                      setUploadedFileName('');
+                      setResourceForm({...resourceForm, file_url: ''});
+                    }}
+                    className="ml-auto text-gray-400 hover:text-red-500"
+                  >
+                    <XCircle size={16} />
+                  </button>
+                </div>
+              )}
+              <p className="text-xs text-gray-500">
+                Upload a file directly to storage. This will override any File URL entered above.
+              </p>
             </div>
 
             {/* Tutorial-specific fields */}
@@ -4539,11 +4649,20 @@ Article Details:
             <Button variant="outline" onClick={() => {
               setShowResourceModal(false);
               setEditingResource(null);
-            }}>
+              setUploadFile(null);
+              setUploadedFileName('');
+            }} disabled={uploading}>
               Cancel
             </Button>
-            <Button variant="ustp" onClick={handleSaveResource}>
-              {editingResource ? 'Update Resource' : 'Add Resource'}
+            <Button variant="ustp" onClick={handleSaveResource} disabled={uploading}>
+              {uploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {uploadFile ? 'Uploading...' : 'Saving...'}
+                </>
+              ) : (
+                editingResource ? 'Update Resource' : 'Add Resource'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

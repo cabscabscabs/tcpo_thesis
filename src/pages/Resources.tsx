@@ -412,7 +412,20 @@ const Resources = () => {
                           <span className="font-medium">{template.lastUpdated}</span>
                         </div>
                       </div>
-                      <Button variant="gold-outline" size="sm" className="w-full">
+                      <Button 
+                        variant="gold-outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => {
+                          if (template.file_url) {
+                            window.open(template.file_url, '_blank');
+                          } else if (template.url) {
+                            window.open(template.url, '_blank');
+                          } else {
+                            alert('Download not available for this template yet.');
+                          }
+                        }}
+                      >
                         <Download size={16} className="mr-2" />
                         Download
                       </Button>
@@ -560,7 +573,20 @@ const Resources = () => {
                           <span className="font-medium">{guide.lastUpdated}</span>
                         </div>
                       </div>
-                      <Button variant="gold-outline" size="sm" className="w-full">
+                      <Button 
+                        variant="gold-outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => {
+                          if (guide.file_url) {
+                            window.open(guide.file_url, '_blank');
+                          } else if (guide.url) {
+                            window.open(guide.url, '_blank');
+                          } else {
+                            alert('Download not available for this guide yet.');
+                          }
+                        }}
+                      >
                         <Download size={16} className="mr-2" />
                         Download Guide
                       </Button>

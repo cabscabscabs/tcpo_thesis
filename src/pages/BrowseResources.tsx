@@ -198,7 +198,9 @@ const BrowseResources = () => {
 
   const handleResourceClick = (resource: any) => {
     // Navigate to resource details or open external URL
-    if (resource.url) {
+    if (resource.file) {
+      window.open(resource.file, '_blank');
+    } else if (resource.url) {
       window.open(resource.url, '_blank');
     } else {
       // For now, show alert - in future, could navigate to resource detail page
