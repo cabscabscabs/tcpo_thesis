@@ -1,0 +1,125 @@
+USTP TPCO RESOURCE CATEGORIZATION GUIDE
+======================================
+
+This guide helps you categorize MISTRAL documents into the appropriate
+Resource Management sections in the Admin Panel.
+
+TEMPLATES (Legal Templates & Documents)
+---------------------------------------
+These are fillable forms, legal documents, and templates that users can download
+and use for IP protection and partnerships.
+
+FILES TO UPLOAD HERE:
+- DEED OF ASSIGNMENT_2026.docx
+- Joint-Affidavit-of-Inventorship-and-Contribution-Template.docx
+- Patent_Specification_Template_with_Guide.docx
+- Patent-Search-Report-Template.docx
+- Technology_Utilization_Plan_Template.docx
+- ITSOS REQUEST FORM.docx
+- ITSOS REQUEST FORM_MD1.docx
+- IPOPHLFillableForm100.pdf
+- IPOPHLFillableForm110.pdf
+- IPOPHLFillableForm300.pdf
+- IPOPHLFillableForm400.pdf
+- Copyright Registry Enrollment Form 2025.pdf
+- Supplemental Form 2025.pdf
+- TRL Assessment Form.xlsx
+
+SUGGESTED RESOURCE TYPE: download
+
+IP 101 TUTORIALS (Learning Modules)
+-----------------------------------
+These are educational materials, training documents, and instructional content
+for learning about Intellectual Property.
+
+FILES TO UPLOAD HERE:
+- 1-Patent Over and Patent-Information - 06-25-2024.pdf
+- 2-Keyword-Searching - 06-25-2024.pdf
+- 3-DRAFTING-of-SPECIFICATION - 06-25-2024.pdf
+- 4-Patent Drawing - 06-25-2024 - with exercise.pdf
+- Patent-Specification-2-Detailed-Descrition-Drafting.pdf
+- Patent-Specification-Claims-Drafting.pdf
+- Patent-Search-Strategies-UPDATED.pdf
+- Patentability-Requirements-June-25.pdf
+- Classification-of-Patent-Documents.pdf
+- IP-Procedure-.pdf
+- IP-System-June-25_2024.pdf
+- Technology-Transfer-June-25_2024.pdf
+- IP-Procedure-Oroquieta and Panaon updated.pptx
+
+SUGGESTED RESOURCE TYPE: guide (for PDFs) or video (if you have video tutorials)
+
+SSF BOOKING (Shared Service Facilities)
+---------------------------------------
+These documents are related to facility usage, equipment specifications,
+and SSF-related procedures.
+
+FILES TO UPLOAD HERE:
+- DPM-USTP-TPCO-001-ITSU.pdf (ITSU - Innovation and Technology Support Unit)
+- DPM-USTP-TPCO-002 - PMU.pdf (PMU - Patent Management Unit)
+- DPM-USTP-TPCO-003 - BDU.pdf (BDU - Business Development Unit)
+- USTP-TPCO_IP Application Process and Requirements.pdf
+
+SUGGESTED RESOURCE TYPE: download
+
+GUIDELINES (Research Guidelines & Best Practices)
+-------------------------------------------------
+These are comprehensive guidelines, procedures, and best practice documents
+for research, IP management, and technology transfer.
+
+FILES TO UPLOAD HERE:
+- TRADEMARK CLASSIFICATION.pdf
+- ustp-tpco-about-and-contact.txt
+
+SAMPLE DOCUMENTS (For Reference Only - Not for Public Upload)
+-------------------------------------------------------------
+These are sample documents showing completed examples. You may want to
+keep these for internal reference or create a separate "Sample Documents"
+category in the future.
+
+- 1.-Abstract_Nalupa_Sample Software.pdf
+- 2.-Description_Nalupa_Sample Software.pdf
+- 3.-Claims_Nalupa_Sample Software.pdf
+- 4.-Patent-Drawing_Nalupa_Sample Software.pdf
+- Composition of Instant Rice Bowl Mix_Sample food tech.pdf
+- PORTABLE DEVICE FOR WRAPPING AND MOLDING SOFT MILK CANDY (YEMA)_Sample machine.pdf
+- Patent-Draft-Esterified Banana_Sample food tech.pdf
+- Patent-Search-Report-Esterified Banana Peel_Sample food tech.pdf
+- Patent-Search-Report_ Nutritional Food Scale System_Sample Software.pdf
+- Sample machine_Patent-Search-Report.pdf
+- Search_Repport_instant-rice-bowl_Sample food tech.pdf
+- GUI for GA Optimization (Compasan)_ID for GUI reference.pdf
+
+UPLOAD INSTRUCTIONS
+===================
+
+1. Go to http://localhost:8080/admin
+2. Click on "Resources" tab
+3. Select the appropriate sub-tab (Templates, IP 101 Tutorials, etc.)
+4. Click "Add [Category]" button
+5. Fill in the form:
+   - Title: Use a descriptive name (e.g., "Deed of Assignment Template")
+   - Category: Select from dropdown
+   - Resource Type: Select appropriate type (download, guide, video, link)
+   - Description: Brief description of the document
+   - Upload File: Select the file from your computer
+6. Click "Add Resource" to save
+
+FILE NAMING RECOMMENDATIONS
+===========================
+
+When uploading, use clear, descriptive titles:
+- "Deed of Assignment Template (2026)" instead of "DEED OF ASSIGNMENT_2026"
+- "IPOPHL Trademark Application Form (Form 100)" instead of "IPOPHLFillableForm100"
+- "Patent Search Strategies Guide" instead of "Patent-Search-Strategies-UPDATED"
+
+This helps users understand what they are downloading.
+
+RESOURCE TYPE EXPLANATIONS
+==========================
+
+- article: Written articles or blog posts
+- guide: Instructional guides, manuals, or educational documents
+- video: Video tutorials or recorded presentations
+- download: Files meant to be downloaded (forms, templates, documents)
+- link: External links to other websites or resources
