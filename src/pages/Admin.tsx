@@ -16,8 +16,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Admin = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [loginData, setLoginData] = useState({ username: "", password: "" });
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   // Patent management state
   const [patents, setPatents] = useState<any[]>([]);
@@ -55,6 +58,47 @@ const Admin = () => {
 
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   
+  // Check session on component mount for auto-login
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          // Verify user has admin or faculty role
+          const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (!error && profile && (profile.role === 'admin' || profile.role === 'faculty')) {
+            setIsLoggedIn(true);
+            setCurrentUserRole(profile.role);
+          } else {
+            // User doesn't have admin/faculty role, sign them out
+            await supabase.auth.signOut();
+          }
+        }
+      } catch (err) {
+        console.error('Session check error:', err);
+      }
+    };
+    
+    checkSession();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false);
+        setCurrentUserRole(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   // Load recent activities from Supabase
   useEffect(() => {
     loadRecentActivities();
@@ -146,7 +190,7 @@ const Admin = () => {
     department: '',
     employee_id: '',
     phone: '',
-    role: 'user',
+    role: 'faculty',
     status: 'active'
   });
 
@@ -599,11 +643,133 @@ const Admin = () => {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - in real app, this would validate against backend
-    if (loginData.username === "admin" && loginData.password === "admin123") {
-      setIsLoggedIn(true);
+    setLoginLoading(true);
+    setLoginError(null);
+
+    try {
+      // Determine email to use for login
+      // Special case: "admin" username maps to the default admin email for backward compatibility
+      let email = loginData.username;
+      if (loginData.username.toLowerCase() === 'admin') {
+        // For the special "admin" username, we need to find the admin user's email
+        const { data: adminProfile, error: adminError } = await supabase
+          .from('user_profiles')
+          .select('email')
+          .eq('role', 'admin')
+          .limit(1)
+          .single();
+        
+        if (adminError || !adminProfile) {
+          setLoginError('No admin user found. Please create an admin user first.');
+          setLoginLoading(false);
+          return;
+        }
+        email = adminProfile.email;
+      }
+
+      // Sign in with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: loginData.password,
+      });
+
+      if (authError) {
+        console.error('Auth error:', authError);
+        if (authError.message.includes('Invalid login credentials')) {
+          setLoginError('Invalid email/username or password.');
+        } else if (authError.message.includes('Email not confirmed')) {
+          setLoginError('Please check your email and confirm your account first.');
+        } else {
+          setLoginError(authError.message);
+        }
+        setLoginLoading(false);
+        return;
+      }
+
+      if (authData.user) {
+        // Check if user has admin or faculty role
+        // First try to get from user_profiles
+        let profile = null;
+        let profileError = null;
+        
+        try {
+          const result = await supabase
+            .from('user_profiles')
+            .select('role, status')
+            .eq('id', authData.user.id)
+            .single();
+          profile = result.data;
+          profileError = result.error;
+        } catch (err) {
+          console.error('Profile query error:', err);
+          profileError = err;
+        }
+
+        // If profile doesn't exist or query failed, try to get role from auth metadata
+        if (profileError || !profile) {
+          console.log('Profile not found in user_profiles, checking auth metadata...');
+          
+          // Get role from auth metadata as fallback
+          const authRole = authData.user.user_metadata?.role;
+          const authFullName = authData.user.user_metadata?.full_name;
+          
+          if (authRole === 'admin' || authRole === 'faculty') {
+            // Try to create/update the profile
+            console.log('Creating profile from auth metadata...');
+            const { error: upsertError } = await supabase
+              .from('user_profiles')
+              .upsert({
+                id: authData.user.id,
+                full_name: authFullName || email,
+                email: email,
+                role: authRole,
+                status: 'active'
+              });
+            
+            if (upsertError) {
+              console.error('Error creating profile:', upsertError);
+              // Still allow login if role is in metadata
+              setIsLoggedIn(true);
+              setLoginData({ username: "", password: "" });
+              return;
+            }
+            
+            profile = { role: authRole, status: 'active' };
+          } else {
+            console.error('Profile error:', profileError);
+            setLoginError('Your account does not have admin or faculty access. Please contact an administrator.');
+            await supabase.auth.signOut();
+            setLoginLoading(false);
+            return;
+          }
+        }
+
+        if (!profile || (profile.role !== 'admin' && profile.role !== 'faculty')) {
+          setLoginError('Access denied. Only admin and faculty users can access this panel.');
+          await supabase.auth.signOut();
+          setLoginLoading(false);
+          return;
+        }
+
+        if (profile.status === 'inactive') {
+          setLoginError('Your account is inactive. Please contact an administrator.');
+          await supabase.auth.signOut();
+          setLoginLoading(false);
+          return;
+        }
+
+        // Login successful
+        setIsLoggedIn(true);
+        setCurrentUserRole(profile.role);
+        setLoginData({ username: "", password: "" });
+      }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setLoginError('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoginLoading(false);
     }
   };
 
@@ -1513,7 +1679,7 @@ Article Details:
         department: '',
         employee_id: '',
         phone: '',
-        role: 'user',
+        role: 'faculty',
         status: 'active'
       });
     }
@@ -1552,6 +1718,30 @@ Article Details:
           alert('Error updating user: ' + error.message);
           return;
         }
+        
+        // Also update user_roles table if role changed
+        if (userForm.role === 'admin' || userForm.role === 'faculty') {
+          // Check if user_roles entry exists
+          const { data: existingRole } = await supabase
+            .from('user_roles')
+            .select('*')
+            .eq('user_id', editingUser.id)
+            .single();
+          
+          if (existingRole) {
+            // Update existing role
+            await supabase
+              .from('user_roles')
+              .update({ role: userForm.role })
+              .eq('user_id', editingUser.id);
+          } else {
+            // Insert new role
+            await supabase
+              .from('user_roles')
+              .insert({ user_id: editingUser.id, role: userForm.role });
+          }
+        }
+        
         logActivity('user', 'updated', userForm.full_name);
         alert(`User "${userForm.full_name}" has been updated successfully!`);
       } else {
@@ -1561,7 +1751,8 @@ Article Details:
           password: userForm.password,
           options: {
             data: {
-              full_name: userForm.full_name
+              full_name: userForm.full_name,
+              role: userForm.role  // Pass role in metadata for trigger
             }
           }
         });
@@ -1573,22 +1764,42 @@ Article Details:
         }
 
         // The trigger will create the user_profiles entry automatically
-        // But we need to update it with additional fields
+        // Wait a moment for the trigger to complete, then update with additional fields
         if (authData.user) {
+          // Wait for trigger to create the profile (500ms delay)
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Use upsert to either update or insert the profile data
           const { error: profileError } = await supabase
             .from('user_profiles')
-            .update({
+            .upsert({
+              id: authData.user.id,
               full_name: userForm.full_name,
+              email: userForm.email,
               department: userForm.department || null,
               employee_id: userForm.employee_id || null,
               phone: userForm.phone || null,
               role: userForm.role,
               status: userForm.status
-            })
-            .eq('id', authData.user.id);
+            });
           
           if (profileError) {
             console.error('Error updating profile:', profileError);
+            // Don't return here, still try to create user_roles
+          }
+          
+          // Also create entry in user_roles table for admin/faculty
+          if (userForm.role === 'admin' || userForm.role === 'faculty') {
+            const { error: roleError } = await supabase
+              .from('user_roles')
+              .insert({
+                user_id: authData.user.id,
+                role: userForm.role
+              });
+            
+            if (roleError) {
+              console.error('Error creating user role:', roleError);
+            }
           }
         }
         logActivity('user', 'created', userForm.full_name);
@@ -1605,7 +1816,7 @@ Article Details:
         department: '',
         employee_id: '',
         phone: '',
-        role: 'user',
+        role: 'faculty',
         status: 'active'
       });
     } catch (error: any) {
@@ -1905,15 +2116,24 @@ Article Details:
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
+              {loginError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                  {loginError}
+                </div>
+              )}
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username">Username or Email</Label>
                 <Input
                   id="username"
                   type="text"
                   value={loginData.username}
-                  onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
-                  placeholder="Enter username"
+                  onChange={(e) => {
+                    setLoginData({ ...loginData, username: e.target.value });
+                    setLoginError(null);
+                  }}
+                  placeholder="Enter username or email"
                   required
+                  disabled={loginLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -1923,9 +2143,13 @@ Article Details:
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={loginData.password}
-                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                    onChange={(e) => {
+                      setLoginData({ ...loginData, password: e.target.value });
+                      setLoginError(null);
+                    }}
                     placeholder="Enter password"
                     required
+                    disabled={loginLoading}
                   />
                   <Button
                     type="button"
@@ -1933,16 +2157,24 @@ Article Details:
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={loginLoading}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
-              <Button type="submit" className="w-full" variant="ustp">
-                Sign In
+              <Button type="submit" className="w-full" variant="ustp" disabled={loginLoading}>
+                {loginLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
               </Button>
               <p className="text-sm text-muted-foreground text-center">
-                Demo: admin / admin123
+                Use your email or "admin" as username
               </p>
             </form>
           </CardContent>
@@ -1956,7 +2188,7 @@ Article Details:
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-ustp-blue">USTP TPCO Admin Panel</h1>
-          <Button variant="outline" onClick={() => setIsLoggedIn(false)}>
+                    <Button variant="outline" onClick={async () => { await supabase.auth.signOut(); setIsLoggedIn(false); }}>
             Logout
           </Button>
         </div>
@@ -1964,7 +2196,7 @@ Article Details:
 
       <main className="container mx-auto px-4 py-8 ">
         <Tabs defaultValue="dashboard" className="space-y-6 ">
-          <TabsList className="grid w-full grid-cols-8 text-[#f7f7f7]">
+          <TabsList className={`grid w-full text-[#f7f7f7] ${currentUserRole === 'admin' ? 'grid-cols-8' : 'grid-cols-7'}`}>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="news">News</TabsTrigger>
@@ -1972,7 +2204,7 @@ Article Details:
             <TabsTrigger value="patents">Patents</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="resources">Resources</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
+            {currentUserRole === 'admin' && <TabsTrigger value="users">Users</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
@@ -3387,6 +3619,7 @@ Article Details:
             </Tabs>
           </TabsContent>
 
+          {currentUserRole === 'admin' && (
           <TabsContent value="users" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">User Management</h2>
@@ -3402,7 +3635,7 @@ Article Details:
                 <CardTitle>User Statistics</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="bg-primary/10 rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-primary">{users.filter(u => u.role === 'admin').length}</div>
                     <div className="text-sm text-muted-foreground">Admins</div>
@@ -3410,10 +3643,6 @@ Article Details:
                   <div className="bg-secondary/10 rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-secondary">{users.filter(u => u.role === 'faculty').length}</div>
                     <div className="text-sm text-muted-foreground">Faculty</div>
-                  </div>
-                  <div className="bg-gray-100 rounded-lg p-4 text-center">
-                    <div className="text-3xl font-bold text-gray-600">{users.filter(u => u.role === 'user').length}</div>
-                    <div className="text-sm text-muted-foreground">Users</div>
                   </div>
                   <div className="bg-green-50 rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-green-600">{users.filter(u => u.status === 'active').length}</div>
@@ -3512,6 +3741,7 @@ Article Details:
               </CardContent>
             </Card>
           </TabsContent>
+          )}
         </Tabs>
       </main>
 
@@ -4356,7 +4586,6 @@ Article Details:
                   <SelectContent>
                     <SelectItem value="admin">Admin</SelectItem>
                     <SelectItem value="faculty">Faculty</SelectItem>
-                    <SelectItem value="user">User</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
