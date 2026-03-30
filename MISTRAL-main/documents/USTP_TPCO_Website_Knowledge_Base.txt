@@ -1,0 +1,375 @@
+================================================================================
+USTP TPCO WEBSITE - AI ASSISTANT KNOWLEDGE BASE
+================================================================================
+This document contains essential information for the AI chat assistant to help 
+users navigate the USTP TPCO website and answer common questions.
+
+================================================================================
+SECTION 1: WEBSITE NAVIGATION GUIDE
+================================================================================
+
+MAIN PAGES AND HOW TO ACCESS THEM:
+
+1. HOME PAGE
+   - URL: / (root)
+   - Navigation: Click "Home" in the navigation bar
+   - Content: Homepage with featured technologies, services overview, impact statistics, and latest news
+
+2. IP PORTFOLIO (Our IP)
+   - URL: /ip-portfolio
+   - Navigation: Click "Our IP" in the navigation bar
+   - Content: Collection of patents, technologies, and innovations available for licensing and commercialization
+   - User can search and filter by field and status
+   - Includes information about how to license technologies
+
+3. SERVICES
+   - URL: /services
+   - Navigation: Click "Services" in the navigation bar
+   - Content: Core services offered by TPCO including:
+     * IP Protection Services
+     * Technology Licensing
+     * Industry-Academe Matching
+     * Startup Incubation
+   - Also includes Additional Services and Success Stories
+
+4. RESOURCES
+   - URL: /resources
+   - Navigation: Click "Resources" in the navigation bar
+   - Content: Resources & Tools including:
+     * Templates (Legal Templates & Documents)
+     * IP 101 Tutorials (Learning Modules)
+     * SSF Booking (Shared Service Facilities)
+     * Guidelines (Research Guidelines & Best Practices)
+   - Events & Workshops section is also accessible here
+
+5. EVENTS & WORKSHOPS
+   - URL: /events
+   - Navigation: Go to "Resources" page, then click "View All Events" or navigate through the Workshops & Events section
+   - Alternatively: Click "Resources" in nav bar, then scroll to "Workshops & Events" section
+   - Content: Upcoming and past workshops, seminars, and events
+   - Users can register for events directly
+
+6. LATEST NEWS
+   - URL: /latest-news
+   - Navigation: Click "Latest News" in the navigation bar
+   - Content: News articles and updates about TPCO activities
+
+7. ABOUT
+   - URL: /about
+   - Navigation: Click "About" in the navigation bar
+   - Content: Information about USTP TPCO, Mission/Vision/Values, Expert Team, Company Journey/Milestones, Strategic Partners
+
+8. CONTACT
+   - URL: /contact
+   - Navigation: Click "Contact Us" button in the navigation bar
+   - Content: Contact information, office location, phone, email
+
+COMMON NAVIGATION QUESTIONS:
+
+Q: "Where can I find events?" or "Events?" or "Workshops?"
+A: To access Events & Workshops, go to the "Resources" page by clicking "Resources" in the navigation bar. Then scroll down to the "Workshops & Events" section or click "View All Events" to see all upcoming and past events. You can also access events directly at /events.
+
+Q: "Where are the services?" or "What services do you offer?"
+A: Click "Services" in the navigation bar to view all services offered by TPCO. The Services page includes core services like IP Protection, Technology Licensing, Industry-Academe Matching, and Startup Incubation.
+
+Q: "How do I contact TPCO?" or "Contact information?"
+A: Click "Contact Us" button in the navigation bar to access the Contact page. You can also call (088) 856-1738 or email tpco@ustp.edu.ph directly.
+
+Q: "Where can I see patents/technologies?" or "IP Portfolio?"
+A: Click "Our IP" in the navigation bar to access the IP Portfolio page. There you can browse, search, and filter patents and technologies available for licensing.
+
+Q: "Where can I find templates/forms?" or "Download documents?"
+A: Go to the "Resources" page and click on the "Templates" tab to find legal templates and documents like Non-Disclosure Agreements (NDA) and Memorandum of Understanding (MOU).
+
+Q: "Where can I learn about IP?" or "IP tutorials?"
+A: Go to the "Resources" page and click on the "IP 101 Tutorials" tab to access learning modules about intellectual property fundamentals.
+
+Q: "How do I book a facility?" or "SSF booking?"
+A: Go to the "Resources" page and click on the "SSF Booking" tab to book access to Shared Service Facilities and research equipment.
+
+================================================================================
+SECTION 2: SERVICES OFFERED
+================================================================================
+
+CORE SERVICES:
+
+1. IP PROTECTION SERVICES
+   Description: Comprehensive intellectual property protection and management services
+   Features:
+   - Patent Application Assistance
+   - Trademark Registration
+   - Copyright Protection
+   - Prior Art Search & Analysis
+   - IP Portfolio Management
+   - Freedom to Operate Analysis
+   - Patent Landscape Studies
+   - IP Strategy Development
+   Timeline: 3-6 months
+   Pricing: Consultation fees apply
+
+2. TECHNOLOGY LICENSING
+   Description: Facilitate technology transfer and commercialization opportunities
+   Features:
+   - Technology Valuation
+   - Market Analysis
+   - Licensing Negotiations
+   - Partnership Facilitation
+   - Due Diligence Support
+   - Contract Management
+   - Royalty Management
+   - Post-License Support
+   Timeline: 2-4 months
+   Pricing: Success-based fees
+
+3. INDUSTRY-ACADEME MATCHING
+   Description: Bridge academic research with industry innovation needs
+   Features:
+   - Collaboration Matching
+   - Joint Research Projects
+   - Technical Consulting
+   - Research Partnerships
+   - Innovation Challenges
+   - Expert Networks
+   - Technology Scouting
+   - Partnership Development
+   Timeline: 1-3 months
+   Pricing: Project-based
+
+4. STARTUP INCUBATION
+   Description: Support researchers in launching technology-based startups
+   Features:
+   - Business Model Development
+   - Mentorship Programs
+   - Funding Assistance
+   - Market Entry Support
+   - Product Development
+   - Regulatory Guidance
+   - Investor Connections
+   - Scale-up Support
+   Timeline: 6-12 months
+   Pricing: Equity participation
+
+ADDITIONAL SERVICES:
+
+1. IP Training & Workshops
+   Description: Educational programs on intellectual property protection and commercialization
+   Duration: 1-3 days
+
+2. Technology Assessment
+   Description: Comprehensive evaluation of technology readiness and commercial potential
+   Duration: 2-4 weeks
+
+3. Market Research
+   Description: Detailed market analysis and commercial viability studies
+   Duration: 3-6 weeks
+
+================================================================================
+SECTION 3: EVENTS & WORKSHOPS
+================================================================================
+
+HOW TO ACCESS EVENTS:
+- Navigate to "Resources" page
+- Scroll to "Workshops & Events" section
+- Click "View All Events" to see the complete list
+- Or go directly to /events
+
+EVENT REGISTRATION:
+- Click "Register Now" on any event with open registration
+- Fill out the registration form with your details
+- You will receive a confirmation email
+
+EVENT TYPES:
+- Workshops
+- Seminars
+- Training sessions
+- Networking events
+- IP awareness programs
+
+================================================================================
+SECTION 4: EXPERT TEAM (ABOUT PAGE)
+================================================================================
+
+The Expert Team at USTP TPCO consists of the following members:
+
+1. DR. VENESSA GARCIA
+   Position: Director – Technology Promotions and Commercialization Office
+   Role: Leads the TPCO office and oversees all technology transfer activities
+
+2. ENGR. GLADDY CHRISTIE COMPASAN
+   Position: Manager, TPCO – Innovation and Technology Support Unit
+   Role: Manages the Innovation and Technology Support Unit (ITSU)
+
+3. MS. FLORA MONICA MABAYLAN
+   Position: Manager, TPCO – Promotions Management Unit
+   Role: Manages the Promotions Management Unit (PMU)
+
+4. MS. RHEA SUZETTE HAGUISAN
+   Position: Manager, TPCO – Business Development Unit
+   Role: Manages the Business Development Unit (BDU)
+
+5. ENGR. JODIE REY FERNANDEZ
+   Position: Technology Promotions Officer, TPCO – Promotions Management Unit
+   Role: Handles technology promotions activities
+
+6. ENGR. CLARK DARWIN GOZON
+   Position: Technical Expert, TPCO – Innovation and Technology Support Unit
+   Role: Provides technical expertise for innovation support
+
+7. ENGR. MARK LISTER NALUPA
+   Position: Technical Expert, TPCO – Innovation and Technology Support Unit
+   Role: Provides technical expertise for innovation support
+
+8. NOREZA P. ALENO
+   Position: Administrative Staff, TPCO – Innovation and Technology Support Unit
+   Role: Provides administrative support for ITSU
+
+9. KRYSTIA CES G. NAPILI
+   Position: Science Research Specialist, Technology Promotions and Commercialization Office
+   Role: Handles science research activities
+
+10. MICHAEL J. CERBITO
+    Position: Administrative Assistant, Technology Promotions and Commercialization Office
+    Role: Provides administrative assistance to the office
+
+TPCO ORGANIZATIONAL UNITS:
+- ITSU (Innovation and Technology Support Unit): Handles IP protection, patent applications, and technology assessment
+- PMU (Promotions Management Unit): Handles technology promotions, marketing, and events
+- BDU (Business Development Unit): Handles business partnerships, licensing, and commercialization
+
+================================================================================
+SECTION 5: CONTACT INFORMATION
+================================================================================
+
+OFFICE LOCATION:
+USTP Technology Transfer Office
+Cagayan de Oro Campus
+Claro M. Recto Ave, Lapasan
+Cagayan de Oro City, Philippines 9000
+
+PHONE NUMBERS:
++63 (088) 856-1738
++63 (088) 856-1739
+
+EMAIL ADDRESSES:
+tpco@ustp.edu.ph
+info@ustp.edu.ph
+
+OFFICE HOURS:
+Monday - Friday
+8:00 AM - 5:00 PM
+Walk-in consultations welcome, appointments recommended
+
+GOOGLE MAPS LOCATION:
+https://maps.app.goo.gl/QADDEJs8reyJs9959
+
+================================================================================
+SECTION 6: IP PORTFOLIO INFORMATION
+================================================================================
+
+The IP Portfolio showcases USTP's collection of patents, technologies, and innovations 
+available for licensing and commercialization.
+
+TECHNOLOGY FIELDS:
+- Agriculture
+- Materials Science
+- Food Technology
+- Environmental Technology
+- Energy Technology
+- Information Technology
+
+PATENT/TECHNOLOGY STATUS:
+- Available (Available for licensing)
+- Licensed (Already licensed to a company)
+- Pending (Patent application pending)
+- Under Review (Under evaluation)
+- Granted (Patent granted)
+
+HOW TO LICENSE TECHNOLOGIES:
+1. Identify Technology - Browse the portfolio to find technologies that align with your needs
+2. Contact Us - Reach out to the licensing team to discuss interest and requirements
+3. Negotiate Terms - Work with the team to establish licensing terms
+
+================================================================================
+SECTION 7: STRATEGIC PARTNERS
+================================================================================
+
+USTP TPCO collaborates with the following strategic partners:
+
+1. Oro Chamber of Commerce and Industry
+   Type: Industry Association
+   Description: Leading chamber representing business interests in Northern Mindanao
+
+2. Ateneo Innovation and Patent Office (IPO)
+   Type: Academic Partner
+   Description: Strategic partnership for IP protection and technology transfer expertise
+
+3. Department of Science and Technology (DOST) Region X
+   Type: Government Agency
+   Description: Primary government partner for research funding and technology development
+
+4. Department of Trade and Industry (DTI) Misamis Oriental
+   Type: Government Agency
+   Description: Supporting SME development and business partnerships
+
+5. CDO b.i.t.e.s. (Cagayan de Oro business innovation technology e-startup)
+   Type: Incubator
+   Description: Premier startup incubator and innovation hub in Cagayan de Oro
+
+6. Intellectual Property Office of the Philippines (IPOPhil)
+   Type: Government Agency
+   Description: Official IP registration and protection agency
+
+================================================================================
+SECTION 8: MISSION, VISION, AND VALUES
+================================================================================
+
+MISSION:
+To accelerate the translation of USTP research innovations into market-ready technologies 
+that address regional and national development needs while fostering sustainable 
+industry-academe partnerships.
+
+VISION:
+To be the premier technology transfer office in the Philippines, recognized for excellence 
+in innovation commercialization and as the catalyst for economic development in 
+Northern Mindanao.
+
+VALUES:
+- Innovation: Fostering creativity and breakthrough thinking
+- Integrity: Ethical practices in all partnerships
+- Excellence: Commitment to quality and continuous improvement
+- Collaboration: Building meaningful partnerships
+
+================================================================================
+SECTION 9: COMPANY MILESTONES
+================================================================================
+
+2018 - TPCO Establishment: Founded as USTP's dedicated technology transfer office
+2019 - First Patent Grant: Achieved first successful patent registration for USTP innovation
+2020 - Industry Partnership Program: Launched formal industry-academe collaboration framework
+2021 - CDO b.i.t.e.s. Partnership: Established strategic alliance for startup incubation
+2022 - IP Portfolio Milestone: Reached 15 patents granted with active licensing program
+2023 - Regional Recognition: Awarded Outstanding Technology Transfer Office in Mindanao
+2024 - Innovation Hub Launch: Opened state-of-the-art facility for technology commercialization
+
+================================================================================
+SECTION 10: RESOURCES AVAILABLE
+================================================================================
+
+TEMPLATES:
+- Non-Disclosure Agreement (NDA): Standard template for protecting confidential information during technology discussions
+- Memorandum of Understanding (MOU): Framework for establishing research partnerships and collaboration agreements
+
+IP 101 TUTORIALS:
+- Introduction to Intellectual Property: Fundamentals of IP protection, types of IP, and why it matters for researchers
+
+SHARED SERVICE FACILITIES (SSF):
+- Advanced Materials Testing Lab: State-of-the-art equipment for materials characterization and testing
+- Capacity: 10 researchers
+- Hourly Rate: ₱500
+
+GUIDELINES:
+- USTP Research Ethics Guidelines: Comprehensive guide to ethical considerations in research and development
+
+================================================================================
+END OF KNOWLEDGE BASE
+================================================================================
