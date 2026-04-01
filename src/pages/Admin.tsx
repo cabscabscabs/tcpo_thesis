@@ -38,11 +38,10 @@ const Admin = () => {
   });
 
   // News management
-  const [news, setNews] = useState([
-    { id: "1", title: "TPCO-CET Convergence 2025 Announced", status: "Published", date: "2024-01-15", category: "Events", author: "Admin", excerpt: "Join us for the premier technology commercialization event in Northern Mindanao.", content: "The TPCO-CET Convergence 2025 will bring together researchers, industry partners, and innovators..." },
-    { id: "2", title: "New Patent Filing Workshop Series", status: "Draft", date: "2024-01-10", category: "Education", author: "Dr. Maria Santos", excerpt: "Learn the fundamentals of patent filing and intellectual property protection.", content: "Our comprehensive workshop series covers all aspects of patent filing..." },
-    { id: "3", title: "Industry Partnership with ABC Corp", status: "Published", date: "2024-01-08", category: "Partnerships", author: "Admin", excerpt: "Exciting new partnership opens doors for technology commercialization.", content: "We are pleased to announce our strategic partnership with ABC Corp..." }
-  ]);
+  const [news, setNews] = useState<any[]>([]);
+  const [draftNews, setDraftNews] = useState<any[]>([]);
+  const [archivedNews, setArchivedNews] = useState<any[]>([]);
+  const [newsTab, setNewsTab] = useState('published');
 
   // Dashboard statistics
   const [dashboardStats, setDashboardStats] = useState({
@@ -142,6 +141,8 @@ const Admin = () => {
     }
   };
 
+
+
   // News form state
   const [newsForm, setNewsForm] = useState({
     title: '',
@@ -158,6 +159,8 @@ const Admin = () => {
   const [editingNews, setEditingNews] = useState<any>(null);
 
   const [events, setEvents] = useState<any[]>([]);
+  const [archivedEvents, setArchivedEvents] = useState<any[]>([]);
+  const [eventTab, setEventTab] = useState('active');
     
     // Event Registrations state
     const [showRegistrationsModal, setShowRegistrationsModal] = useState(false);
@@ -229,47 +232,25 @@ const Admin = () => {
   const [showInquiryModal, setShowInquiryModal] = useState(false);
   const [selectedInquiry, setSelectedInquiry] = useState<any>(null);
 
-  const [services] = useState([
-    { id: 1, name: "IP Protection", requests: 15 },
-    { id: 2, name: "Technology Licensing", requests: 8 },
-    { id: 3, name: "Industry Matching", requests: 12 }
-  ]);
+  // Services management state
+  const [services, setServices] = useState<any[]>([]);
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [editingService, setEditingService] = useState<any>(null);
+  const [serviceForm, setServiceForm] = useState({
+    id: null as string | null,
+    name: '',
+    description: '',
+    icon: 'Wrench',
+    order_num: 0,
+    published: true
+  });
 
   // Service Requests management
-  const [serviceRequests, setServiceRequests] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@example.com",
-      phone: "+63 123 456 7890",
-      organization: "TechCorp Inc.",
-      service: "training",
-      serviceTitle: "IP Training & Workshops",
-      preferredDate: "2024-02-15",
-      participants: "10",
-      specificNeeds: "Focus on patent application procedures for tech startups",
-      budget: "25k-50k",
-      timeline: "1-month",
-      status: "Pending",
-      submittedAt: "2024-01-15T09:30:00Z"
-    },
-    {
-      id: 2,
-      name: "Maria Santos",
-      email: "maria.santos@university.edu",
-      phone: "+63 987 654 3210",
-      organization: "State University",
-      service: "assessment",
-      serviceTitle: "Technology Assessment",
-      preferredDate: "2024-02-20",
-      participants: "5",
-      specificNeeds: "Need comprehensive TRL assessment for biotech research",
-      budget: "50k-100k",
-      timeline: "2-3-months",
-      status: "In Progress",
-      submittedAt: "2024-01-12T14:15:00Z"
-    }
-  ]);
+  const [serviceRequests, setServiceRequests] = useState<any[]>([]);
+  const [archivedRequests, setArchivedRequests] = useState<any[]>([]);
+  const [serviceRequestTab, setServiceRequestTab] = useState('active');
+  const [showServiceRequestModal, setShowServiceRequestModal] = useState(false);
+  const [viewingServiceRequest, setViewingServiceRequest] = useState<any>(null);
 
   // Homepage content management
   const [homepageContent, setHomepageContent] = useState({
@@ -357,6 +338,7 @@ const Admin = () => {
         loadTechnologies(),
         loadNews(),
         loadDashboardStats(),
+        loadServices(),
         loadServiceRequests(),
         loadEvents(),
         loadPatents(),
@@ -368,6 +350,29 @@ const Admin = () => {
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .order('order_num', { ascending: true });
+      
+      if (data && !error) {
+        setServices(data.map((service: any) => ({
+          id: service.id,
+          name: service.name,
+          description: service.description,
+          icon: service.icon,
+          order_num: service.order_num,
+          published: service.published,
+          slug: service.slug,
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading services:', error);
     }
   };
 
@@ -429,7 +434,7 @@ const Admin = () => {
         .order('date', { ascending: false });
       
       if (data && !error) {
-        setNews(data.map((article: any) => ({
+        const mappedNews = data.map((article: any) => ({
           id: article.id,
           title: article.title,
           excerpt: article.excerpt,
@@ -439,23 +444,50 @@ const Admin = () => {
           status: article.status,
           date: article.date,
           image: article.cover_image_url,
-        })));
+          archived: article.archived || false,
+          published: article.published || false,
+        }));
+        
+        // Separate into three categories
+        const published = mappedNews.filter((article: any) => !article.archived && article.status === 'Published');
+        const drafts = mappedNews.filter((article: any) => !article.archived && article.status === 'Draft');
+        const archived = mappedNews.filter((article: any) => article.archived);
+        
+        setNews(published);
+        setDraftNews(drafts);
+        setArchivedNews(archived);
       }
     } catch (error) {
       console.error('Error loading news:', error);
     }
   };
 
+  const handleArchiveNews = async (newsId: string, archive: boolean = true) => {
+    try {
+      const { error } = await supabase
+        .from('admin_news')
+        .update({ archived: archive })
+        .eq('id', newsId);
+      
+      if (error) throw error;
+      
+      // Reload news to reflect changes
+      await loadNews();
+      logActivity('news', archive ? 'archived' : 'restored', `News article ${archive ? 'archived' : 'restored'}`);
+    } catch (error) {
+      console.error('Error archiving/restoring news:', error);
+      alert('Failed to update news status');
+    }
+  };
+
   const loadDashboardStats = async () => {
     try {
+      // Try to get real-time stats from the database function
       const { data, error } = await supabase
-        .from('admin_dashboard_stats')
-        .select('*')
-        .limit(1)
-        .single();
+        .rpc('get_dashboard_stats');
       
       if (data && !error) {
-        const stats = data as any;
+        const stats = data[0] as any;
         setDashboardStats({
           totalPatents: stats.total_patents,
           patentsThisMonth: stats.patents_this_month,
@@ -466,6 +498,27 @@ const Admin = () => {
           serviceRequests: stats.service_requests_count,
           pendingRequests: stats.pending_requests,
         });
+      } else {
+        // Fallback to static table if RPC fails
+        const { data: staticData, error: staticError } = await supabase
+          .from('admin_dashboard_stats')
+          .select('*')
+          .limit(1)
+          .single();
+        
+        if (staticData && !staticError) {
+          const stats = staticData as any;
+          setDashboardStats({
+            totalPatents: stats.total_patents,
+            patentsThisMonth: stats.patents_this_month,
+            publishedNews: stats.published_news,
+            newsThisWeek: stats.news_this_week,
+            upcomingEvents: stats.upcoming_events,
+            nextEventDate: stats.next_event_date,
+            serviceRequests: stats.service_requests_count,
+            pendingRequests: stats.pending_requests,
+          });
+        }
       }
     } catch (error) {
       console.error('Error loading dashboard stats:', error);
@@ -480,7 +533,7 @@ const Admin = () => {
         .order('submitted_at', { ascending: false });
       
       if (data && !error) {
-        setServiceRequests(data.map((req: any) => ({
+        const mappedRequests = data.map((req: any) => ({
           id: req.id,
           name: req.name,
           email: req.email,
@@ -495,10 +548,36 @@ const Admin = () => {
           timeline: req.timeline,
           status: req.status,
           submittedAt: req.submitted_at,
-        })));
+          archived: req.archived || false,
+        }));
+        
+        // Separate active and archived requests
+        const active = mappedRequests.filter((req: any) => !req.archived && !['Completed', 'Done'].includes(req.status));
+        const archived = mappedRequests.filter((req: any) => req.archived || ['Completed', 'Done'].includes(req.status));
+        
+        setServiceRequests(active);
+        setArchivedRequests(archived);
       }
     } catch (error) {
       console.error('Error loading service requests:', error);
+    }
+  };
+
+  const handleArchiveRequest = async (requestId: string, archive: boolean = true) => {
+    try {
+      const { error } = await supabase
+        .from('admin_service_requests')
+        .update({ archived: archive })
+        .eq('id', requestId);
+      
+      if (error) throw error;
+      
+      // Reload service requests to reflect changes
+      await loadServiceRequests();
+      logActivity('service', archive ? 'archived' : 'restored', `Service request ${archive ? 'archived' : 'restored'}`);
+    } catch (error) {
+      console.error('Error archiving/restoring request:', error);
+      alert('Failed to update request status');
     }
   };
 
@@ -510,7 +589,7 @@ const Admin = () => {
         .order('date', { ascending: true });
       
       if (data && !error) {
-        setEvents(data.map((event: any) => ({
+        const mappedEvents = data.map((event: any) => ({
           id: event.id,
           title: event.title,
           type: event.type,
@@ -523,10 +602,47 @@ const Admin = () => {
           status: event.status,
           attendees: event.attendees_count,
           image: event.image_url,
-        })));
+          archived: event.archived || false,
+        }));
+        
+        // Separate active and archived events
+        const today = new Date().toISOString().split('T')[0];
+        const active = mappedEvents.filter((event: any) => {
+          // Active if not archived, date is today or future, and status is not Completed/Cancelled
+          return !event.archived && 
+                 event.date >= today && 
+                 !['Completed', 'Cancelled'].includes(event.status);
+        });
+        const archived = mappedEvents.filter((event: any) => {
+          // Archived if explicitly archived, date is past, or status is Completed/Cancelled
+          return event.archived || 
+                 event.date < today || 
+                 ['Completed', 'Cancelled'].includes(event.status);
+        });
+        
+        setEvents(active);
+        setArchivedEvents(archived);
       }
     } catch (error) {
       console.error('Error loading events:', error);
+    }
+  };
+
+  const handleArchiveEvent = async (eventId: string, archive: boolean = true) => {
+    try {
+      const { error } = await supabase
+        .from('admin_events')
+        .update({ archived: archive })
+        .eq('id', eventId);
+      
+      if (error) throw error;
+      
+      // Reload events to reflect changes
+      await loadEvents();
+      logActivity('event', archive ? 'archived' : 'restored', `Event ${archive ? 'archived' : 'restored'}`);
+    } catch (error) {
+      console.error('Error archiving/restoring event:', error);
+      alert('Failed to update event status');
     }
   };
 
@@ -896,7 +1012,6 @@ const Admin = () => {
     alert('Statistics updated successfully!');
   };
 
-  // Activity logging function
   // Activity logging function
   const logActivity = async (type: string, action: string, title: string) => {
     try {
@@ -1444,6 +1559,106 @@ Article Details:
       window.dispatchEvent(new Event('storage'));
       logActivity('patent', 'deleted', title);
       alert(`Patent "${title}" has been deleted successfully!`);
+    }
+  };
+
+  // Service Management Functions
+  const handleOpenServiceModal = (service: any = null) => {
+    if (service) {
+      setEditingService(service);
+      setServiceForm({
+        id: service.id,
+        name: service.name,
+        description: service.description || '',
+        icon: service.icon || 'Wrench',
+        order_num: service.order_num || 0,
+        published: service.published !== false,
+      });
+    } else {
+      setEditingService(null);
+      setServiceForm({
+        id: null,
+        name: '',
+        description: '',
+        icon: 'Wrench',
+        order_num: services.length,
+        published: true,
+      });
+    }
+    setShowServiceModal(true);
+  };
+
+  const handleSaveService = async () => {
+    if (!serviceForm.name.trim()) {
+      alert('Please enter a service name');
+      return;
+    }
+
+    const slug = serviceForm.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    
+    const serviceData = {
+      name: serviceForm.name,
+      slug: slug,
+      description: serviceForm.description,
+      icon: serviceForm.icon,
+      order_num: serviceForm.order_num,
+      published: serviceForm.published,
+    };
+
+    try {
+      if (editingService) {
+        const { error } = await supabase
+          .from('services')
+          .update(serviceData)
+          .eq('id', editingService.id);
+        
+        if (error) throw error;
+        logActivity('service', 'updated', serviceForm.name);
+        alert('Service updated successfully!');
+      } else {
+        const { error } = await supabase
+          .from('services')
+          .insert([serviceData]);
+        
+        if (error) throw error;
+        logActivity('service', 'created', serviceForm.name);
+        alert('Service created successfully!');
+      }
+      
+      loadServices();
+      setShowServiceModal(false);
+      setEditingService(null);
+      setServiceForm({
+        id: null,
+        name: '',
+        description: '',
+        icon: 'Wrench',
+        order_num: 0,
+        published: true,
+      });
+    } catch (error) {
+      console.error('Error saving service:', error);
+      alert('Error saving service. Please try again.');
+    }
+  };
+
+  const handleDeleteService = async (serviceId: string, serviceName: string) => {
+    if (confirm(`Are you sure you want to delete the service "${serviceName}"? This action cannot be undone.`)) {
+      try {
+        const { error } = await supabase
+          .from('services')
+          .delete()
+          .eq('id', serviceId);
+        
+        if (error) throw error;
+        
+        loadServices();
+        logActivity('service', 'deleted', serviceName);
+        alert(`Service "${serviceName}" has been deleted successfully!`);
+      } catch (error) {
+        console.error('Error deleting service:', error);
+        alert('Error deleting service');
+      }
     }
   };
 
@@ -2521,84 +2736,261 @@ Article Details:
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Published Articles ({news.length})</CardTitle>
-                <CardDescription>Manage your news articles and drafts</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {news.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p>No articles created yet. Create your first news article above.</p>
-                    </div>
-                  ) : (
-                    news.map((article) => (
-                      <div key={article.id} className={`flex items-center justify-between p-4 border rounded-lg transition-all duration-200 ${
-                        editingNews && editingNews.id === article.id 
-                          ? 'bg-blue-50 border-blue-300 dark:bg-blue-950 dark:border-blue-700' 
-                          : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                      }`}>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg mb-1">{article.title}</h3>
-                          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{article.excerpt}</p>
-                          <div className="flex flex-wrap gap-2 items-center">
-                            <Badge 
-                              variant={article.status === "Published" ? "default" : "secondary"}
-                              className={article.status === "Published" ? "bg-green-600" : "bg-yellow-600"}
-                            >
-                              {article.status === "Published" ? "🚀 Published" : "📋 Draft"}
-                            </Badge>
-                            <Badge variant="outline">{article.category}</Badge>
-                            <span className="text-sm text-muted-foreground">📅 {article.date}</span>
-                            {article.author && (
-                              <span className="text-sm text-muted-foreground">✍️ by {article.author}</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex gap-2 ml-4">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleEditNews(article)}
-                            title={`Edit "${article.title}"`}
-                            className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleDuplicateNews(article)}
-                            title={`Duplicate "${article.title}"`}
-                            className="hover:bg-green-50 hover:border-green-300 hover:text-green-700"
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Copy
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleDeleteNews(article.id, article.title)}
-                            className="text-red-600 hover:text-red-700 hover:border-red-300 hover:bg-red-50"
-                            title={`Delete "${article.title}"`}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
-                          </Button>
-                          {editingNews && editingNews.id === article.id && (
-                            <Badge variant="outline" className="text-blue-600 border-blue-300">
-                              Currently Editing
-                            </Badge>
-                          )}
-                        </div>
+            {/* News Tabs */}
+            <Tabs value={newsTab} onValueChange={setNewsTab}>
+              <TabsList className="grid text-[white] w-full grid-cols-3">
+                <TabsTrigger value="published">
+                  Published ({news.length})
+                </TabsTrigger>
+                <TabsTrigger value="drafts">
+                  Drafts ({draftNews.length})
+                </TabsTrigger>
+                <TabsTrigger value="archived">
+                  Archived ({archivedNews.length})
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Published News */}
+              <TabsContent value="published" className="space-y-4 mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Published Articles</CardTitle>
+                    <CardDescription>Live articles visible to the public</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {news.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No published articles.</p>
+                        <p className="text-sm mt-2">Publish a draft or create a new article.</p>
                       </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                    ) : (
+                      <div className="space-y-4">
+                        {news.map((article) => (
+                          <div key={article.id} className={`flex items-center justify-between p-4 border rounded-lg transition-all duration-200 ${
+                            editingNews && editingNews.id === article.id 
+                              ? 'bg-blue-50 border-blue-300 dark:bg-blue-950 dark:border-blue-700' 
+                              : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                          }`}>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-lg mb-1">{article.title}</h3>
+                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{article.excerpt}</p>
+                              <div className="flex flex-wrap gap-2 items-center">
+                                <Badge className="bg-green-600">
+                                  🚀 Published
+                                </Badge>
+                                <Badge variant="outline">{article.category}</Badge>
+                                <span className="text-sm text-muted-foreground">📅 {article.date}</span>
+                                {article.author && (
+                                  <span className="text-sm text-muted-foreground">✍️ by {article.author}</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-2 ml-4">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleEditNews(article)}
+                                title={`Edit "${article.title}"`}
+                                className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleDuplicateNews(article)}
+                                title={`Duplicate "${article.title}"`}
+                                className="hover:bg-green-50 hover:border-green-300 hover:text-green-700"
+                              >
+                                <Plus className="h-4 w-4 mr-1" />
+                                Copy
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleArchiveNews(article.id, true)}
+                                title="Archive article"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Archive
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleDeleteNews(article.id, article.title)}
+                                className="text-red-600 hover:text-red-700 hover:border-red-300 hover:bg-red-50"
+                                title={`Delete "${article.title}"`}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
+                              {editingNews && editingNews.id === article.id && (
+                                <Badge variant="outline" className="text-blue-600 border-blue-300">
+                                  Currently Editing
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Drafts */}
+              <TabsContent value="drafts" className="space-y-4 mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Draft Articles</CardTitle>
+                    <CardDescription>Unpublished articles still in progress</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {draftNews.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No draft articles.</p>
+                        <p className="text-sm mt-2">Save an article as draft to continue editing later.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {draftNews.map((article) => (
+                          <div key={article.id} className={`flex items-center justify-between p-4 border rounded-lg transition-all duration-200 ${
+                            editingNews && editingNews.id === article.id 
+                              ? 'bg-blue-50 border-blue-300 dark:bg-blue-950 dark:border-blue-700' 
+                              : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                          }`}>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-lg mb-1">{article.title}</h3>
+                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{article.excerpt}</p>
+                              <div className="flex flex-wrap gap-2 items-center">
+                                <Badge className="bg-yellow-600">
+                                  📋 Draft
+                                </Badge>
+                                <Badge variant="outline">{article.category}</Badge>
+                                <span className="text-sm text-muted-foreground">📅 {article.date}</span>
+                                {article.author && (
+                                  <span className="text-sm text-muted-foreground">✍️ by {article.author}</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-2 ml-4">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleEditNews(article)}
+                                title={`Edit "${article.title}"`}
+                                className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleDuplicateNews(article)}
+                                title={`Duplicate "${article.title}"`}
+                                className="hover:bg-green-50 hover:border-green-300 hover:text-green-700"
+                              >
+                                <Plus className="h-4 w-4 mr-1" />
+                                Copy
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleArchiveNews(article.id, true)}
+                                title="Archive draft"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Archive
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleDeleteNews(article.id, article.title)}
+                                className="text-red-600 hover:text-red-700 hover:border-red-300 hover:bg-red-50"
+                                title={`Delete "${article.title}"`}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
+                              {editingNews && editingNews.id === article.id && (
+                                <Badge variant="outline" className="text-blue-600 border-blue-300">
+                                  Currently Editing
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Archived News */}
+              <TabsContent value="archived" className="space-y-4 mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Archived Articles</CardTitle>
+                    <CardDescription>Archived or outdated articles</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {archivedNews.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No archived articles.</p>
+                        <p className="text-sm mt-2">Archived articles will appear here.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {archivedNews.map((article) => (
+                          <div key={article.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-lg">{article.title}</h3>
+                                <Badge variant="secondary">Archived</Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{article.excerpt}</p>
+                              <div className="flex flex-wrap gap-2 items-center">
+                                <Badge variant="outline" className="text-gray-600">
+                                  {article.status === 'Published' ? '🚀 Published' : '📋 Draft'}
+                                </Badge>
+                                <Badge variant="outline">{article.category}</Badge>
+                                <span className="text-sm text-muted-foreground">📅 {article.date}</span>
+                                {article.author && (
+                                  <span className="text-sm text-muted-foreground">✍️ by {article.author}</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-2 ml-4">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleArchiveNews(article.id, false)}
+                                title="Restore article"
+                              >
+                                <Clock className="h-4 w-4 mr-1" />
+                                Restore
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleDeleteNews(article.id, article.title)}
+                                className="text-red-600 hover:text-red-700 hover:border-red-300 hover:bg-red-50"
+                                title={`Delete "${article.title}" permanently`}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="events" className="space-y-6">
@@ -2704,41 +3096,194 @@ Article Details:
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Upcoming Events</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {events.map((event) => (
-                    <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h3 className="font-semibold">{event.title}</h3>
-                        <div className="flex gap-2 mt-2">
-                          <Badge variant={event.status === "Upcoming" ? "default" : event.status === "Planning" ? "secondary" : "outline"}>
-                            {event.status}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground">{event.date}</span>
-                          <span className="text-sm text-muted-foreground">{event.attendees} attendees</span>
-                        </div>
+            {/* Events Tabs */}
+            <Tabs value={eventTab} onValueChange={setEventTab}>
+              <TabsList className="grid text-[white] w-full grid-cols-2">
+                <TabsTrigger value="active">
+                  Active Events ({events.length})
+                </TabsTrigger>
+                <TabsTrigger value="archived">
+                  Past/Archived Events ({archivedEvents.length})
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Active Events */}
+              <TabsContent value="active" className="space-y-4 mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Upcoming Events</CardTitle>
+                    <CardDescription>Active events that are scheduled for today or future dates</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {events.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No active events.</p>
+                        <p className="text-sm mt-2">Create a new event or restore one from the archived section.</p>
                       </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleEditEvent(event)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleViewRegistrations(event)}>
-                          <Users className="h-4 w-4 mr-1" />
-                          Registrations
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleDeleteEvent(event.id, event.title)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                    ) : (
+                      <div className="space-y-4">
+                        {events.map((event) => (
+                          <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-lg">{event.title}</h3>
+                                <Badge variant={event.status === "Upcoming" ? "default" : event.status === "Planning" ? "secondary" : "outline"}>
+                                  {event.status}
+                                </Badge>
+                              </div>
+                              <div className="flex flex-wrap gap-2 mt-1 text-sm text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {event.date}
+                                </span>
+                                {event.time && (
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    {event.time}
+                                  </span>
+                                )}
+                                <span className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" />
+                                  {event.attendees || 0} attendees
+                                </span>
+                                {event.location && (
+                                  <span className="flex items-center gap-1">
+                                    <Building className="h-3 w-3" />
+                                    {event.location}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-2 ml-4">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleEditEvent(event)}
+                                title="Edit event"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleViewRegistrations(event)}
+                                title="View registrations"
+                              >
+                                <Users className="h-4 w-4 mr-1" />
+                                Registrations
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleArchiveEvent(event.id, true)}
+                                title="Archive event"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleDeleteEvent(event.id, event.title)}
+                                className="text-red-600 hover:text-red-700"
+                                title="Delete event"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Archived/Past Events */}
+              <TabsContent value="archived" className="space-y-4 mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Past/Archived Events</CardTitle>
+                    <CardDescription>Completed, cancelled, or past events</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {archivedEvents.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No archived events.</p>
+                        <p className="text-sm mt-2">Past and archived events will appear here.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {archivedEvents.map((event) => (
+                          <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-lg">{event.title}</h3>
+                                <Badge 
+                                  variant="outline" 
+                                  className={event.status === 'Completed' ? 'text-green-600 border-green-600' : 
+                                            event.status === 'Cancelled' ? 'text-red-600 border-red-600' : 
+                                            'text-gray-600 border-gray-600'}
+                                >
+                                  {event.status}
+                                </Badge>
+                                {event.archived && (
+                                  <Badge variant="secondary">Archived</Badge>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-2 mt-1 text-sm text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {event.date}
+                                </span>
+                                {event.time && (
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    {event.time}
+                                  </span>
+                                )}
+                                <span className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" />
+                                  {event.attendees || 0} attendees
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex gap-2 ml-4">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleViewRegistrations(event)}
+                                title="View registrations"
+                              >
+                                <Users className="h-4 w-4 mr-1" />
+                                Registrations
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleArchiveEvent(event.id, false)}
+                                title="Restore to active events"
+                              >
+                                <Clock className="h-4 w-4 mr-1" />
+                                Restore
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleDeleteEvent(event.id, event.title)}
+                                className="text-red-600 hover:text-red-700"
+                                title="Delete event permanently"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="patents" className="space-y-6" id="patents-section">
@@ -2936,184 +3481,58 @@ Article Details:
           <TabsContent value="services" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">Service Management</h2>
-              <Button variant="ustp">
+              <Button variant="ustp" onClick={() => handleOpenServiceModal()}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Service
               </Button>
             </div>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Add New Service</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="service-title">Service Title</Label>
-                    <Input id="service-title" placeholder="Enter service title" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="service-description">Service Description</Label>
-                    <Textarea id="service-description" placeholder="Enter service description" rows={4} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="service-image">Service Image</Label>
-                    <Input id="service-image" type="file" accept="image/*" />
-                  </div>
-                </div>
-                <Button variant="ustp">Add Service</Button>
-              </CardContent>
-            </Card>
 
+            {/* Existing Services Section */}
             <Card>
               <CardHeader>
-                <CardTitle>Existing Services</CardTitle>
+                <CardTitle>Existing Services ({services.length})</CardTitle>
+                <CardDescription>Manage services offered by TPCO</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {services.map((service) => (
-                    <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h3 className="font-semibold">{service.name}</h3>
-                        <p className="text-sm text-muted-foreground">{service.requests} requests</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-            {/* Additional Service Requests Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Additional Service Requests ({serviceRequests.length})</CardTitle>
-                <CardDescription>
-                  Requests submitted through the Additional Services page
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {serviceRequests.length === 0 ? (
+                {services.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    <p>No service requests yet.</p>
+                    <p>No services configured yet.</p>
+                    <Button variant="ustp" className="mt-4" onClick={() => handleOpenServiceModal()}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Your First Service
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {serviceRequests.map((request) => (
-                      <div key={request.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-semibold text-lg">{request.name}</h3>
-                              <Badge 
-                                variant={request.status === 'Pending' ? 'secondary' : 
-                                        request.status === 'In Progress' ? 'default' : 'outline'}
-                              >
-                                {request.status}
-                              </Badge>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                              <div>
-                                <span className="font-medium text-gray-600">Service:</span>
-                                <p>{request.serviceTitle}</p>
-                              </div>
-                              <div>
-                                <span className="font-medium text-gray-600">Organization:</span>
-                                <p>{request.organization}</p>
-                              </div>
-                              <div>
-                                <span className="font-medium text-gray-600">Email:</span>
-                                <p>{request.email}</p>
-                              </div>
-                              <div>
-                                <span className="font-medium text-gray-600">Phone:</span>
-                                <p>{request.phone}</p>
-                              </div>
-                              <div>
-                                <span className="font-medium text-gray-600">Participants:</span>
-                                <p>{request.participants} people</p>
-                              </div>
-                              <div>
-                                <span className="font-medium text-gray-600">Budget:</span>
-                                <p>{request.budget.replace('-', ' - ₱').replace('k', ',000')}</p>
-                              </div>
-                              <div>
-                                <span className="font-medium text-gray-600">Timeline:</span>
-                                <p>{request.timeline.replace('-', ' ').replace('asap', 'ASAP')}</p>
-                              </div>
-                              <div>
-                                <span className="font-medium text-gray-600">Preferred Date:</span>
-                                <p>{request.preferredDate}</p>
-                              </div>
-                            </div>
-                            
-                            {request.specificNeeds && (
-                              <div className="mt-3">
-                                <span className="font-medium text-gray-600">Specific Needs:</span>
-                                <p className="text-sm text-gray-700 mt-1 bg-gray-50 p-2 rounded">
-                                  {request.specificNeeds}
-                                </p>
-                              </div>
+                    {services.map((service) => (
+                      <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold">{service.name}</h3>
+                            {!service.published && (
+                              <Badge variant="secondary">Draft</Badge>
                             )}
-                            
-                            <div className="mt-2 text-xs text-gray-500">
-                              Submitted: {new Date(request.submittedAt).toLocaleString()}
-                            </div>
                           </div>
-                          
-                          <div className="flex flex-col gap-2">
-                            <Select 
-                              value={request.status} 
-                              onValueChange={async (value) => {
-                                const updatedRequests = serviceRequests.map(req => 
-                                  req.id === request.id ? { ...req, status: value } : req
-                                );
-                                setServiceRequests(updatedRequests);
-                                // Update in Supabase
-                                await supabase
-                                  .from('admin_service_requests')
-                                  .update({ status: value })
-                                  .eq('id', String(request.id));
-                                logActivity('service', 'updated status', request.serviceTitle);
-                              }}
-                            >
-                              <SelectTrigger className="w-32">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Pending">Pending</SelectItem>
-                                <SelectItem value="In Progress">In Progress</SelectItem>
-                                <SelectItem value="Completed">Completed</SelectItem>
-                                <SelectItem value="Cancelled">Cancelled</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={async () => {
-                                if (confirm('Are you sure you want to delete this service request?')) {
-                                  const updatedRequests = serviceRequests.filter(req => req.id !== request.id);
-                                  setServiceRequests(updatedRequests);
-                                  // Delete from Supabase
-                                  await supabase
-                                    .from('admin_service_requests')
-                                    .delete()
-                                    .eq('id', String(request.id));
-                                  logActivity('service', 'deleted request', request.serviceTitle);
-                                }
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {service.description || 'No description'}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">Order: {service.order_num}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleOpenServiceModal(service)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDeleteService(service.id, service.name)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -3121,6 +3540,258 @@ Article Details:
                 )}
               </CardContent>
             </Card>
+
+            {/* Service Requests Tabs */}
+            <Tabs value={serviceRequestTab} onValueChange={setServiceRequestTab}>
+              <TabsList className="grid text-[white] w-full grid-cols-2">
+                <TabsTrigger value="active">
+                  Active Requests ({serviceRequests.length})
+                </TabsTrigger>
+                <TabsTrigger value="logs">
+                  Service Request Logs ({archivedRequests.length})
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Active Service Requests */}
+              <TabsContent value="active" className="space-y-4 mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Additional Service Requests</CardTitle>
+                    <CardDescription>
+                      Active requests submitted through the Additional Services page
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {serviceRequests.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No active service requests.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {serviceRequests.map((request) => (
+                          <div key={request.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h3 className="font-semibold text-lg">{request.name}</h3>
+                                  <Badge 
+                                    variant={request.status === 'Pending' ? 'secondary' : 
+                                            request.status === 'In Progress' ? 'default' : 'outline'}
+                                  >
+                                    {request.status}
+                                  </Badge>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                  <div>
+                                    <span className="font-medium text-gray-600">Service:</span>
+                                    <p>{request.serviceTitle}</p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-600">Organization:</span>
+                                    <p>{request.organization}</p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-600">Email:</span>
+                                    <p>{request.email}</p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-600">Phone:</span>
+                                    <p>{request.phone}</p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-600">Participants:</span>
+                                    <p>{request.participants} people</p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-600">Budget:</span>
+                                    <p>{request.budget?.replace('-', ' - ₱').replace('k', ',000')}</p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-600">Timeline:</span>
+                                    <p>{request.timeline?.replace('-', ' ').replace('asap', 'ASAP')}</p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-600">Preferred Date:</span>
+                                    <p>{request.preferredDate}</p>
+                                  </div>
+                                </div>
+                                
+                                {request.specificNeeds && (
+                                  <div className="mt-3">
+                                    <span className="font-medium text-gray-600">Specific Needs:</span>
+                                    <p className="text-sm text-gray-700 mt-1 bg-gray-50 p-2 rounded">
+                                      {request.specificNeeds}
+                                    </p>
+                                  </div>
+                                )}
+                                
+                                <div className="mt-2 text-xs text-gray-500">
+                                  Submitted: {new Date(request.submittedAt).toLocaleString()}
+                                </div>
+                              </div>
+                              
+                              <div className="flex flex-col gap-2">
+                                <Select 
+                                  value={request.status} 
+                                  onValueChange={async (value) => {
+                                    const updatedRequests = serviceRequests.map(req => 
+                                      req.id === request.id ? { ...req, status: value } : req
+                                    );
+                                    setServiceRequests(updatedRequests);
+                                    await supabase
+                                      .from('admin_service_requests')
+                                      .update({ status: value })
+                                      .eq('id', String(request.id));
+                                    logActivity('service', 'updated status', request.serviceTitle);
+                                    // If status is Completed or Done, offer to archive
+                                    if (value === 'Completed' || value === 'Done') {
+                                      if (confirm('Mark this request as complete and move to logs?')) {
+                                        await handleArchiveRequest(request.id, true);
+                                      }
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="w-32">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Pending">Pending</SelectItem>
+                                    <SelectItem value="In Progress">In Progress</SelectItem>
+                                    <SelectItem value="Completed">Completed</SelectItem>
+                                    <SelectItem value="Done">Done</SelectItem>
+                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleArchiveRequest(request.id, true)}
+                                  title="Archive to logs"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Archive
+                                </Button>
+                                
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={async () => {
+                                    if (confirm('Are you sure you want to delete this service request?')) {
+                                      await supabase
+                                        .from('admin_service_requests')
+                                        .delete()
+                                        .eq('id', String(request.id));
+                                      loadServiceRequests();
+                                      logActivity('service', 'deleted request', request.serviceTitle);
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Service Request Logs */}
+              <TabsContent value="logs" className="space-y-4 mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Service Request Logs</CardTitle>
+                    <CardDescription>
+                      Archived and completed service requests
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {archivedRequests.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No archived requests.</p>
+                        <p className="text-sm mt-2">Completed and archived requests will appear here.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {archivedRequests.map((request) => (
+                          <div key={request.id} className="border rounded-lg p-4 bg-gray-50">
+                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h3 className="font-semibold text-lg">{request.name}</h3>
+                                  <Badge variant="outline" className="text-green-600 border-green-600">
+                                    {request.status}
+                                  </Badge>
+                                  {request.archived && (
+                                    <Badge variant="secondary">Archived</Badge>
+                                  )}
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                  <div>
+                                    <span className="font-medium text-gray-600">Service:</span>
+                                    <p>{request.serviceTitle}</p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-600">Organization:</span>
+                                    <p>{request.organization}</p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-600">Email:</span>
+                                    <p>{request.email}</p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-600">Phone:</span>
+                                    <p>{request.phone}</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="mt-2 text-xs text-gray-500">
+                                  Submitted: {new Date(request.submittedAt).toLocaleString()}
+                                </div>
+                              </div>
+                              
+                              <div className="flex flex-col gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleArchiveRequest(request.id, false)}
+                                  title="Restore to active requests"
+                                >
+                                  <Clock className="h-4 w-4 mr-1" />
+                                  Restore
+                                </Button>
+                                
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={async () => {
+                                    if (confirm('Permanently delete this archived request?')) {
+                                      await supabase
+                                        .from('admin_service_requests')
+                                        .delete()
+                                        .eq('id', String(request.id));
+                                      loadServiceRequests();
+                                      logActivity('service', 'deleted archived request', request.serviceTitle);
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="resources" className="space-y-6">
@@ -5010,6 +5681,107 @@ Article Details:
                 Confirm Booking
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Service Modal */}
+      <Dialog open={showServiceModal} onOpenChange={setShowServiceModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {editingService ? 'Edit Service' : 'Add New Service'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingService ? 'Update the service details below.' : 'Fill in the details to create a new service.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="service-name">Service Name *</Label>
+              <Input 
+                id="service-name" 
+                value={serviceForm.name}
+                onChange={(e) => setServiceForm({...serviceForm, name: e.target.value})}
+                placeholder="Enter service name"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="service-desc">Description</Label>
+              <Textarea 
+                id="service-desc" 
+                value={serviceForm.description}
+                onChange={(e) => setServiceForm({...serviceForm, description: e.target.value})}
+                placeholder="Enter service description"
+                rows={3}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="service-icon">Icon</Label>
+              <Select 
+                value={serviceForm.icon} 
+                onValueChange={(value) => setServiceForm({...serviceForm, icon: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an icon" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Wrench">Wrench (Tools)</SelectItem>
+                  <SelectItem value="Shield">Shield (Protection)</SelectItem>
+                  <SelectItem value="Handshake">Handshake (Partnership)</SelectItem>
+                  <SelectItem value="BookOpen">Book Open (Education)</SelectItem>
+                  <SelectItem value="FileText">File Text (Documents)</SelectItem>
+                  <SelectItem value="Building">Building (Corporate)</SelectItem>
+                  <SelectItem value="Lightbulb">Lightbulb (Innovation)</SelectItem>
+                  <SelectItem value="Users">Users (Community)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="service-order">Display Order</Label>
+              <Input 
+                id="service-order" 
+                type="number"
+                value={serviceForm.order_num}
+                onChange={(e) => setServiceForm({...serviceForm, order_num: parseInt(e.target.value) || 0})}
+                placeholder="Enter display order"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="service-published"
+                checked={serviceForm.published}
+                onChange={(e) => setServiceForm({...serviceForm, published: e.target.checked})}
+                className="h-4 w-4"
+              />
+              <Label htmlFor="service-published">Published (visible to public)</Label>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowServiceModal(false);
+              setEditingService(null);
+              setServiceForm({
+                id: null,
+                name: '',
+                description: '',
+                icon: 'Wrench',
+                order_num: 0,
+                published: true,
+              });
+            }}>
+              Cancel
+            </Button>
+            <Button variant="ustp" onClick={handleSaveService}>
+              {editingService ? 'Update Service' : 'Create Service'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
