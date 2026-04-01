@@ -112,7 +112,8 @@ const FeaturedTechnologies = () => {
     const slug = tech.title.toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
-    navigate(`/technology/${slug}`, { state: { technology: tech } });
+    console.log('Navigating to technology:', slug);
+    navigate(`/technology/${slug}`);
   };
 
   const handleViewPortfolio = () => {
@@ -144,39 +145,35 @@ const FeaturedTechnologies = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           {/* Display only the first 3 featured technologies */}
           {technologies.slice(0, 3).map((tech, index) => (
-            <Card key={index} className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="bg-primary text-white">
+            <Card key={index} className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
+              <CardHeader className="bg-primary text-white flex-shrink-0">
                 <div className="flex justify-between items-start mb-2">
                   <Badge className={`${getStatusColor(tech.status)} text-xs`}>
                     {tech.status}
                   </Badge>
                   <span className="text-secondary text-sm font-semibold">{tech.field}</span>
                 </div>
-                <CardTitle className="text-lg font-roboto group-hover:text-gray-300 transition-colors">
+                <CardTitle className="text-lg font-roboto group-hover:text-gray-300 transition-colors line-clamp-2">
                   {tech.title}
                 </CardTitle>
-                <CardDescription className="text-primary-foreground/80">
+                <CardDescription className="text-primary-foreground/80 line-clamp-3">
                   {tech.description}
                 </CardDescription>
               </CardHeader>
               
-              <CardContent className="p-6">
-                <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
-                  {tech.abstract}
-                </p>
-                
-                <div className="space-y-2 mb-4">
+              <CardContent className="p-6 flex flex-col flex-grow">
+                <div className="space-y-2 mb-4 flex-shrink-0">
                   <div className="flex items-center text-sm text-muted-foreground">
-                    <Users size={16} className="mr-2" />
-                    <span>{tech.inventors}</span>
+                    <Users size={16} className="mr-2 flex-shrink-0" />
+                    <span className="truncate">{tech.inventors}</span>
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
-                    <Calendar size={16} className="mr-2" />
+                    <Calendar size={16} className="mr-2 flex-shrink-0" />
                     <span>{tech.year}</span>
                   </div>
                 </div>
                 
-                <Button variant="gold-outline" size="sm" className="w-full group" onClick={() => handleLearnMore(tech)}>
+                <Button variant="gold-outline" size="sm" className="w-full group flex-shrink-0" onClick={() => handleLearnMore(tech)}>
                   Learn More
                   <ExternalLink size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>

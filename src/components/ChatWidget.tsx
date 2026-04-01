@@ -471,7 +471,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
              <div className="flex items-center justify-between">
                <div className="flex items-center space-x-2">
                  <Bot className="h-4 w-4 md:h-5 md:w-5" />
-                 <CardTitle className="text-base md:text-lg">AI Assistant</CardTitle>
+                 <CardTitle className="text-base md:text-lg">TPCO AI Assistant</CardTitle>
                </div>
                <div className="flex items-center space-x-1 md:space-x-2">
                  <Badge variant="secondary" className="text-xs bg-white/20 text-white hidden sm:block">
@@ -596,7 +596,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
              )}
 
                          {/* Input Area */}
-             <div className="p-2 md:p-4 border-t border-gray-200 dark:border-gray-700">
+             <div className="p-2 md:p-4 border-t border-gray-200 dark:border-gray-700 mr-10">
                <div className="flex space-x-2">
                  <Input
                    ref={inputRef}

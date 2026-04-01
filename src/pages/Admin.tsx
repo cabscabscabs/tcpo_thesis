@@ -26,12 +26,25 @@ const Admin = () => {
   const [patents, setPatents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Patent form state
+  // Patent form state for "Add New Patent" section
   const [patentForm, setPatentForm] = useState({
     title: '',
     patentId: '',
     inventors: '',
     field: '',
+    description: '',
+    abstract: '',
+    status: 'Pending',
+    year: new Date().getFullYear().toString()
+  });
+
+  // Patent form state for modal editing (separate from add form)
+  const [patentEditForm, setPatentEditForm] = useState({
+    title: '',
+    patentId: '',
+    inventors: '',
+    field: '',
+    description: '',
     abstract: '',
     status: 'Pending',
     year: new Date().getFullYear().toString()
@@ -56,6 +69,12 @@ const Admin = () => {
   });
 
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [allActivities, setAllActivities] = useState<any[]>([]);
+  const [showActivityModal, setShowActivityModal] = useState(false);
+  const [activityFilter, setActivityFilter] = useState('all');
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [activityPage, setActivityPage] = useState(1);
+  const ACTIVITIES_PER_PAGE = 5;
   
   // Check session on component mount for auto-login
   useEffect(() => {
@@ -129,6 +148,7 @@ const Admin = () => {
           timestamp: activity.created_at
         })) || [];
         setRecentActivity(mappedActivities);
+        setActivityPage(1); // Reset to first page when new data loads
       }
     } catch (err) {
       console.error('Unexpected error loading recent activities:', err);
@@ -141,7 +161,92 @@ const Admin = () => {
     }
   };
 
+  // Load all activities for the modal (past logs)
+  const loadAllActivities = async (filter: string = 'all') => {
+    setActivityLoading(true);
+    try {
+      let query = supabase
+        .from('activity_logs')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      // Apply filter if not 'all'
+      if (filter !== 'all') {
+        query = query.eq('activity_type', filter);
+      }
+      
+      const { data, error } = await query;
 
+      if (error) {
+        console.error('Error loading all activities:', error);
+        setAllActivities([]);
+      } else {
+        // Map Supabase data to the expected format
+        const mappedActivities = data?.map((activity: any) => ({
+          id: activity.id,
+          type: activity.activity_type,
+          action: activity.action,
+          title: activity.title,
+          description: activity.description,
+          timestamp: activity.created_at
+        })) || [];
+        setAllActivities(mappedActivities);
+      }
+    } catch (err) {
+      console.error('Unexpected error loading all activities:', err);
+      setAllActivities([]);
+    } finally {
+      setActivityLoading(false);
+    }
+  };
+
+  // Handle opening the activity modal
+  const handleViewAllActivities = () => {
+    setShowActivityModal(true);
+    loadAllActivities(activityFilter);
+  };
+
+  // Handle filter change
+  const handleActivityFilterChange = (filter: string) => {
+    setActivityFilter(filter);
+    loadAllActivities(filter);
+  };
+
+  // Export activities to CSV
+  const exportActivitiesToCSV = () => {
+    if (allActivities.length === 0) {
+      alert('No activities to export');
+      return;
+    }
+
+    // CSV Header
+    const headers = ['Date', 'Type', 'Action', 'Title', 'Description'];
+    
+    // CSV Rows
+    const rows = allActivities.map(activity => [
+      formatDate(activity.timestamp),
+      activity.type,
+      activity.action,
+      activity.title,
+      activity.description || ''
+    ]);
+
+    // Combine header and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `activity_logs_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // News form state
   const [newsForm, setNewsForm] = useState({
@@ -311,6 +416,7 @@ const Admin = () => {
     inventors: '',
     year: new Date().getFullYear().toString(),
     abstract: '',
+    patentId: '',
     image: null as File | null
   });
 
@@ -473,7 +579,7 @@ const Admin = () => {
       
       // Reload news to reflect changes
       await loadNews();
-      logActivity('news', archive ? 'archived' : 'restored', `News article ${archive ? 'archived' : 'restored'}`);
+      // Note: Activity is logged automatically by database trigger
     } catch (error) {
       console.error('Error archiving/restoring news:', error);
       alert('Failed to update news status');
@@ -574,7 +680,7 @@ const Admin = () => {
       
       // Reload service requests to reflect changes
       await loadServiceRequests();
-      logActivity('service', archive ? 'archived' : 'restored', `Service request ${archive ? 'archived' : 'restored'}`);
+      // Note: Activity is logged automatically by database trigger
     } catch (error) {
       console.error('Error archiving/restoring request:', error);
       alert('Failed to update request status');
@@ -639,7 +745,7 @@ const Admin = () => {
       
       // Reload events to reflect changes
       await loadEvents();
-      logActivity('event', archive ? 'archived' : 'restored', `Event ${archive ? 'archived' : 'restored'}`);
+      // Note: Activity is logged automatically by database trigger
     } catch (error) {
       console.error('Error archiving/restoring event:', error);
       alert('Failed to update event status');
@@ -685,6 +791,7 @@ const Admin = () => {
           patentId: patent.patent_number,
           inventors: patent.inventors,
           field: patent.field,
+          description: patent.description,
           abstract: patent.abstract,
           status: patent.status,
           year: patent.year,
@@ -1135,7 +1242,7 @@ const Admin = () => {
         alert('Error updating news article');
         return;
       }
-      logActivity('news', 'updated', newsForm.title);
+      // Note: Activity is logged automatically by database trigger
       loadNews();
     } else {
       const { error } = await supabase
@@ -1147,8 +1254,8 @@ const Admin = () => {
         alert('Error creating news article');
         return;
       }
-      logActivity('news', 'published', newsForm.title);
-      loadNews();
+      // Note: Activity is logged automatically by database trigger
+      loadNews()
       
       await updateDashboardStats({
         publishedNews: dashboardStats.publishedNews + 1,
@@ -1218,7 +1325,7 @@ const Admin = () => {
         alert('Error saving draft');
         return;
       }
-      logActivity('news', 'updated draft', newsForm.title);
+      // Note: Activity is logged automatically by database trigger
     } else {
       const { error } = await supabase
         .from('admin_news')
@@ -1229,7 +1336,7 @@ const Admin = () => {
         alert('Error saving draft');
         return;
       }
-      logActivity('news', 'saved draft', newsForm.title);
+      // Note: Activity is logged automatically by database trigger
     }
 
     loadNews();
@@ -1312,7 +1419,7 @@ Article Details:
       }
       
       loadNews();
-      logActivity('news', 'deleted', title);
+      // Note: Activity is logged automatically by database trigger
       
       if (wasPublished) {
         await updateDashboardStats({
@@ -1347,6 +1454,7 @@ Article Details:
       inventors: '',
       year: new Date().getFullYear().toString(),
       abstract: '',
+      patentId: '',
       image: null
     });
     setShowTechModal(true);
@@ -1362,6 +1470,7 @@ Article Details:
       inventors: tech.inventors,
       year: tech.year,
       abstract: tech.abstract,
+      patentId: tech.patent_number || tech.patentId || '',
       image: null
     });
     setShowTechModal(true);
@@ -1381,6 +1490,7 @@ Article Details:
       inventors: techForm.inventors,
       year: techForm.year,
       abstract: techForm.abstract,
+      patent_number: techForm.patentId,
       featured: true,
       published: true,
     };
@@ -1396,7 +1506,7 @@ Article Details:
         alert('Error updating technology');
         return;
       }
-      logActivity('technology', 'updated', techForm.title);
+      // Note: Activity is logged automatically by database trigger
     } else {
       const { error } = await supabase
         .from('admin_technologies')
@@ -1407,7 +1517,7 @@ Article Details:
         alert('Error creating technology');
         return;
       }
-      logActivity('technology', 'added', techForm.title);
+      // Note: Activity is logged automatically by database trigger
     }
 
     loadTechnologies();
@@ -1431,7 +1541,7 @@ Article Details:
       
       loadTechnologies();
       window.dispatchEvent(new Event('storage'));
-      logActivity('technology', 'deleted', title);
+      // Note: Activity is logged automatically by database trigger
       alert('Technology deleted successfully!');
     }
   };
@@ -1448,6 +1558,7 @@ Article Details:
       patent_number: patentForm.patentId,
       inventors: patentForm.inventors,
       field: patentForm.field,
+      description: patentForm.description,
       abstract: patentForm.abstract,
       status: patentForm.status || 'Pending',
       year: patentForm.year || new Date().getFullYear().toString(),
@@ -1472,6 +1583,7 @@ Article Details:
       patentId: '',
       inventors: '',
       field: '',
+      description: '',
       abstract: '',
       status: 'Pending',
       year: new Date().getFullYear().toString()
@@ -1483,11 +1595,12 @@ Article Details:
   // Handle editing a patent
   const handleEditPatent = (patent: any) => {
     setEditingPatent(patent);
-    setPatentForm({
+    setPatentEditForm({
       title: patent.title,
       patentId: patent.patentId || '',
       inventors: patent.inventors || '',
       field: patent.field,
+      description: patent.description || '',
       abstract: patent.abstract || '',
       status: patent.status || 'Pending',
       year: patent.year || new Date().getFullYear().toString()
@@ -1497,19 +1610,20 @@ Article Details:
 
   // Handle updating a patent
   const handleUpdatePatent = async () => {
-    if (!patentForm.title || !patentForm.field) {
+    if (!patentEditForm.title || !patentEditForm.field) {
       alert('Please fill in all required fields (Title, Field).');
       return;
     }
 
     const patentData = {
-      title: patentForm.title,
-      patent_number: patentForm.patentId,
-      inventors: patentForm.inventors,
-      field: patentForm.field,
-      abstract: patentForm.abstract,
-      status: patentForm.status,
-      year: patentForm.year,
+      title: patentEditForm.title,
+      patent_number: patentEditForm.patentId,
+      inventors: patentEditForm.inventors,
+      field: patentEditForm.field,
+      description: patentEditForm.description,
+      abstract: patentEditForm.abstract,
+      status: patentEditForm.status,
+      year: patentEditForm.year,
     };
 
     const { error } = await supabase
@@ -1523,16 +1637,38 @@ Article Details:
       return;
     }
 
+    // Also update the corresponding entry in admin_technologies (featured technologies)
+    const { error: techError } = await supabase
+      .from('admin_technologies')
+      .update({
+        title: patentEditForm.title,
+        description: patentEditForm.description || patentEditForm.abstract || `Patent in ${patentEditForm.field}`,
+        field: patentEditForm.field,
+        status: patentEditForm.status,
+        inventors: patentEditForm.inventors,
+        year: patentEditForm.year,
+        abstract: patentEditForm.abstract,
+        patent_number: patentEditForm.patentId
+      })
+      .eq('id', editingPatent.id);
+    
+    if (techError) {
+      console.error('Error updating featured technology:', techError);
+      // Don't block the patent update if featured tech update fails
+    }
+
     loadPatents();
+    loadTechnologies(); // Refresh featured technologies
     window.dispatchEvent(new Event('storage'));
     
     setShowPatentModal(false);
     setEditingPatent(null);
-    setPatentForm({
+    setPatentEditForm({
       title: '',
       patentId: '',
       inventors: '',
       field: '',
+      description: '',
       abstract: '',
       status: 'Pending',
       year: new Date().getFullYear().toString()
@@ -1557,7 +1693,7 @@ Article Details:
       
       loadPatents();
       window.dispatchEvent(new Event('storage'));
-      logActivity('patent', 'deleted', title);
+      // Note: Activity is logged automatically by database trigger
       alert(`Patent "${title}" has been deleted successfully!`);
     }
   };
@@ -1613,7 +1749,7 @@ Article Details:
           .eq('id', editingService.id);
         
         if (error) throw error;
-        logActivity('service', 'updated', serviceForm.name);
+        // Note: Activity is logged automatically by database trigger
         alert('Service updated successfully!');
       } else {
         const { error } = await supabase
@@ -1621,7 +1757,7 @@ Article Details:
           .insert([serviceData]);
         
         if (error) throw error;
-        logActivity('service', 'created', serviceForm.name);
+        // Note: Activity is logged automatically by database trigger
         alert('Service created successfully!');
       }
       
@@ -1653,7 +1789,7 @@ Article Details:
         if (error) throw error;
         
         loadServices();
-        logActivity('service', 'deleted', serviceName);
+        // Note: Activity is logged automatically by database trigger
         alert(`Service "${serviceName}" has been deleted successfully!`);
       } catch (error) {
         console.error('Error deleting service:', error);
@@ -1710,7 +1846,7 @@ Article Details:
         alert('Error updating event');
         return;
       }
-      logActivity('event', 'updated', eventForm.title);
+      // Note: Activity is logged automatically by database trigger
     } else {
       const { error } = await supabase
         .from('admin_events')
@@ -1721,7 +1857,7 @@ Article Details:
         alert('Error creating event');
         return;
       }
-      logActivity('event', 'created', eventForm.title);
+      // Note: Activity is logged automatically by database trigger
     }
 
     loadEvents();
@@ -1777,7 +1913,7 @@ Article Details:
       
       loadEvents();
       window.dispatchEvent(new Event('storage'));
-      logActivity('event', 'deleted', title);
+      // Note: Activity is logged automatically by database trigger
       alert(`Event "${title}" has been deleted successfully!`);
     }
   };
@@ -2463,17 +2599,24 @@ Article Details:
             </div>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Recent Activity</CardTitle>
+                <Button variant="outline" size="sm" onClick={handleViewAllActivities}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  View All
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentActivity.map((activity) => (
+                  {recentActivity
+                    .slice((activityPage - 1) * ACTIVITIES_PER_PAGE, activityPage * ACTIVITIES_PER_PAGE)
+                    .map((activity) => (
                     <div key={activity.id} className="flex items-center gap-4 p-3 border rounded-lg">
                       <div className={`w-2 h-2 rounded-full ${
                         activity.type === 'news' ? 'bg-blue-500' :
                         activity.type === 'technology' ? 'bg-green-500' :
                         activity.type === 'service' ? 'bg-purple-500' :
+                        activity.type === 'event' ? 'bg-orange-500' :
                         'bg-gray-500'
                       }`}></div>
                       <div>
@@ -2483,6 +2626,33 @@ Article Details:
                     </div>
                   ))}
                 </div>
+                
+                {/* Pagination */}
+                {recentActivity.length > ACTIVITIES_PER_PAGE && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                    <p className="text-sm text-muted-foreground">
+                      Showing {((activityPage - 1) * ACTIVITIES_PER_PAGE) + 1} - {Math.min(activityPage * ACTIVITIES_PER_PAGE, recentActivity.length)} of {recentActivity.length}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setActivityPage(prev => Math.max(1, prev - 1))}
+                        disabled={activityPage === 1}
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setActivityPage(prev => Math.min(Math.ceil(recentActivity.length / ACTIVITIES_PER_PAGE), prev + 1))}
+                        disabled={activityPage >= Math.ceil(recentActivity.length / ACTIVITIES_PER_PAGE)}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -2544,9 +2714,6 @@ Article Details:
                           <p className="text-sm text-muted-foreground">{tech.field} • {tech.status}</p>
                         </div>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handleEditTechnology(tech)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
                           <Button 
                             variant="outline" 
                             size="sm" 
@@ -3382,6 +3549,16 @@ Article Details:
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea 
+                    id="description" 
+                    placeholder="Enter brief description of the patent" 
+                    rows={3} 
+                    value={patentForm.description}
+                    onChange={(e) => setPatentForm({...patentForm, description: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="abstract">Abstract</Label>
                   <Textarea 
                     id="abstract" 
@@ -3425,7 +3602,7 @@ Article Details:
                                 id: patent.id,
                                 title: patent.title,
                                 slug: patent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-                                description: patent.abstract || `Patent in ${patent.field}`,
+                                description: patent.description || patent.abstract || `Patent in ${patent.field}`,
                                 field: patent.field,
                                 status: patent.status,
                                 inventors: patent.inventors || "Dr. USTP Researcher",
@@ -3437,7 +3614,7 @@ Article Details:
                               // Insert to Supabase
                               supabase.from('admin_technologies').insert([{
                                 title: patent.title,
-                                description: patent.abstract || `Patent in ${patent.field}`,
+                                description: patent.description || patent.abstract || `Patent in ${patent.field}`,
                                 field: patent.field,
                                 status: patent.status,
                                 inventors: patent.inventors || "Dr. USTP Researcher",
@@ -4609,6 +4786,15 @@ Article Details:
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="tech-patent-id">Patent ID</Label>
+              <Input 
+                id="tech-patent-id" 
+                value={techForm.patentId}
+                onChange={(e) => setTechForm({...techForm, patentId: e.target.value})}
+                placeholder="e.g., PH-2024-001"
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="tech-description">Description *</Label>
               <Textarea 
                 id="tech-description" 
@@ -4658,8 +4844,8 @@ Article Details:
               <Label htmlFor="modal-patent-title">Patent Title *</Label>
               <Input 
                 id="modal-patent-title" 
-                value={patentForm.title}
-                onChange={(e) => setPatentForm({...patentForm, title: e.target.value})}
+                value={patentEditForm.title}
+                onChange={(e) => setPatentEditForm({...patentEditForm, title: e.target.value})}
                 placeholder="Enter patent title"
               />
             </div>
@@ -4667,8 +4853,8 @@ Article Details:
               <Label htmlFor="modal-patent-id">Patent ID</Label>
               <Input 
                 id="modal-patent-id" 
-                value={patentForm.patentId}
-                onChange={(e) => setPatentForm({...patentForm, patentId: e.target.value})}
+                value={patentEditForm.patentId}
+                onChange={(e) => setPatentEditForm({...patentEditForm, patentId: e.target.value})}
                 placeholder="Enter patent ID"
               />
             </div>
@@ -4676,14 +4862,14 @@ Article Details:
               <Label htmlFor="modal-inventors">Inventors</Label>
               <Input 
                 id="modal-inventors" 
-                value={patentForm.inventors}
-                onChange={(e) => setPatentForm({...patentForm, inventors: e.target.value})}
+                value={patentEditForm.inventors}
+                onChange={(e) => setPatentEditForm({...patentEditForm, inventors: e.target.value})}
                 placeholder="Enter inventors (comma separated)"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="modal-field">Field *</Label>
-              <Select value={patentForm.field} onValueChange={(value) => setPatentForm({...patentForm, field: value})}>
+              <Select value={patentEditForm.field} onValueChange={(value) => setPatentEditForm({...patentEditForm, field: value})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select field" />
                 </SelectTrigger>
@@ -4703,7 +4889,7 @@ Article Details:
             </div>
             <div className="space-y-2">
               <Label htmlFor="modal-status">Status *</Label>
-              <Select value={patentForm.status} onValueChange={(value) => setPatentForm({...patentForm, status: value})}>
+              <Select value={patentEditForm.status} onValueChange={(value) => setPatentEditForm({...patentEditForm, status: value})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
@@ -4722,8 +4908,8 @@ Article Details:
                 type="number" 
                 min="1900" 
                 max="2100" 
-                value={patentForm.year}
-                onChange={(e) => setPatentForm({...patentForm, year: e.target.value})}
+                value={patentEditForm.year}
+                onChange={(e) => setPatentEditForm({...patentEditForm, year: e.target.value})}
                 placeholder="Enter year"
               />
             </div>
@@ -4731,11 +4917,21 @@ Article Details:
           
           <div className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="modal-description">Description</Label>
+              <Textarea 
+                id="modal-description" 
+                value={patentEditForm.description}
+                onChange={(e) => setPatentEditForm({...patentEditForm, description: e.target.value})}
+                placeholder="Enter brief description of the patent"
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="modal-abstract">Abstract</Label>
               <Textarea 
                 id="modal-abstract" 
-                value={patentForm.abstract}
-                onChange={(e) => setPatentForm({...patentForm, abstract: e.target.value})}
+                value={patentEditForm.abstract}
+                onChange={(e) => setPatentEditForm({...patentEditForm, abstract: e.target.value})}
                 placeholder="Enter patent abstract"
                 rows={4}
               />
@@ -4743,7 +4939,20 @@ Article Details:
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPatentModal(false)}>
+            <Button variant="outline" onClick={() => {
+              setShowPatentModal(false);
+              setEditingPatent(null);
+              setPatentEditForm({
+                title: '',
+                patentId: '',
+                inventors: '',
+                field: '',
+                description: '',
+                abstract: '',
+                status: 'Pending',
+                year: new Date().getFullYear().toString()
+              });
+            }}>
               Cancel
             </Button>
             <Button variant="ustp" onClick={handleUpdatePatent}>
@@ -4785,7 +4994,7 @@ Article Details:
                           <Badge variant="outline">{patent.field}</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                          {patent.abstract || `Patent in ${patent.field}`}
+                          {patent.description || patent.abstract || `Patent in ${patent.field}`}
                         </p>
                       </div>
                       <div className="ml-4">
@@ -4816,7 +5025,7 @@ Article Details:
                                 id: patent.id,
                                 title: patent.title,
                                 slug: patent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-                                description: patent.abstract || `Patent in ${patent.field}`,
+                                description: patent.description || patent.abstract || `Patent in ${patent.field}`,
                                 field: patent.field,
                                 status: patent.status,
                                 inventors: patent.inventors || "Dr. USTP Researcher",
@@ -4828,7 +5037,7 @@ Article Details:
                               // Insert to Supabase
                               await supabase.from('admin_technologies').insert([{
                                 title: patent.title,
-                                description: patent.abstract || `Patent in ${patent.field}`,
+                                description: patent.description || patent.abstract || `Patent in ${patent.field}`,
                                 field: patent.field,
                                 status: patent.status,
                                 inventors: patent.inventors || "Dr. USTP Researcher",
@@ -5781,6 +5990,114 @@ Article Details:
             </Button>
             <Button variant="ustp" onClick={handleSaveService}>
               {editingService ? 'Update Service' : 'Create Service'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Activity Logs Modal */}
+      <Dialog open={showActivityModal} onOpenChange={setShowActivityModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Activity Logs</DialogTitle>
+            <DialogDescription>
+              View all past activities and system events
+            </DialogDescription>
+          </DialogHeader>
+          
+          {/* Filter Buttons and Export */}
+          <div className="flex flex-wrap items-center justify-between gap-4 py-4">
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                variant={activityFilter === 'all' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => handleActivityFilterChange('all')}
+              >
+                All
+              </Button>
+              <Button 
+                variant={activityFilter === 'news' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => handleActivityFilterChange('news')}
+              >
+                News
+              </Button>
+              <Button 
+                variant={activityFilter === 'technology' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => handleActivityFilterChange('technology')}
+              >
+                Technologies
+              </Button>
+              <Button 
+                variant={activityFilter === 'event' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => handleActivityFilterChange('event')}
+              >
+                Events
+              </Button>
+              <Button 
+                variant={activityFilter === 'service' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => handleActivityFilterChange('service')}
+              >
+                Services
+              </Button>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={exportActivitiesToCSV}
+              disabled={allActivities.length === 0}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
+          
+          {/* Activity List */}
+          <div className="flex-1 overflow-y-auto">
+            {activityLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : allActivities.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No activities found
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {allActivities.map((activity) => (
+                  <div key={activity.id} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50">
+                    <div className={`w-3 h-3 rounded-full mt-1.5 flex-shrink-0 ${
+                      activity.type === 'news' ? 'bg-blue-500' :
+                      activity.type === 'technology' ? 'bg-green-500' :
+                      activity.type === 'service' ? 'bg-purple-500' :
+                      activity.type === 'event' ? 'bg-orange-500' :
+                      'bg-gray-500'
+                    }`}></div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium capitalize">{activity.action}</span>
+                        <span className="text-muted-foreground">{activity.type}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {formatDate(activity.timestamp)}
+                        </Badge>
+                      </div>
+                      <p className="text-sm font-medium mt-1">{activity.title}</p>
+                      {activity.description && (
+                        <p className="text-sm text-muted-foreground mt-1">{activity.description}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setShowActivityModal(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

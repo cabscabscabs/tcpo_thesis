@@ -17,7 +17,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRecommendations } from "@/hooks/useRecommendations";
-import { ExtendedPortfolioItem, transformToExtendedPortfolioItem } from "@/integrations/supabase/extendedTypes";
+import { ExtendedPortfolioItem } from "@/integrations/supabase/extendedTypes";
 
 const TechnologyDetails = () => {
   const { slug } = useParams();
@@ -122,7 +122,7 @@ const TechnologyDetails = () => {
               id: patent.id,
               title: patent.title,
               slug: slug || '',
-              description: patent.abstract || `Patent in ${patent.field || 'Unknown Field'}`,
+              description: patent.description || patent.abstract || `Patent in ${patent.field || 'Unknown Field'}`,
               image_url: patent.image_url || "//placeholder.svg?height=400&width=600",
               link_url: "#",
               category: patent.field || "General",
@@ -135,7 +135,7 @@ const TechnologyDetails = () => {
               field: patent.field || "General",
               status: patent.status || "Pending",
               year: patent.year || new Date().getFullYear().toString(),
-              abstract: patent.abstract || `Patent abstract for ${patent.title || 'Untitled Patent'}`,
+              abstract: patent.abstract || patent.description || `Patent abstract for ${patent.title || 'Untitled Patent'}`,
               licensing: patent.status === 'Licensed' ? 'Already Licensed' : 'Available for licensing through USTP TPCO',
               applications: [patent.field, 'Innovation', 'Research'].filter(Boolean),
               contact: "tpco@ustp.edu.ph",
@@ -174,28 +174,9 @@ const TechnologyDetails = () => {
         console.error('Failed to fetch admin patents:', error);
       }
       
-      // If not found in admin data, try portfolio_items
-      const { data, error } = await supabase
-        .from("portfolio_items")
-        .select("*")
-        .eq("slug", slug)
-        .single();
-
-      if (error) {
-        console.error("Database error:", error);
-        throw error;
-      }
-      
-      console.log("Database response:", data);
-      
-      if (!data) {
-        setError("Technology not found");
-        return;
-      }
-      
-      // Transform data to ExtendedPortfolioItem
-      const transformedData = transformToExtendedPortfolioItem(data);
-      setTechnology(transformedData);
+      // Technology not found in admin data
+      setError("Technology not found");
+      return;
     } catch (err) {
       console.error("Error fetching technology:", err);
       setError(`Technology not found. This might be an admin-managed technology or the slug may have changed.`);
@@ -292,7 +273,7 @@ const TechnologyDetails = () => {
             </div>
             <h1 className="text-4xl font-roboto font-bold mb-4">{technology.title}</h1>
             <p className="text-xl text-gray-200 mb-6 break-words">
-              {technology.abstract || technology.description}
+              {technology.description}
             </p>
             <div className="flex items-center text-gray-300">
               <Calendar size={16} className="mr-2" />
@@ -312,7 +293,7 @@ const TechnologyDetails = () => {
                 <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
                   <h2 className="text-2xl font-roboto font-bold text-primary mb-4">Technology Overview</h2>
                   <p className="text-gray-700 leading-relaxed break-words">
-                    {technology.description}
+                    {technology.abstract || technology.description}
                   </p>
                 </div>
 
