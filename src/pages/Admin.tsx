@@ -351,7 +351,11 @@ const Admin = () => {
     description: '',
     icon: 'Wrench',
     order_num: 0,
-    published: true
+    published: true,
+    features: [] as string[],
+    process_steps: [] as string[],
+    timeline: '',
+    pricing: ''
   });
 
   // Service Requests management
@@ -479,6 +483,10 @@ const Admin = () => {
           order_num: service.order_num,
           published: service.published,
           slug: service.slug,
+          features: service.features || [],
+          process_steps: service.process_steps || [],
+          timeline: service.timeline || '',
+          pricing: service.pricing || '',
         })));
       }
     } catch (error) {
@@ -1713,6 +1721,10 @@ Article Details:
         icon: service.icon || 'Wrench',
         order_num: service.order_num || 0,
         published: service.published !== false,
+        features: service.features || [],
+        process_steps: service.process_steps || [],
+        timeline: service.timeline || '',
+        pricing: service.pricing || '',
       });
     } else {
       setEditingService(null);
@@ -1723,6 +1735,10 @@ Article Details:
         icon: 'Wrench',
         order_num: services.length,
         published: true,
+        features: [],
+        process_steps: [],
+        timeline: '',
+        pricing: '',
       });
     }
     setShowServiceModal(true);
@@ -1743,6 +1759,10 @@ Article Details:
       icon: serviceForm.icon,
       order_num: serviceForm.order_num,
       published: serviceForm.published,
+      features: serviceForm.features,
+      process_steps: serviceForm.process_steps,
+      timeline: serviceForm.timeline,
+      pricing: serviceForm.pricing,
     };
 
     try {
@@ -1775,6 +1795,10 @@ Article Details:
         icon: 'Wrench',
         order_num: 0,
         published: true,
+        features: [],
+        process_steps: [],
+        timeline: '',
+        pricing: '',
       });
     } catch (error) {
       console.error('Error saving service:', error);
@@ -3759,6 +3783,18 @@ Article Details:
                         </div>
                       </div>
                     ))}
+                    
+                    {/* Add Another Service Button */}
+                    <div className="pt-4 border-t">
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-dashed border-2 hover:border-primary hover:bg-primary/5 transition-colors"
+                        onClick={() => handleOpenServiceModal()}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Another Service
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -5942,7 +5978,7 @@ Article Details:
 
       {/* Service Modal */}
       <Dialog open={showServiceModal} onOpenChange={setShowServiceModal}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingService ? 'Edit Service' : 'Add New Service'}
@@ -5992,8 +6028,51 @@ Article Details:
                   <SelectItem value="Building">Building (Corporate)</SelectItem>
                   <SelectItem value="Lightbulb">Lightbulb (Innovation)</SelectItem>
                   <SelectItem value="Users">Users (Community)</SelectItem>
+                  <SelectItem value="Rocket">Rocket (Startup)</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="service-timeline">Timeline</Label>
+              <Input 
+                id="service-timeline" 
+                value={serviceForm.timeline}
+                onChange={(e) => setServiceForm({...serviceForm, timeline: e.target.value})}
+                placeholder="e.g., 3-6 months"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="service-pricing">Pricing</Label>
+              <Input 
+                id="service-pricing" 
+                value={serviceForm.pricing}
+                onChange={(e) => setServiceForm({...serviceForm, pricing: e.target.value})}
+                placeholder="e.g., Consultation fees apply"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="service-features">Features (one per line)</Label>
+              <Textarea 
+                id="service-features" 
+                value={serviceForm.features.join('\n')}
+                onChange={(e) => setServiceForm({...serviceForm, features: e.target.value.split('\n').filter(f => f.trim())})}
+                placeholder="Enter each feature on a new line"
+                rows={4}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="service-process">Process Steps (one per line)</Label>
+              <Textarea 
+                id="service-process" 
+                value={serviceForm.process_steps.join('\n')}
+                onChange={(e) => setServiceForm({...serviceForm, process_steps: e.target.value.split('\n').filter(p => p.trim())})}
+                placeholder="Enter each process step on a new line"
+                rows={4}
+              />
             </div>
             
             <div className="space-y-2">
@@ -6030,6 +6109,10 @@ Article Details:
                 icon: 'Wrench',
                 order_num: 0,
                 published: true,
+                features: [],
+                process_steps: [],
+                timeline: '',
+                pricing: '',
               });
             }}>
               Cancel
