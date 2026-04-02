@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2 } from "lucide-react";
+import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2, Search, Filter, X } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,6 +25,10 @@ const Admin = () => {
   // Patent management state
   const [patents, setPatents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Patent filtering state
+  const [patentSearchTerm, setPatentSearchTerm] = useState('');
+  const [patentFieldFilter, setPatentFieldFilter] = useState('all');
 
   // Patent form state for "Add New Patent" section
   const [patentForm, setPatentForm] = useState({
@@ -3574,12 +3578,69 @@ Article Details:
 
             <Card>
               <CardHeader>
-                <CardTitle>Existing Patents</CardTitle>
-                <CardDescription>Select patents to feature on homepage and IP portfolio</CardDescription>
+                <CardTitle>Existing Patents ({patents.length})</CardTitle>
+                <CardDescription>Manage and edit your patent portfolio</CardDescription>
+                
+                {/* Search and Filter */}
+                <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search patents by title, ID, or inventor..."
+                      value={patentSearchTerm}
+                      onChange={(e) => setPatentSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Select value={patentFieldFilter} onValueChange={setPatentFieldFilter}>
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filter by field" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Fields</SelectItem>
+                      <SelectItem value="agriculture">Agriculture</SelectItem>
+                      <SelectItem value="materials">Materials Science</SelectItem>
+                      <SelectItem value="food">Food Technology</SelectItem>
+                      <SelectItem value="engineering">Engineering</SelectItem>
+                      <SelectItem value="biotechnology">Biotechnology</SelectItem>
+                      <SelectItem value="information-technology">Information Technology</SelectItem>
+                      <SelectItem value="environmental-science">Environmental Science</SelectItem>
+                      <SelectItem value="energy">Energy Technology</SelectItem>
+                      <SelectItem value="medical">Medical Technology</SelectItem>
+                      <SelectItem value="chemical">Chemical Engineering</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {(patentSearchTerm || patentFieldFilter !== 'all') && (
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => {
+                        setPatentSearchTerm('');
+                        setPatentFieldFilter('all');
+                      }}
+                      title="Clear filters"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {patents.map((patent) => (
+                  {patents
+                    .filter((patent) => {
+                      const matchesSearch = !patentSearchTerm || 
+                        patent.title?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+                        patent.patentId?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+                        patent.inventors?.toLowerCase().includes(patentSearchTerm.toLowerCase());
+                      
+                      const matchesField = patentFieldFilter === 'all' || 
+                        patent.field?.toLowerCase() === patentFieldFilter.toLowerCase();
+                      
+                      return matchesSearch && matchesField;
+                    })
+                    .map((patent) => (
                     <div key={patent.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
                         <h3 className="font-semibold">{patent.title}</h3>
@@ -3591,48 +3652,6 @@ Article Details:
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            // Add to featured technologies
-                            const isAlreadyFeatured = featuredTechnologies.some(tech => tech.id === patent.id);
-                            if (!isAlreadyFeatured) {
-                              const newFeaturedTech = {
-                                id: patent.id,
-                                title: patent.title,
-                                slug: patent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-                                description: patent.description || patent.abstract || `Patent in ${patent.field}`,
-                                field: patent.field,
-                                status: patent.status,
-                                inventors: patent.inventors || "Dr. USTP Researcher",
-                                year: new Date().getFullYear().toString(),
-                                abstract: patent.abstract || `Patent abstract for ${patent.title}`
-                              };
-                              const updatedTechnologies = [...featuredTechnologies, newFeaturedTech];
-                              setFeaturedTechnologies(updatedTechnologies);
-                              // Insert to Supabase
-                              supabase.from('admin_technologies').insert([{
-                                title: patent.title,
-                                description: patent.description || patent.abstract || `Patent in ${patent.field}`,
-                                field: patent.field,
-                                status: patent.status,
-                                inventors: patent.inventors || "Dr. USTP Researcher",
-                                year: new Date().getFullYear().toString(),
-                                abstract: patent.abstract || `Patent abstract for ${patent.title}`,
-                                featured: true,
-                                published: true
-                              }]).then(() => {
-                                loadTechnologies();
-                              });
-                              alert(`✅ ${patent.title} added to featured technologies!`);
-                            } else {
-                              alert(`⚠️ ${patent.title} is already featured.`);
-                            }
-                          }}
-                        >
-                          Feature
-                        </Button>
                         <Button 
                           variant="outline" 
                           size="sm"
@@ -3650,6 +3669,33 @@ Article Details:
                       </div>
                     </div>
                   ))}
+                  {patents.filter((patent) => {
+                    const matchesSearch = !patentSearchTerm || 
+                      patent.title?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+                      patent.patentId?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+                      patent.inventors?.toLowerCase().includes(patentSearchTerm.toLowerCase());
+                    
+                    const matchesField = patentFieldFilter === 'all' || 
+                      patent.field?.toLowerCase() === patentFieldFilter.toLowerCase();
+                    
+                    return matchesSearch && matchesField;
+                  }).length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>No patents match your search criteria.</p>
+                      {(patentSearchTerm || patentFieldFilter !== 'all') && (
+                        <Button 
+                          variant="outline" 
+                          className="mt-4"
+                          onClick={() => {
+                            setPatentSearchTerm('');
+                            setPatentFieldFilter('all');
+                          }}
+                        >
+                          Clear Filters
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

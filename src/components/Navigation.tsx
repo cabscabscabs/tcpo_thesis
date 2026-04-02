@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, FileText, Users, BookOpen, Info, Newspaper } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import ThemeToggle from "./ThemeToggle";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -43,7 +42,6 @@ const Navigation = () => {
             <Button variant="gold" size="sm" onClick={() => navigate('/contact')}>
               Contact Us
             </Button>
-            <ThemeToggle className="text-white hover:text-secondary" />
           </div>
 
           {/* Mobile menu button */}
@@ -80,9 +78,6 @@ const Navigation = () => {
                 <Button variant="gold" size="sm" className="w-full" onClick={() => navigate('/contact')}>
                   Contact Us
                 </Button>
-              </div>
-              <div className="pt-2 border-t border-white/20">
-                <ThemeToggle className="w-full justify-center text-white hover:text-secondary" showLabel />
               </div>
             </div>
           </div>
