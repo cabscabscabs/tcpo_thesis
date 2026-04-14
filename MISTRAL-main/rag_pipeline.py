@@ -8,7 +8,7 @@ from mistralai.client import Mistral
 
 from config import settings
 from vector_store import VectorStore
-from guardrails import format_guardrail_refusal, validate_response, REFUSAL_NO_CONTEXT
+from guardrails import format_guardrail_refusal, validate_response, REFUSAL_NO_CONTEXT, BLOCKED_TOPICS
 
 
 SYSTEM_PROMPT = """\
@@ -16,16 +16,58 @@ You are a USTP TPCO (Technology Transfer Office) Information Assistant. You help
 1. Intellectual property, patents, and technology transfer questions
 2. Website navigation and finding information on the USTP TPCO website
 
-# WEBSITE NAVIGATION GUIDE:
-- Home: Main landing page with overview of services
-- Our IP: Access the IP Portfolio to browse available technologies and patents
-- Services: View available services like patent assistance, technology transfer, etc.
-- Resources: Access documents, forms, and helpful materials
-- Latest News: Read updates and announcements
-- About: Learn about USTP TPCO and find contact information
-- Contact Us: Page with contact details and inquiry forms
+# CRITICAL INSTRUCTIONS - YOU MUST FOLLOW THESE:
 
-# GUARDRAILS & BOUNDARIES:
+## 1. CONTEXT USAGE (MOST IMPORTANT):
+- You are provided with CONTEXT FROM OFFICE DOCUMENTS above
+- You MUST base your answer ENTIRELY on the provided context
+- If the context contains the answer, use it and cite the source
+- If the context does NOT contain the answer, say: "I don't have that specific information in my knowledge base. Please contact TPCO directly for assistance."
+- NEVER make up information or use outside knowledge
+- NEVER hallucinate details not present in the context
+
+## 2. SOURCE CITATION:
+- When you use information from the context, cite the source like: [Source: filename.pdf]
+- Place citations immediately after the relevant information
+- Example: "To file a patent, you need Form 100 [Source: Patent_Procedures.pdf]"
+
+## 3. WEBSITE NAVIGATION GUIDE (with links):
+When users ask about navigating the website or where to find something, ALWAYS include the relevant link from below.
+
+Pages:
+- Home page: /
+- Our IP (IP Portfolio) - browse available technologies and patents: /ip-portfolio
+- Services - view TPCO services like patent assistance, technology transfer: /services
+- Services > Success Stories - real results from technology transfer partnerships: /services#success-stories
+- Service Request - submit a service request: /service-request
+- Resources page: /resources
+- Latest News - updates and announcements: /latest-news
+- About - learn about USTP TPCO, meet the team: /about
+- Contact Us - contact details and inquiry form: /contact
+- Events - upcoming events and seminars: /events
+
+Resources page has tabs for specific content. Use these links:
+- Templates (downloadable forms for trademark, patent, copyright, etc.): /resources?tab=templates
+- IP 101 Tutorials (educational materials about IP): /resources?tab=tutorials
+- SSF Booking (facility and equipment booking): /resources?tab=facilities
+- Guidelines (research guidelines, best practices, IP procedures): /resources?tab=guidelines
+
+## 4. LINK USAGE RULES:
+- When a user asks about forms, templates, or downloadable documents (e.g., "How to file a trademark", "Where can I download patent forms"), include this link: /resources?tab=templates
+- When a user asks about research guidelines, best practices, or IP procedures guides, include this link: /resources?tab=guidelines
+- When a user asks about tutorials or learning about IP basics, include this link: /resources?tab=tutorials
+- When a user asks about booking facilities or equipment, include this link: /resources?tab=facilities
+- When a user asks about contact information or how to reach TPCO, include this link: /contact
+- When a user asks about services offered by TPCO, include this link: /services
+- When a user asks about success stories, partnerships results, or technology transfer outcomes, include this link: /services#success-stories
+- When a user asks about patents, IP portfolio, available technologies, or innovations, include this link: /ip-portfolio
+- When your answer discusses intellectual property, patents, technologies, or innovations, ALWAYS append a helpful link to the IP Portfolio: [IP Portfolio page](/ip-portfolio)
+- When a user asks about news or announcements, include this link: /latest-news
+- When a user asks about who TPCO is or the team, include this link: /about
+- When a user asks about events or seminars, include this link: /events
+- Format links as: [Link Text](url) — for example: [Templates page](/resources?tab=templates)
+
+## 5. GUARDRAILS & BOUNDARIES:
 1. Answer questions about:
    - Patent applications, procedures, and requirements
    - Intellectual property (IP) protection and management
@@ -42,15 +84,14 @@ You are a USTP TPCO (Technology Transfer Office) Information Assistant. You help
    - External topics, news, or unrelated subjects
    - Speculative or hypothetical scenarios outside IP scope
 
-# RESPONSE PROTOCOL:
+## 6. RESPONSE PROTOCOL:
 - Use information from the provided context for IP/patent questions
-- For navigation questions, guide users to the appropriate page/section
-- If the user asks "where to access IP" or "where is IP portfolio", say: "You can access the IP Portfolio by clicking on 'Our IP' in the top navigation menu."
-- If the user asks "how to contact" or "where is contact", say: "You can find our contact information by clicking on 'Contact Us' in the top navigation menu or visiting the 'About' page."
+- ALWAYS cite your sources when using context information
+- For navigation questions, guide users to the appropriate page/section and ALWAYS include the link
 - If the user greets you, respond warmly and ask how you can help
-- If context doesn't contain the answer, guide them to the appropriate page or suggest contacting support
+- If context doesn't contain the answer, say you don't have that information and suggest contacting TPCO
 - Be concise and helpful
-- DO NOT use Markdown formatting (no **, *, #, or bullet points). Use plain text only.
+- DO NOT use Markdown formatting for emphasis (no **, *, #). But DO use [Link Text](url) for navigation links.
 """
 
 
@@ -81,12 +122,13 @@ def build_context(chunks: list[dict], max_tokens: int | None = None) -> str:
     return "\n\n---\n\n".join(context_parts)
 
 
-def build_prompt(context: str, question: str) -> list[dict]:
+def build_prompt(context: str, question: str, conversation_history: list[dict] | None = None) -> list[dict]:
     """Build the message list for Mistral Cloud API.
 
     Args:
         context: Formatted context from retrieved documents.
         question: The user's question.
+        conversation_history: Optional list of previous conversation messages.
 
     Returns:
         List of message dicts for the Mistral chat endpoint.
@@ -97,12 +139,27 @@ def build_prompt(context: str, question: str) -> list[dict]:
 # QUESTION:
 {question}
 
-Answer the question using ONLY the context above. If the answer is not in the context, say you don't have that information."""
+INSTRUCTIONS:
+1. Answer the question using ONLY the context provided above.
+2. Cite your sources using [Source: filename] format.
+3. If the answer is not in the context, say exactly: "I don't have that specific information in my knowledge base. Please contact TPCO directly for assistance."
+4. Do not use any outside knowledge.
 
-    return [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": user_content},
-    ]
+YOUR ANSWER:"""
+
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+
+    # Inject conversation history between system prompt and current question
+    if conversation_history:
+        # Limit to last 10 messages to avoid token overflow
+        recent_history = conversation_history[-10:]
+        for msg in recent_history:
+            if msg["role"] in ("user", "assistant"):
+                messages.append({"role": msg["role"], "content": msg["content"]})
+
+    messages.append({"role": "user", "content": user_content})
+
+    return messages
 
 
 def call_mistral_cloud(messages: list[dict]) -> str:
@@ -147,34 +204,65 @@ class RAGPipeline:
         self,
         question: str,
         company_terms: list[str] | None = None,
+        conversation_history: list[dict] | None = None,
     ) -> dict:
         """Process a user question through the full RAG pipeline.
 
         Steps:
           1. Guardrail check
           2. Retrieve relevant document chunks
-          3. Build context and prompt
+          3. Build context and prompt (with conversation history)
           4. Generate response via Mistral Cloud API
           5. Validate response
 
         Args:
             question: The user's question.
             company_terms: Optional company-specific terms for guardrail.
+            conversation_history: Optional list of previous conversation messages.
 
         Returns:
             Dict with keys: answer, sources, was_filtered.
         """
+        has_history = conversation_history and len(conversation_history) > 0
+
         # Step 1: Guardrail check
-        refusal = format_guardrail_refusal(question)
-        if refusal:
-            return {
-                "answer": refusal,
-                "sources": [],
-                "was_filtered": True,
-            }
+        # If there's conversation history, the user is continuing an already-validated
+        # conversation, so we skip the guardrail for short follow-up messages.
+        if has_history:
+            # Still block explicitly off-topic questions even in follow-ups
+            question_lower = question.lower()
+            is_blocked = any(t in question_lower for t in BLOCKED_TOPICS)
+            if is_blocked:
+                refusal = format_guardrail_refusal(question)
+                if refusal:
+                    return {
+                        "answer": refusal,
+                        "sources": [],
+                        "was_filtered": True,
+                    }
+        else:
+            refusal = format_guardrail_refusal(question)
+            if refusal:
+                return {
+                    "answer": refusal,
+                    "sources": [],
+                    "was_filtered": True,
+                }
 
         # Step 2: Retrieve relevant chunks
-        enhanced_query = f"office information: {question}"
+        # For follow-up questions, enrich the search query with context from the
+        # last user message so the vector search finds relevant documents.
+        if has_history:
+            last_user_msgs = [m["content"] for m in conversation_history if m["role"] == "user"]
+            if last_user_msgs:
+                last_topic = last_user_msgs[-1]
+                # Combine the previous topic with the current follow-up for better retrieval
+                enhanced_query = f"office information: {last_topic} {question}"
+            else:
+                enhanced_query = f"office information: {question}"
+        else:
+            enhanced_query = f"office information: {question}"
+
         chunks = self.vector_store.search(enhanced_query)
 
         # Filter by relevance threshold (cosine distance; lower = more similar)
@@ -192,7 +280,7 @@ class RAGPipeline:
 
         # Step 3: Build context and prompt
         context = build_context(filtered_chunks)
-        messages = build_prompt(context, question)
+        messages = build_prompt(context, question, conversation_history)
 
         # Step 4: Generate response
         raw_response = call_mistral_cloud(messages)

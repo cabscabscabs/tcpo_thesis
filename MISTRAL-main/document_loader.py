@@ -18,16 +18,53 @@ def load_txt(file_path: str) -> str:
 
 
 def load_pdf(file_path: str) -> str:
-    """Load a PDF file and extract text."""
-    from pypdf import PdfReader
-
-    reader = PdfReader(file_path)
+    """Load a PDF file and extract text using multiple methods for robustness."""
     text_parts = []
-    for page in reader.pages:
-        page_text = page.extract_text()
-        if page_text:
-            text_parts.append(page_text)
-    return "\n\n".join(text_parts)
+    
+    # Try PyMuPDF (fitz) first - better for complex PDFs
+    try:
+        import fitz  # PyMuPDF
+        doc = fitz.open(file_path)
+        for page_num, page in enumerate(doc, 1):
+            text = page.get_text()
+            if text.strip():
+                text_parts.append(f"[Page {page_num}]\n{text}")
+        doc.close()
+        if text_parts:
+            return "\n\n".join(text_parts)
+    except Exception as e:
+        print(f"  PyMuPDF failed for {file_path}: {e}")
+    
+    # Fallback to pypdf
+    try:
+        from pypdf import PdfReader
+        reader = PdfReader(file_path, strict=False)
+        for page_num, page in enumerate(reader.pages, 1):
+            try:
+                page_text = page.extract_text()
+                if page_text and page_text.strip():
+                    text_parts.append(f"[Page {page_num}]\n{page_text}")
+            except Exception as e:
+                print(f"  Warning: Failed to extract page {page_num}: {e}")
+        if text_parts:
+            return "\n\n".join(text_parts)
+    except Exception as e:
+        print(f"  pypdf failed for {file_path}: {e}")
+    
+    # Last resort: pdfplumber for tables and complex layouts
+    try:
+        import pdfplumber
+        with pdfplumber.open(file_path) as pdf:
+            for page_num, page in enumerate(pdf.pages, 1):
+                text = page.extract_text()
+                if text and text.strip():
+                    text_parts.append(f"[Page {page_num}]\n{text}")
+        if text_parts:
+            return "\n\n".join(text_parts)
+    except Exception as e:
+        print(f"  pdfplumber failed for {file_path}: {e}")
+    
+    return "\n\n".join(text_parts) if text_parts else ""
 
 
 def load_docx(file_path: str) -> str:

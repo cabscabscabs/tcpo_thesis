@@ -17,13 +17,14 @@ class Settings(BaseSettings):
     chroma_persist_dir: str = str(Path(__file__).parent / "chroma_db")
     chroma_collection_name: str = "office_documents"
 
-    # Chunking settings
+    # Chunking settings - smaller chunks for better retrieval precision
     chunk_size: int = 512
     chunk_overlap: int = 50
 
     # Retrieval settings
-    retrieval_top_k: int = 5
-    relevance_score_threshold: float = 0.3
+    retrieval_top_k: int = 10  # Retrieve more for better coverage
+    relevance_score_threshold: float = 0.4  # Moderate threshold
+    final_top_k: int = 5  # Final number after re-ranking
 
     # Document directory
     documents_dir: str = str(Path(__file__).parent / "documents")
@@ -33,12 +34,16 @@ class Settings(BaseSettings):
     api_port: int = 8000
 
     # Generation settings
-    max_context_tokens: int = 1500
+    max_context_tokens: int = 1500  # Fits ~3-4 chunks of 512 chars
     temperature: float = 0.1
+
+    # Re-ranking settings
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
     class Config:
         env_file = ".env"
         env_prefix = ""  # Allow direct env var names like MISTRAL_API_KEY
+        extra = "ignore"  # Ignore extra fields like GOOGLE_API_KEY (used for evaluation)
 
 
 settings = Settings()

@@ -45,6 +45,64 @@ const generateId = (): string => {
   return Math.random().toString(36).substr(2, 9);
 };
 
+// Render message content with clickable navigation links
+// Parses markdown-style [Link Text](url) and plain URLs into clickable links
+const MessageContent: React.FC<{ content: string }> = ({ content }) => {
+  const parts: React.ReactNode[] = [];
+  // Match markdown links [text](url) and plain URLs (http/https)
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)|((https?:\/\/[^\s]+))/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = linkRegex.exec(content)) !== null) {
+    // Add text before the link
+    if (match.index > lastIndex) {
+      parts.push(content.slice(lastIndex, match.index));
+    }
+
+    if (match[1] && match[2]) {
+      // Markdown-style link: [text](url)
+      const linkText = match[1];
+      const linkUrl = match[2];
+      // For relative URLs, use the current origin
+      const href = linkUrl.startsWith('/') ? linkUrl : linkUrl;
+      parts.push(
+        <a
+          key={match.index}
+          href={linkUrl.startsWith('http') ? linkUrl : `${window.location.origin}${href}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+        >
+          {linkText}
+        </a>
+      );
+    } else if (match[3]) {
+      // Plain URL
+      parts.push(
+        <a
+          key={match.index}
+          href={match[3]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+        >
+          {match[3]}
+        </a>
+      );
+    }
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add remaining text after the last link
+  if (lastIndex < content.length) {
+    parts.push(content.slice(lastIndex));
+  }
+
+  return <>{parts.length > 0 ? parts : content}</>;
+};
+
 // Expandable Sources Component
 const SourcesAccordion: React.FC<{ sources: string[] }> = ({ sources }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -100,7 +158,7 @@ Technical Staff:
 - Krystia Ces G. Napili - Science Research Specialist
 - Michael J. Cerbito - Administrative Assistant
 
-You can view the full team on the About page.`;
+You can view the full team on the [About page](/about).`;
   }
   
   // About page - Journey/Milestones
@@ -121,7 +179,7 @@ You can view the full team on the About page.`;
 
 2024 - Innovation Hub Launch: Opened state-of-the-art facility
 
-View the full timeline on the About page.`;
+View the full timeline on the [About page](/about).`;
   }
   
   // About page - Partners
@@ -135,7 +193,7 @@ View the full timeline on the About page.`;
 - CDO b.i.t.e.s. (business innovation technology e-startup)
 - Intellectual Property Office of the Philippines (IPOPhil)
 
-Learn more on the About page.`;
+Learn more on the [About page](/about).`;
   }
   
   // Contact information
@@ -158,7 +216,7 @@ info@ustp.edu.ph
 ⏰ Office Hours:
 Monday - Friday, 8:00 AM - 5:00 PM
 
-Visit the Contact page to schedule a meeting.`;
+Visit the [Contact page](/contact) to schedule a meeting.`;
   }
   
   // Mission/Vision
@@ -175,7 +233,81 @@ Our Values:
 - Innovation: Fostering creativity and breakthrough thinking
 - Integrity: Ethical practices in all partnerships
 - Excellence: Commitment to quality
-- Collaboration: Building meaningful partnerships`;
+- Collaboration: Building meaningful partnerships
+
+Learn more on the [About page](/about).`;
+  }
+
+  // IP Portfolio / Patents browsing — check BEFORE forms to avoid "platform" matching "form"
+  if (lowerMessage.includes('ip portfolio') || lowerMessage.includes('our ip') || lowerMessage.includes('browse patent') || lowerMessage.includes('technologies available') || lowerMessage.includes('innovation')) {
+    return `You can browse our intellectual property portfolio including available technologies and patents.
+
+Visit the [IP Portfolio page](/ip-portfolio) to explore our innovations and technologies.`;
+  }
+
+  // Forms, templates, and downloadable documents
+  if ((lowerMessage.includes('form') && !lowerMessage.includes('inform') && !lowerMessage.includes('platform')) || lowerMessage.includes('template') || lowerMessage.includes('download') || lowerMessage.includes('fillable')) {
+    return `You can find downloadable forms and templates on our Resources page under the Templates tab. These include patent application forms, trademark forms, copyright forms, and other IP-related documents.
+
+Visit the [Templates page](/resources?tab=templates) to browse and download the forms you need.`;
+  }
+
+  // Trademark-specific
+  if (lowerMessage.includes('trademark') || lowerMessage.includes('trade mark')) {
+    return `For trademark-related information and forms, you can access our downloadable templates including trademark application forms.
+
+Visit the [Templates page](/resources?tab=templates) to download trademark forms and documents.
+
+For more details on trademark registration procedures and requirements, feel free to ask!`;
+  }
+
+  // Guidelines and best practices
+  if (lowerMessage.includes('guideline') || lowerMessage.includes('best practice') || lowerMessage.includes('research guideline')) {
+    return `You can find research guidelines, best practices, and IP procedure guides on our Resources page under the Guidelines tab.
+
+Visit the [Guidelines page](/resources?tab=guidelines) to access all available guidelines and best practices.`;
+  }
+
+  // Tutorials / IP 101
+  if (lowerMessage.includes('tutorial') || lowerMessage.includes('ip 101') || lowerMessage.includes('learn about ip') || lowerMessage.includes('basics')) {
+    return `We have IP 101 tutorials and educational materials to help you learn about intellectual property.
+
+Visit the [IP 101 Tutorials page](/resources?tab=tutorials) to access our learning materials.`;
+  }
+
+  // Facility/SSF booking
+  if (lowerMessage.includes('booking') || lowerMessage.includes('ssf') || lowerMessage.includes('facility') || lowerMessage.includes('equipment')) {
+    return `You can book SSF facilities and equipment through our Resources page.
+
+Visit the [SSF Booking page](/resources?tab=facilities) to make a reservation.`;
+  }
+
+  // Services
+  if (lowerMessage.includes('service') && !lowerMessage.includes('not working')) {
+    return `USTP TPCO offers various services including patent assistance, technology transfer, IP consultation, and more.
+
+Visit the [Services page](/services) to view all available services, or submit a request through our [Service Request page](/service-request).`;
+  }
+
+  // News and announcements
+  if (lowerMessage.includes('news') || lowerMessage.includes('announcement') || lowerMessage.includes('update')) {
+    return `Stay up to date with the latest USTP TPCO news and announcements.
+
+Visit the [Latest News page](/latest-news) to read our most recent updates.`;
+  }
+
+  // Events
+  if (lowerMessage.includes('event') || lowerMessage.includes('seminar') || lowerMessage.includes('workshop') || lowerMessage.includes('webinar')) {
+    return `Check out our upcoming events, seminars, and workshops.
+
+Visit the [Events page](/events) to see scheduled events and register.`;
+  }
+
+  // Success stories
+  if (lowerMessage.includes('success stor') || lowerMessage.includes('case stud') || lowerMessage.includes('partnership result')) {
+    return `You can read about real results from our technology transfer partnerships on the Services page.
+
+Visit the [Success Stories section](/services#success-stories) to see how TPCO has helped bring innovations to market.`;
   }
   
   if (lowerMessage.includes('reset password') || lowerMessage.includes('forgot password')) {
@@ -328,7 +460,13 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
     }
 
     try {
-      // Call MISTRAL RAG API
+      // Build conversation history from previous messages (exclude welcome, errors, and current message)
+      const conversationHistory = messages
+        .filter(m => m.role === 'user' || (m.role === 'assistant' && !m.isError))
+        .filter(m => m.id !== 'welcome')
+        .map(m => ({ role: m.role, content: m.content }));
+
+      // Call MISTRAL RAG API with conversation history
       const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
@@ -336,6 +474,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
         },
         body: JSON.stringify({
           question: userMessage,
+          conversation_history: conversationHistory.length > 0 ? conversationHistory : undefined,
         }),
       });
 
@@ -505,12 +644,12 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
 
           <CardContent className="p-0 h-full flex flex-col">
                          {/* Messages Area */}
-             <ScrollArea className="flex-1 p-2 md:p-4 space-y-3 md:space-y-4">
+             <ScrollArea className="flex-1 p-2 md:p-4">
                {messages.map((message) => (
                  <div
                    key={message.id}
                    className={cn(
-                     'flex',
+                     'flex mb-2',
                      message.role === 'user' ? 'justify-end' : 'justify-start'
                    )}
                  >
@@ -537,7 +676,9 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                          })}
                        </span>
                      </div>
-                     <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
+                     <div className="whitespace-pre-wrap leading-relaxed">
+                       <MessageContent content={message.content} />
+                     </div>
                      {message.sources && message.sources.length > 0 && (
                        <SourcesAccordion sources={message.sources} />
                      )}

@@ -40,11 +40,20 @@ def get_pipeline() -> RAGPipeline:
     return _pipeline
 
 
+class ChatMessage(BaseModel):
+    role: str = Field(..., description="Message role: 'user' or 'assistant'")
+    content: str = Field(..., description="Message content")
+
+
 class QueryRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=1000, description="The question to ask")
     company_terms: list[str] | None = Field(
         default=None,
         description="Optional company-specific terms for guardrail matching",
+    )
+    conversation_history: list[ChatMessage] | None = Field(
+        default=None,
+        description="Optional conversation history for context continuity",
     )
 
 
@@ -64,13 +73,23 @@ def query(request: QueryRequest):
     """Ask a question about office operations and policies."""
     pipeline = get_pipeline()
     try:
+        # Convert conversation history to list of dicts if provided
+        history = None
+        if request.conversation_history:
+            history = [{"role": m.role, "content": m.content} for m in request.conversation_history]
+
         result = pipeline.query(
             question=request.question,
             company_terms=request.company_terms,
+            conversation_history=history,
         )
         return QueryResponse(**result)
     except ConnectionError as e:
         raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
 
 
 @app.get("/stats", response_model=StatsResponse)

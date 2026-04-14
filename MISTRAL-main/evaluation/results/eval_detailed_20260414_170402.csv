@@ -1,0 +1,42 @@
+question,answer,ground_truth,faithfulness,answer_relevancy,coherence,helpfulness,feedback,error
+What services does TPCO offer for patent applications?,"TPCO offers the following services related to patent applications:
+
+- IP Protection services
+- IP Prosecution and Management
+- Assist/Conduct Prior Art Search
+- Assist/Conduct Patent Draft
+- Process IP Application
+- IP Valuation
+- IP Clinics
+- IP Trainings & Consultancy
+- IP/Technology Assessment
+
+[Source: IP-System-June-25_2024.pdf]
+
+For more details about TPCO's services, you can visit the [Services page](/services).","TPCO offers services for patent applications including assistance with patent drafting, filing with IPOPHL, patent search reports, and guidance through the patent application process. They help inventors prepare patent specifications, claims, and drawings.",0.6,0.7,0.8,0.7,"The answer provides a detailed list of services related to patent applications but includes some services (e.g., IP Valuation, IP Clinics) that are not explicitly mentioned in the ground truth, slightly reducing faithfulness. However, it is highly relevant, well-structured, and practically useful.",
+How do I file a trademark application?,"To file a trademark application, follow these steps based on the provided context:
+
+1. Prepare the required documents:
+   - Form 400 (IPOPHL) [Source: IP-Procedure-.pdf, IPOPHLFillableForm400.pdf]
+   - Description/functions and colors of the mark [Source: IP-Procedure-.pdf, IP-Procedure-Oroquieta and Panaon updated.pptx]
+   - Class of trade or services [Source: IP-Procedure-.pdf, IP-Procedure-Oroquieta and Panaon updated.pptx]
+   - JPEG format copy of the mark [Source: IP-Procedure-.pdf, IP-Procedure-Oroquieta and Panaon updated.pptx]
+
+2. Complete Form 400 with all required information, including:
+   - Title of the mark
+   - Claim of colors (if applicable)
+   - Translation/transliteration (if applicable)
+   - Type of mark (Word Mark, Figurative Mark, etc.) [Source: IPOPHLFillableForm400.pdf]
+
+3. Submit the application and pay the filing fees [Source: IP-Procedure-.pdf]
+
+4. Note that the application process takes an estimated 6 months to 1 year to receive the Certificate of Registration [Source: USTP-TPCO_IP Application Process and Requirements.pdf]
+
+5. After registration, you must file a Declaration of Actual Use (DAU) within three years from the filing date, including:
+   - Letter request for DAU to IPOPHL
+   - Proofs (photos) of the usage of the mark [Source: IP-Procedure-.pdf, IP-Procedure-Oroquieta and Panaon updated.pptx]
+
+For more information about trademarks and IP services, visit the [IP Portfolio page](/ip-portfolio)","To file a trademark application, you need to submit IPOPHL Form 400 (Trademark Application Form) along with the required fees and supporting documents. The process involves classification of goods/services, examination, publication, and registration. TPCO can assist with the preparation and filing process.",0.9,1.0,0.9,1.0,"The answer is highly faithful to the context, directly relevant to the question, well-structured, and extremely helpful with clear steps and required documents. Minor improvement could be made by simplifying the source references for better readability.",
+What is the difference between a patent and a copyright?,Error: 500 Server Error: Internal Server Error for url: http://localhost:8000/query,"A patent protects inventions, processes, and technical solutions, granting exclusive rights for 20 years. A copyright protects original works of authorship like literary, artistic, and software works, lasting for the author's life plus 50 years. Patents require registration while copyright exists automatically upon creation, though registration provides additional legal benefits.",0.1,0.1,0.1,0.1,"The generated answer failed to provide any response due to a server error, making it completely unfaithful, irrelevant, incoherent, and unhelpful.",
+What are the requirements for patentability in the Philippines?,I don't have that specific information in my knowledge base. Please contact TPCO directly for assistance.,"For an invention to be patentable in the Philippines, it must meet three requirements: novelty (new and not publicly known), inventive step (not obvious to a person skilled in the art), and industrial applicability (can be used in any industry). The invention must not fall under non-patentable subject matter such as discoveries, scientific theories, or methods of treatment.",0.1,0.1,0.1,0.0,"The generated answer fails to address the question entirely, ignores the provided context, and provides no useful information about patentability requirements in the Philippines.",
+Where can I find templates for IP application forms?,You can find templates for IP application forms on the [Templates page](/resources?tab=templates) [Source: USTP_TPCO_Website_Knowledge_Base.txt],"IP application form templates are available on the Resources page under the Templates tab. Navigate to /resources?tab=templates to access downloadable forms for trademark, patent, copyright, and other IP-related applications. Examples include IPOPHL Form 100 for patent applications, Form 300 for copyright, and Form 400 for trademarks.",1.0,1.0,1.0,1.0,"The answer perfectly aligns with the context, directly addresses the question with clear instructions, is logically structured, and provides highly practical guidance.",

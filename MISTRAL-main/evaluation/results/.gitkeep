@@ -1,0 +1,29 @@
+# RAG Evaluation Results
+
+This directory stores evaluation results from the RAG Testing Agent.
+
+## Output Files
+
+When you run an evaluation, the following files are generated:
+
+- `*_summary.json` - Aggregated metrics and statistics
+- `*_detailed.csv` - Detailed results for each evaluation sample
+- `*_ragas_*.csv` - RAGAs-specific results
+- `*_geval_*.csv` - G-Eval specific results
+
+## Interpreting Results
+
+### RAGAs Scores (0-1 scale, higher is better)
+- **Faithfulness**: Measures how well the answer is grounded in retrieved context
+- **Answer Relevancy**: Measures how relevant the answer is to the question
+
+### G-Eval Scores (0-1 scale, higher is better)
+- **Coherence**: Logical consistency and flow of the response
+- **Helpfulness**: Practical value and usefulness of the response
+- **Harmlessness**: Safety and absence of harmful content
+
+### Score Interpretation
+- 0.8 - 1.0: Excellent
+- 0.6 - 0.8: Good
+- 0.4 - 0.6: Fair
+- 0.0 - 0.4: Poor

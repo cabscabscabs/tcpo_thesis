@@ -1,0 +1,39 @@
+# RAG Evaluation Dependencies
+# RAGAs for faithfulness and answer relevancy
+ragas>=0.1.0
+datasets>=2.14.0
+
+# DeepEval for G-Eval (coherence, etc.)
+deepeval>=0.21.0
+
+# OpenAI for RAGAs LLM-based evaluation
+openai>=1.0.0
+
+# LangChain integrations (multi-provider support)
+langchain-openai>=0.1.0
+langchain-mistralai>=0.1.0
+langchain-google-genai>=1.0.0
+
+# Google Generative AI (Gemini)
+google-generativeai>=0.3.0
+
+# Additional utilities
+pandas>=2.0.0
+numpy>=1.24.0
+tqdm>=4.65.0
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# Existing dependencies (from parent requirements.txt)
+chromadb>=0.4.22
+langchain>=0.1.0
+langchain-community>=0.0.10
+sentence-transformers>=2.3.0
+mistralai>=1.0.0
+fastapi>=0.109.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0

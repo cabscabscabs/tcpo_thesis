@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Download, BookOpen, Video, FileText, Users, Calendar, ExternalLink, Clock, Loader2, CheckCircle, Info } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -27,9 +27,31 @@ const formatTime = (timeString) => {
   }
 };
 
+const VALID_TABS = ["templates", "tutorials", "facilities", "guidelines"];
+
 const Resources = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
+
+  // Read tab from URL query param (e.g., /resources?tab=templates)
+  const tabFromUrl = searchParams.get("tab");
+  const initialTab = tabFromUrl && VALID_TABS.includes(tabFromUrl) ? tabFromUrl : "templates";
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Sync tab when URL search params change
+  useEffect(() => {
+    const newTab = searchParams.get("tab");
+    if (newTab && VALID_TABS.includes(newTab)) {
+      setActiveTab(newTab);
+    }
+  }, [searchParams]);
+
+  // Update URL when tab changes
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setSearchParams({ tab: value });
+  };
   const [events, setEvents] = useState([]);
   
   // Registration modal state
@@ -371,7 +393,7 @@ const Resources = () => {
       {/* Main Resources Section */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Tabs defaultValue="templates" className="w-full">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-4 text-white">
               <TabsTrigger value="templates">Templates</TabsTrigger>
               <TabsTrigger value="tutorials">IP 101 Tutorials</TabsTrigger>

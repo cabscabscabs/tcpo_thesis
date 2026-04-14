@@ -3,10 +3,19 @@ langchain>=0.1.0
 langchain-community>=0.0.10
 langchain-text-splitters>=0.0.1
 sentence-transformers>=2.3.0
+torch>=2.0.0
+
+# PDF parsing - multiple libraries for robustness
+pymupdf>=1.23.0  # PyMuPDF - best for complex PDFs
 pypdf>=3.17.0
+pdfplumber>=0.10.0  # For tables and complex layouts
+
+# Office documents
 python-docx>=1.1.0
 openpyxl>=3.1.0
 python-pptx>=0.6.21
+
+# API and utilities
 requests>=2.31.0
 fastapi>=0.109.0
 uvicorn>=0.27.0

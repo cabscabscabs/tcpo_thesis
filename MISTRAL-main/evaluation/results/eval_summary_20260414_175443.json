@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-04-14T17:54:43.946355",
+  "total_samples": 50,
+  "successful": 50,
+  "failed": 0,
+  "mean_faithfulness": 0.686,
+  "mean_answer_relevancy": 0.754,
+  "mean_coherence": 0.806,
+  "mean_helpfulness": 0.708,
+  "total_time_seconds": 380.58
+}

@@ -1,0 +1,552 @@
+[
+  {
+    "id": "eval_001",
+    "question": "What services does TPCO offer for patent applications?",
+    "ground_truth": "TPCO offers IP Protection services including assistance with patent applications, patent drafting, filing with IPOPHL, and patent search reports. They help inventors through the IP application process.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "IP-System-June-25_2024.pdf"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "patent_services"
+    }
+  },
+  {
+    "id": "eval_002",
+    "question": "How do I file a trademark application?",
+    "ground_truth": "To file a trademark application, you need to submit IPOPHL Form 400 (Trademark Application Form) along with the required fees and supporting documents. The process involves classification of goods/services, examination, publication, and registration. TPCO can assist with the preparation and filing process.",
+    "category": "procedures",
+    "expected_sources": ["IPOPHLFillableForm400.pdf", "TRADEMARK CLASSIFICATION.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "trademark"
+    }
+  },
+  {
+    "id": "eval_003",
+    "question": "What is the difference between a patent and a copyright?",
+    "ground_truth": "A patent protects inventions, processes, and technical solutions, granting exclusive rights for 20 years. A copyright protects original works of authorship like literary, artistic, and software works, lasting for the author's life plus 50 years. Patents require registration while copyright exists automatically upon creation, though registration provides additional legal benefits.",
+    "category": "ip_basics",
+    "expected_sources": ["IP-System-June-25_2024.pdf", "Patentability-Requirements-June-25.pdf"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "ip_education"
+    }
+  },
+  {
+    "id": "eval_004",
+    "question": "What makes an invention patentable according to Philippine law?",
+    "ground_truth": "An invention is patentable if it is new, involves an inventive step, and is industrially applicable. The invention must not be publicly known or used before the filing date.",
+    "category": "patent_requirements",
+    "expected_sources": ["Patentability-Requirements-June-25.pdf", "IP-System-June-25_2024.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "patent_law"
+    }
+  },
+  {
+    "id": "eval_005",
+    "question": "Where can I find templates for IP application forms?",
+    "ground_truth": "IP application form templates are available on the Resources page under the Templates tab. Navigate to /resources?tab=templates to access downloadable forms for trademark, patent, copyright, and other IP-related applications. Examples include IPOPHL Form 100 for patent applications, Form 300 for copyright, and Form 400 for trademarks.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "website_navigation"
+    }
+  },
+  {
+    "id": "eval_006",
+    "question": "What is technology transfer and how does TPCO facilitate it?",
+    "ground_truth": "Technology transfer is the process of sharing knowledge, skills, and methods to enable broader application. TPCO facilitates technology transfer through IP licensing, commercialization support, and technology utilization planning.",
+    "category": "services",
+    "expected_sources": ["Technology-Transfer-June-25_2024.pdf", "Technology_Utilization_Plan_Template.docx"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "tech_transfer"
+    }
+  },
+  {
+    "id": "eval_007",
+    "question": "What should be included in a patent specification?",
+    "ground_truth": "A patent specification should include: (1) Title of the invention, (2) Abstract summarizing the technical disclosure, (3) Detailed description of the invention including background, summary, and detailed explanation, (4) Claims defining the scope of protection, and (5) Drawings if necessary for understanding the invention. The specification must enable a person skilled in the art to reproduce the invention.",
+    "category": "patent_drafting",
+    "expected_sources": ["Patent-Specification-2-Detailed-Descrition-Drafting.pdf", "Patent_Specification_Template_with_Guide.docx"],
+    "metadata": {
+      "difficulty": "hard",
+      "domain": "patent_drafting"
+    }
+  },
+  {
+    "id": "eval_008",
+    "question": "How can I book facilities or equipment at USTP?",
+    "ground_truth": "You can book facilities and equipment through the Resources page. Navigate to /resources?tab=facilities to access the SSF (Shared Service Facility) booking system. The facility booking page allows you to view available equipment, check schedules, and submit booking requests.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "DPM-USTP-TPCO-001-ITSU.pdf"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "facility_booking"
+    }
+  },
+  {
+    "id": "eval_009",
+    "question": "What is a patent search report and why is it important?",
+    "ground_truth": "A patent search report identifies prior art (existing patents and publications) relevant to an invention. It is important because it helps determine novelty, assess patentability, identify potential infringement risks, and inform drafting strategy for patent claims. A thorough search saves time and resources by revealing whether an invention is worth patenting.",
+    "category": "patent_process",
+    "expected_sources": ["Patent-Search-Strategies-UPDATED.pdf", "Patent-Search-Report-Template.docx"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "patent_search"
+    }
+  },
+  {
+    "id": "eval_010",
+    "question": "What is the role of the Technology Promotion and Commercialization Office?",
+    "ground_truth": "The Technology Promotion and Commercialization Office (TPCO) at USTP manages intellectual property, facilitates technology transfer, provides IP education and training, assists with patent/trademark/copyright applications, and promotes commercialization of university innovations. TPCO serves as the bridge between university research and industry applications.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "tpco_overview"
+    }
+  },
+  {
+    "id": "eval_011",
+    "question": "How do I submit a service request to TPCO?",
+    "ground_truth": "To submit a service request to TPCO, go to the Service Request page at /service-request. Fill out the request form with your contact information, type of IP assistance needed (patent, trademark, copyright, technology transfer), and description of your inquiry. TPCO staff will review and respond to your request.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "service_request"
+    }
+  },
+  {
+    "id": "eval_012",
+    "question": "What is the difference between a utility model and a patent?",
+    "ground_truth": "A patent protects inventions with high inventive step and grants 20 years protection. A utility model (also called petty patent) protects minor improvements with lower inventive requirements and provides 7 years protection. Utility models have simpler application process, lower costs, but no substantive examination. Patents undergo full examination while utility models follow a more streamlined process.",
+    "category": "ip_basics",
+    "expected_sources": ["Patentability-Requirements-June-25.pdf", "IP-System-June-25_2024.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "ip_types"
+    }
+  },
+  {
+    "id": "eval_013",
+    "question": "What documents are needed for a patent application?",
+    "ground_truth": "A patent application requires: (1) IPOPHL Form 100 (Patent Application Form), (2) Patent specification (title, abstract, description, claims), (3) Drawings if applicable, (4) Abstract, (5) Power of Attorney if filed through an agent, (6) Deed of Assignment if inventor is different from applicant, and (7) Proof of small entity status if claiming reduced fees.",
+    "category": "procedures",
+    "expected_sources": ["IPOPHLFillableForm100.pdf", "Patent_Specification_Template_with_Guide.docx", "DEED OF ASSIGNMENT_2026.docx"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "patent_filing"
+    }
+  },
+  {
+    "id": "eval_014",
+    "question": "What is the TRL Assessment Form used for?",
+    "ground_truth": "The TRL Assessment Form is used to evaluate the Technology Readiness Level of innovations, helping determine their maturity and readiness for commercialization.",
+    "category": "assessment",
+    "expected_sources": ["TRL Assessment Form.xlsx", "Technology_Utilization_Plan_Template.docx"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "technology_assessment"
+    }
+  },
+  {
+    "id": "eval_015",
+    "question": "Who are the members of the TPCO team?",
+    "ground_truth": "The TPCO team consists of IP specialists, technology transfer officers, and support staff. You can view the complete team roster and their roles on the About page at /about. The team includes staff with expertise in patent drafting, IP law, technology commercialization, and research administration.",
+    "category": "about",
+    "expected_sources": ["ustp-tpco-about-and-contact.txt"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "team_info"
+    }
+  },
+  {
+    "id": "eval_016",
+    "question": "What should be included in a software patent specification?",
+    "ground_truth": "A software patent specification should include an abstract, detailed description of the invention, claims defining the scope, and drawings such as flowcharts and system diagrams.",
+    "category": "patent_drafting",
+    "expected_sources": ["1.-Abstract_Nalupa_Sample Software.pdf", "2.-Description_Nalupa_Sample Software.pdf", "3.-Claims_Nalupa_Sample Software.pdf", "3-DRAFTING-of-SPECIFICATION - 06-25-2024.pdf"],
+    "metadata": {
+      "difficulty": "hard",
+      "domain": "software_patents"
+    }
+  },
+  {
+    "id": "eval_017",
+    "question": "What is keyword searching in patent prior art?",
+    "ground_truth": "Keyword searching in patent prior art involves identifying relevant technical terms and classification codes to find existing patents and publications related to an invention.",
+    "category": "patent_search",
+    "expected_sources": ["2-Keyword-Searching - 06-25-2024.pdf", "Patent-Search-Strategies-UPDATED.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "prior_art_search"
+    }
+  },
+  {
+    "id": "eval_018",
+    "question": "How do I contact TPCO for inquiries?",
+    "ground_truth": "You can contact TPCO through the Contact page at /contact, which provides email addresses, phone numbers, and office location. You can also use the contact form on the website or submit a service request through /service-request for specific IP assistance.",
+    "category": "navigation",
+    "expected_sources": ["ustp-tpco-about-and-contact.txt", "USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "contact"
+    }
+  },
+  {
+    "id": "eval_019",
+    "question": "What is a Joint Affidavit of Inventorship and Contribution?",
+    "ground_truth": "A Joint Affidavit of Inventorship and Contribution is a sworn statement executed by co-inventors declaring their contributions to an invention. It establishes each inventor's specific contribution, confirms the collaborative nature of the work, and is required for patent applications with multiple inventors. This document helps prevent future disputes about inventorship rights.",
+    "category": "legal",
+    "expected_sources": ["Joint-Affidavit-of-Inventorship-and-Contribution-Template.docx"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "inventorship"
+    }
+  },
+  {
+    "id": "eval_020",
+    "question": "Where can I find information about TPCO events and seminars?",
+    "ground_truth": "Information about TPCO events and seminars can be found on the Events page at /events on the USTP TPCO website.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "events"
+    }
+  },
+  {
+    "id": "eval_021",
+    "question": "What is copyright registration and how do I apply?",
+    "ground_truth": "Copyright registration is the process of formally recording ownership of original works like literary, artistic, musical, and software works. To apply, submit IPOPHL Form 300 (Copyright Application Form) along with copies of the work, affidavit of ownership, and required fees. Registration provides legal evidence of ownership and enables enforcement against infringement.",
+    "category": "procedures",
+    "expected_sources": ["IPOPHLFillableForm300.pdf", "Copyright Registry Enrollment Form 2025.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "copyright"
+    }
+  },
+  {
+    "id": "eval_022",
+    "question": "What rights does a patent grant to the inventor?",
+    "ground_truth": "A patent grants the inventor exclusive rights to prevent others from making, using, selling, or importing the patented invention without permission.",
+    "category": "ip_basics",
+    "expected_sources": ["IP-System-June-25_2024.pdf", "3-DRAFTING-of-SPECIFICATION - 06-25-2024.pdf"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "patent_rights"
+    }
+  },
+  {
+    "id": "eval_023",
+    "question": "How long does patent protection last?",
+    "ground_truth": "Patent protection lasts for 20 years from the filing date. Utility models are protected for 7 years without renewal.",
+    "category": "ip_basics",
+    "expected_sources": ["IP-System-June-25_2024.pdf", "Patentability-Requirements-June-25.pdf"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "patent_term"
+    }
+  },
+  {
+    "id": "eval_024",
+    "question": "What is the role of IPOPHL in the patent application process?",
+    "ground_truth": "IPOPHL (Intellectual Property Office of the Philippines) handles the filing, examination, and registration of patent applications.",
+    "category": "ip_basics",
+    "expected_sources": ["IP-Procedure-.pdf", "IP-System-June-25_2024.pdf"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "ipophl"
+    }
+  },
+  {
+    "id": "eval_025",
+    "question": "What is the difference between a patent and a utility model?",
+    "ground_truth": "A patent requires substantive examination and lasts 20 years. A utility model only requires formal examination, lasts 7 years, and protects minor improvements without requiring inventive step.",
+    "category": "ip_basics",
+    "expected_sources": ["IP-System-June-25_2024.pdf", "IP-Procedure-.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "ip_types"
+    }
+  },
+  {
+    "id": "eval_026",
+    "question": "What are patent claims and why are they important?",
+    "ground_truth": "Patent claims are the legal definition of the invention's scope of protection. They define the boundaries of what the patent covers and what constitutes infringement. Claims must be clear, supported by the description, and distinguish the invention from prior art. Well-drafted claims are crucial for effective protection and enforcement.",
+    "category": "patent_drafting",
+    "expected_sources": ["Patent-Specification-Claims-Drafting.pdf", "3.-Claims_Nalupa_Sample Software.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "claims"
+    }
+  },
+  {
+    "id": "eval_027",
+    "question": "What is a trademark classification system?",
+    "ground_truth": "The trademark classification system (Nice Classification) categorizes goods and services into 45 classes for trademark registration. Classes 1-34 cover goods, and classes 35-45 cover services. Trademarks must be registered in specific classes relevant to the business. A single application can cover multiple classes, but fees apply for each class.",
+    "category": "procedures",
+    "expected_sources": ["TRADEMARK CLASSIFICATION.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "trademark"
+    }
+  },
+  {
+    "id": "eval_028",
+    "question": "How do I protect my invention before filing a patent?",
+    "ground_truth": "Before filing a patent, protect your invention by: (1) keeping it confidential through NDAs, (2) documenting the invention process with dated records, (3) avoiding public disclosure which can destroy novelty, (4) conducting a prior art search, and (5) filing a provisional application if available to secure priority date.",
+    "category": "procedures",
+    "expected_sources": ["Patentability-Requirements-June-25.pdf", "Patent-Search-Strategies-UPDATED.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "confidentiality"
+    }
+  },
+  {
+    "id": "eval_029",
+    "question": "What are the different types of patent applications?",
+    "ground_truth": "Patent applications can be for invention patents or utility models. Invention patents undergo substantive examination while utility models undergo formal examination only.",
+    "category": "patent_process",
+    "expected_sources": ["IP-Procedure-.pdf", "IP-System-June-25_2024.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "patent_types"
+    }
+  },
+  {
+    "id": "eval_030",
+    "question": "What is patent licensing and what are its types?",
+    "ground_truth": "Patent licensing is a legal agreement where the patent holder grants permission to another party to use the patented invention. Types include: (1) Exclusive license - sole rights to the licensee, (2) Non-exclusive license - multiple licensees allowed, (3) Sole license - both licensor and licensee can use. Licensing generates revenue and expands technology adoption.",
+    "category": "tech_transfer",
+    "expected_sources": ["Technology-Transfer-June-25_2024.pdf", "Technology_Utilization_Plan_Template.docx"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "licensing"
+    }
+  },
+  {
+    "id": "eval_031",
+    "question": "What is prior art and how does it affect patentability?",
+    "ground_truth": "Prior art refers to any public knowledge existing before a patent filing date, including published patents, journal articles, products, presentations, and public uses. Prior art can destroy novelty, which is a key requirement for patentability. A thorough prior art search before filing helps assess whether an invention is likely to be patentable.",
+    "category": "patent_search",
+    "expected_sources": ["Patent-Search-Strategies-UPDATED.pdf", "Patentability-Requirements-June-25.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "prior_art"
+    }
+  },
+  {
+    "id": "eval_032",
+    "question": "What is an abstract in a patent specification?",
+    "ground_truth": "An abstract in a patent specification is a brief summary (typically 150 words or less) of the technical disclosure. It provides a quick overview of the invention's field, problem solved, and main features. The abstract helps patent examiners and searchers quickly understand the invention's nature without reading the full specification.",
+    "category": "patent_drafting",
+    "expected_sources": ["Patent-Specification-Claims-Drafting.pdf", "1.-Abstract_Nalupa_Sample Software.pdf"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "specification"
+    }
+  },
+  {
+    "id": "eval_033",
+    "question": "What is a deed of assignment in patent applications?",
+    "ground_truth": "A deed of assignment is a legal document transferring ownership rights of an invention from the inventor to another party, such as an employer or company. It is required when the patent applicant is different from the inventor. The deed establishes the legal chain of ownership and must be submitted with the patent application.",
+    "category": "legal",
+    "expected_sources": ["DEED OF ASSIGNMENT_2026.docx"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "ownership"
+    }
+  },
+  {
+    "id": "eval_034",
+    "question": "What happens if an invention is not new?",
+    "ground_truth": "If an invention is not new or already forms part of prior art, it cannot be patented. An invention is not considered new if it has been publicly disclosed or published before the filing date.",
+    "category": "patent_process",
+    "expected_sources": ["Patentability-Requirements-June-25.pdf", "IP-System-June-25_2024.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "novelty"
+    }
+  },
+  {
+    "id": "eval_035",
+    "question": "What types of intellectual property are discussed in the TPCO documents?",
+    "ground_truth": "The TPCO documents discuss patents, utility models, industrial designs, trademarks, and copyright as types of intellectual property.",
+    "category": "ip_basics",
+    "expected_sources": ["IP-System-June-25_2024.pdf"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "ip_types"
+    }
+  },
+  {
+    "id": "eval_036",
+    "question": "What is a patent validity search?",
+    "ground_truth": "A patent validity search (also called invalidity or opposition search) is conducted to determine if a patent can be invalidated by finding prior art that was not considered during examination.",
+    "category": "patent_search",
+    "expected_sources": ["1-Patent Over and Patent-Information - 06-25-2024.pdf", "Patent-Search-Strategies-UPDATED.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "validity_search"
+    }
+  },
+  {
+    "id": "eval_037",
+    "question": "What is the patent examination process in the Philippines?",
+    "ground_truth": "The Philippine patent examination process includes: (1) Filing with required documents and fees, (2) Formality examination to check completeness, (3) Publication in the IPOPHL e-Gazette after 18 months, (4) Substantive examination assessing novelty, inventive step, and industrial applicability, (5) Office actions requiring responses, and (6) Grant or refusal decision.",
+    "category": "patent_process",
+    "expected_sources": ["IP-Procedure-.pdf", "USTP-TPCO_IP Application  Process and Requirements.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "examination"
+    }
+  },
+  {
+    "id": "eval_038",
+    "question": "What is industrial design protection?",
+    "ground_truth": "Industrial design protection covers the ornamental or aesthetic aspects of an article, including shape, pattern, color, or combination thereof. It protects how a product looks, not how it works. In the Philippines, industrial designs are registered with IPOPHL and protected for 5 years, renewable for two consecutive 5-year periods.",
+    "category": "ip_basics",
+    "expected_sources": ["IP-System-June-25_2024.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "industrial_design"
+    }
+  },
+  {
+    "id": "eval_039",
+    "question": "What is the difference between national and international patent filing?",
+    "ground_truth": "National patent filing provides protection only in the country where filed. International filing through the PCT (Patent Cooperation Treaty) allows filing a single application that can be pursued in multiple member countries. PCT provides a unified procedure, extended timeline for national phase entry (30-31 months), and centralized search and examination.",
+    "category": "patent_process",
+    "expected_sources": ["IP-Procedure-.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "international_patents"
+    }
+  },
+  {
+    "id": "eval_040",
+    "question": "What are the annual maintenance fees for patents?",
+    "ground_truth": "Annual maintenance fees (annuities) are payments required to keep a patent in force. In the Philippines, annual fees start from the 5th year after filing. Failure to pay results in patent expiration. Fees increase progressively each year. Small entities may qualify for reduced fees upon submission of proof.",
+    "category": "procedures",
+    "expected_sources": ["USTP-TPCO_IP Application  Process and Requirements.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "maintenance"
+    }
+  },
+  {
+    "id": "eval_041",
+    "question": "What is a patent specification drawing?",
+    "ground_truth": "Patent specification drawings are visual representations of the invention that illustrate its features and embodiments. They are required when necessary to understand the invention. Drawings must meet formal requirements including proper labeling with reference numerals, clear lines, and consistent numbering. They help explain complex inventions and support the claims.",
+    "category": "patent_drafting",
+    "expected_sources": ["Patent-Drawing - 06-25-2024 - with exercise.pdf", "4.-Patent-Drawing_Nalupa_Sample Software.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "drawings"
+    }
+  },
+  {
+    "id": "eval_042",
+    "question": "What is the purpose of a patent search report?",
+    "ground_truth": "A patent search report summarizes findings from searching prior art to determine if an invention is patentable. It helps identify existing patents and publications that may affect the patentability of the invention.",
+    "category": "patent_search",
+    "expected_sources": ["1-Patent Over and Patent-Information - 06-25-2024.pdf", "Patent-Search-Report-Template.docx"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "search_report"
+    }
+  },
+  {
+    "id": "eval_043",
+    "question": "What is the role of claims in determining patent scope?",
+    "ground_truth": "Claims define the legal boundaries of patent protection. Each claim must be read as a whole to determine coverage. Independent claims stand alone, while dependent claims reference and further limit independent claims. Broader claims cover more variations but are more vulnerable to prior art. Narrower claims are harder to invalidate but offer less protection.",
+    "category": "patent_drafting",
+    "expected_sources": ["Patent-Specification-Claims-Drafting.pdf"],
+    "metadata": {
+      "difficulty": "hard",
+      "domain": "claims_interpretation"
+    }
+  },
+  {
+    "id": "eval_044",
+    "question": "What is a technology utilization plan?",
+    "ground_truth": "A technology utilization plan is a strategic document outlining how a technology will be developed, protected, and commercialized. It includes market analysis, IP protection strategy, licensing approach, revenue projections, and implementation timeline. TPCO helps researchers prepare these plans to maximize the impact of their innovations.",
+    "category": "tech_transfer",
+    "expected_sources": ["Technology_Utilization_Plan_Template.docx"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "utilization_plan"
+    }
+  },
+  {
+    "id": "eval_045",
+    "question": "What is the difference between copyright and patent for software?",
+    "ground_truth": "Copyright protects the specific code and expression of software as a literary work, preventing copying but not independent development. Patent protects the underlying technical innovation or method, covering any implementation of the invention. Copyright arises automatically while patents require examination. Patents offer stronger protection but are harder to obtain for software.",
+    "category": "ip_basics",
+    "expected_sources": ["IP-System-June-25_2024.pdf", "1.-Abstract_Nalupa_Sample Software.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "software_ip"
+    }
+  },
+  {
+    "id": "eval_046",
+    "question": "How can researchers benefit from IP protection?",
+    "ground_truth": "Researchers benefit from IP protection through: (1) Recognition and credit for innovations, (2) Revenue from licensing agreements, (3) Startup opportunities based on patented technology, (4) Enhanced research funding and partnerships, (5) Technology transfer opportunities, and (6) Career advancement through documented innovation portfolio.",
+    "category": "services",
+    "expected_sources": ["Technology-Transfer-June-25_2024.pdf"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "researcher_benefits"
+    }
+  },
+  {
+    "id": "eval_047",
+    "question": "What is the Nice Classification system for trademarks?",
+    "ground_truth": "The Nice Classification system categorizes goods and services into 45 classes for trademark registration. Classes 1-34 cover goods and classes 35-45 cover services.",
+    "category": "procedures",
+    "expected_sources": ["TRADEMARK CLASSIFICATION.pdf", "IP-System-June-25_2024.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "trademark_classification"
+    }
+  },
+  {
+    "id": "eval_048",
+    "question": "What is the patent grace period?",
+    "ground_truth": "The patent grace period allows inventors to file a patent application within a specified time (typically 6-12 months) after public disclosure without losing novelty. In the Philippines, a 12-month grace period applies for disclosures made by the inventor or derived from them. However, relying on the grace period is risky as rules vary by country.",
+    "category": "patent_process",
+    "expected_sources": ["Patentability-Requirements-June-25.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "grace_period"
+    }
+  },
+  {
+    "id": "eval_049",
+    "question": "What documentation is needed for copyright registration?",
+    "ground_truth": "Copyright registration requires: (1) Completed IPOPHL Form 300, (2) Two copies of the work (for published works) or deposit copy (for unpublished), (3) Affidavit of ownership or deed of assignment, (4) Proof of publication if applicable, (5) Power of attorney if filed through representative, and (6) Payment of required fees.",
+    "category": "procedures",
+    "expected_sources": ["IPOPHLFillableForm300.pdf", "Copyright Registry Enrollment Form 2025.pdf"],
+    "metadata": {
+      "difficulty": "medium",
+      "domain": "copyright_docs"
+    }
+  },
+  {
+    "id": "eval_050",
+    "question": "What services does the ITSOS provide?",
+    "ground_truth": "The Intellectual Property and Technology Support Office (ITSOS) provides services including IP consultations, technology assessment, patent drafting assistance, prior art searches, technology transfer facilitation, and training programs. ITSOS operates under TPCO and serves as the primary contact for researchers seeking IP protection and commercialization support.",
+    "category": "services",
+    "expected_sources": ["DPM-USTP-TPCO-001-ITSU.pdf", "ITSOS REQUEST FORM.docx"],
+    "metadata": {
+      "difficulty": "easy",
+      "domain": "itsos_services"
+    }
+  }
+]

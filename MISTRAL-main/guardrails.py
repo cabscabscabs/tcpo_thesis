@@ -41,6 +41,7 @@ OFFICE_KEYWORDS = {
     "fire drill", "emergency", "evacuation", "first aid", "safety",
     # USTP/TPCO specific
     "ustp", "tpco", "technology", "innovation", "research", "r&d",
+    "success stories", "success story", "partnership", "commercialize",
     # Conversation starters (allow greetings/help requests)
     "hello", "hi", "hey", "help", "what can you do", "what do you do",
     "how can you help", "assist", "support", "question", "ask",
