@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2, Search, Filter, X, Bell, Check, BellOff } from "lucide-react";
+import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2, Search, Filter, X, Bell, Check, BellOff, FileUp, FileDown, EyeIcon } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { PatentAnalyticsCard } from "@/components/admin/PatentAnalyticsCard";
 
 
 
@@ -33,6 +34,15 @@ const Admin = () => {
   // Patent filtering state
   const [patentSearchTerm, setPatentSearchTerm] = useState('');
   const [patentFieldFilter, setPatentFieldFilter] = useState('all');
+  
+  // Patent bulk upload and download state
+  const [showDownloadDialog, setShowDownloadDialog] = useState(false);
+  const [selectedPatentFields, setSelectedPatentFields] = useState<string[]>(['title', 'patentId', 'inventors', 'field', 'status', 'year']);
+  const [isUploading, setIsUploading] = useState(false);
+  
+  // Patent pagination state
+  const [patentCurrentPage, setPatentCurrentPage] = useState(1);
+  const patentsPerPage = 5;
 
   // Patent form state for "Add New Patent" section
   const [patentForm, setPatentForm] = useState({
@@ -544,6 +554,10 @@ const Admin = () => {
   const [serviceRequestTab, setServiceRequestTab] = useState('active');
   const [showServiceRequestModal, setShowServiceRequestModal] = useState(false);
   const [viewingServiceRequest, setViewingServiceRequest] = useState<any>(null);
+  
+  // Service Requests search and filter
+  const [serviceRequestSearch, setServiceRequestSearch] = useState('');
+  const [serviceRequestStatusFilter, setServiceRequestStatusFilter] = useState<string>('all');
 
   // Homepage content management
   const [homepageContent, setHomepageContent] = useState({
@@ -1894,6 +1908,171 @@ Article Details:
       window.dispatchEvent(new Event('storage'));
       // Note: Activity is logged automatically by database trigger
       alert(`Patent "${title}" has been deleted successfully!`);
+    }
+  };
+
+  // Patent CSV Download Functions
+  const patentFields = [
+    { key: 'title', label: 'Title', default: true },
+    { key: 'patentId', label: 'Patent ID', default: true },
+    { key: 'inventors', label: 'Inventors', default: true },
+    { key: 'field', label: 'Field', default: true },
+    { key: 'status', label: 'Status', default: true },
+    { key: 'year', label: 'Year', default: true },
+    { key: 'description', label: 'Description', default: false },
+    { key: 'abstract', label: 'Abstract', default: false },
+  ];
+
+  const handleDownloadCSV = () => {
+    // Filter patents based on current search/filter
+    const filteredPatents = patents.filter((patent) => {
+      const matchesSearch = !patentSearchTerm || 
+        patent.title?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+        patent.patentId?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+        patent.inventors?.toLowerCase().includes(patentSearchTerm.toLowerCase());
+      
+      const matchesField = patentFieldFilter === 'all' || 
+        patent.field?.toLowerCase() === patentFieldFilter.toLowerCase();
+      
+      return matchesSearch && matchesField;
+    });
+
+    if (filteredPatents.length === 0) {
+      alert('No patents to download based on current filters.');
+      return;
+    }
+
+    // Create CSV header
+    const headers = selectedPatentFields.map(field => {
+      const fieldConfig = patentFields.find(f => f.key === field);
+      return fieldConfig?.label || field;
+    });
+
+    // Create CSV rows
+    const rows = filteredPatents.map(patent => {
+      return selectedPatentFields.map(field => {
+        const value = patent[field];
+        // Escape quotes and wrap in quotes if contains comma
+        if (value === null || value === undefined) return '';
+        const stringValue = String(value);
+        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+      });
+    });
+
+    // Combine header and rows
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `patents_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setShowDownloadDialog(false);
+  };
+
+  const togglePatentField = (fieldKey: string) => {
+    setSelectedPatentFields(prev => {
+      if (prev.includes(fieldKey)) {
+        return prev.filter(f => f !== fieldKey);
+      }
+      return [...prev, fieldKey];
+    });
+  };
+
+  // Patent CSV Upload Function
+  const handleCSVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        alert('CSV file is empty or invalid.');
+        return;
+      }
+
+      // Parse header
+      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+      
+      // Required fields
+      const requiredFields = ['title', 'field'];
+      const missingFields = requiredFields.filter(field => !headers.includes(field));
+      
+      if (missingFields.length > 0) {
+        alert(`Missing required fields: ${missingFields.join(', ')}`);
+        return;
+      }
+
+      // Parse data rows
+      const patentsToInsert = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+        const patent: any = {};
+        
+        headers.forEach((header, index) => {
+          patent[header] = values[index] || '';
+        });
+
+        // Set defaults
+        patent.status = patent.status || 'Pending';
+        patent.year = patent.year || new Date().getFullYear().toString();
+        
+        patentsToInsert.push(patent);
+      }
+
+      // Insert patents
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const patent of patentsToInsert) {
+        const { error } = await supabase
+          .from('admin_patents')
+          .insert([{
+            title: patent.title,
+            patent_number: patent.patentId || null,
+            inventors: patent.inventors || null,
+            field: patent.field,
+            description: patent.description || null,
+            abstract: patent.abstract || null,
+            status: patent.status,
+            year: patent.year,
+            published: false
+          }]);
+
+        if (error) {
+          console.error('Error inserting patent:', error);
+          errorCount++;
+        } else {
+          successCount++;
+        }
+      }
+
+      loadPatents();
+      
+      if (errorCount > 0) {
+        alert(`Upload complete: ${successCount} patents added, ${errorCount} failed.`);
+      } else {
+        alert(`Successfully uploaded ${successCount} patents!`);
+      }
+    } catch (error) {
+      console.error('Error parsing CSV:', error);
+      alert('Error parsing CSV file. Please check the format.');
+    } finally {
+      setIsUploading(false);
+      // Reset file input
+      event.target.value = '';
     }
   };
 
@@ -3847,15 +4026,239 @@ Article Details:
           <TabsContent value="patents" className="space-y-6" id="patents-section">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">Patent Management</h2>
-              <Button variant="ustp">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Patent
-              </Button>
             </div>
+
+            {/* Patent Analytics Summary Card */}
+            <PatentAnalyticsCard patents={patents} />
             
+            {/* Existing Patents - Now First */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Existing Patents ({patents.length})</CardTitle>
+                    <CardDescription>Manage and edit your patent portfolio</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    {/* Bulk Upload Button */}
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept=".csv"
+                        onChange={handleCSVUpload}
+                        disabled={isUploading}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        id="csv-upload"
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        disabled={isUploading}
+                        className="relative"
+                      >
+                        {isUploading ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <FileUp className="mr-2 h-4 w-4" />
+                        )}
+                        {isUploading ? 'Uploading...' : 'Bulk Upload CSV'}
+                      </Button>
+                    </div>
+                    
+                    {/* Download Button */}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowDownloadDialog(true)}
+                    >
+                      <FileDown className="mr-2 h-4 w-4" />
+                      Download CSV
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Search and Filter */}
+                <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search patents by title, ID, or inventor..."
+                      value={patentSearchTerm}
+                      onChange={(e) => {
+                        setPatentSearchTerm(e.target.value);
+                        setPatentCurrentPage(1);
+                      }}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Select value={patentFieldFilter} onValueChange={(value) => {
+                    setPatentFieldFilter(value);
+                    setPatentCurrentPage(1);
+                  }}>
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filter by field" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Fields</SelectItem>
+                      <SelectItem value="agriculture">Agriculture</SelectItem>
+                      <SelectItem value="materials">Materials Science</SelectItem>
+                      <SelectItem value="food">Food Technology</SelectItem>
+                      <SelectItem value="engineering">Engineering</SelectItem>
+                      <SelectItem value="biotechnology">Biotechnology</SelectItem>
+                      <SelectItem value="information-technology">Information Technology</SelectItem>
+                      <SelectItem value="environmental-science">Environmental Science</SelectItem>
+                      <SelectItem value="energy">Energy Technology</SelectItem>
+                      <SelectItem value="medical">Medical Technology</SelectItem>
+                      <SelectItem value="chemical">Chemical Engineering</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {(patentSearchTerm || patentFieldFilter !== 'all') && (
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => {
+                        setPatentSearchTerm('');
+                        setPatentFieldFilter('all');
+                        setPatentCurrentPage(1);
+                      }}
+                      title="Clear filters"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {(() => {
+                    // Filter patents
+                    const filteredPatents = patents.filter((patent) => {
+                      const matchesSearch = !patentSearchTerm || 
+                        patent.title?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+                        patent.patentId?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+                        patent.inventors?.toLowerCase().includes(patentSearchTerm.toLowerCase());
+                      
+                      const matchesField = patentFieldFilter === 'all' || 
+                        patent.field?.toLowerCase() === patentFieldFilter.toLowerCase();
+                      
+                      return matchesSearch && matchesField;
+                    });
+
+                    // Pagination logic
+                    const totalPages = Math.ceil(filteredPatents.length / patentsPerPage);
+                    const startIndex = (patentCurrentPage - 1) * patentsPerPage;
+                    const paginatedPatents = filteredPatents.slice(startIndex, startIndex + patentsPerPage);
+
+                    if (filteredPatents.length === 0) {
+                      return (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>No patents match your search criteria.</p>
+                          {(patentSearchTerm || patentFieldFilter !== 'all') && (
+                            <Button 
+                              variant="outline" 
+                              className="mt-4"
+                              onClick={() => {
+                                setPatentSearchTerm('');
+                                setPatentFieldFilter('all');
+                                setPatentCurrentPage(1);
+                              }}
+                            >
+                              Clear Filters
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <>
+                        {/* Patent List */}
+                        <div className="space-y-4">
+                          {paginatedPatents.map((patent) => (
+                            <div key={patent.id} className="flex items-center justify-between p-4 border rounded-lg">
+                              <div>
+                                <h3 className="font-semibold">{patent.title}</h3>
+                                <div className="flex gap-2 mt-2">
+                                  <Badge variant={patent.status === "Granted" ? "default" : "secondary"}>
+                                    {patent.status}
+                                  </Badge>
+                                  <Badge variant="outline">{patent.field}</Badge>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleEditPatent(patent)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleDeletePatent(patent.id, patent.title)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                          <div className="flex items-center justify-between pt-4 border-t">
+                            <div className="text-sm text-muted-foreground">
+                              Showing {startIndex + 1}-{Math.min(startIndex + patentsPerPage, filteredPatents.length)} of {filteredPatents.length} patents
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setPatentCurrentPage(prev => Math.max(1, prev - 1))}
+                                disabled={patentCurrentPage === 1}
+                              >
+                                Previous
+                              </Button>
+                              
+                              <div className="flex items-center gap-1">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                  <Button
+                                    key={page}
+                                    variant={patentCurrentPage === page ? "ustp" : "outline"}
+                                    size="sm"
+                                    className="w-8 h-8 p-0"
+                                    onClick={() => setPatentCurrentPage(page)}
+                                  >
+                                    {page}
+                                  </Button>
+                                ))}
+                              </div>
+                              
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setPatentCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                disabled={patentCurrentPage === totalPages}
+                              >
+                                Next
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Add New Patent - Now Second */}
             <Card>
               <CardHeader>
                 <CardTitle>Add New Patent</CardTitle>
+                <CardDescription>Add a new patent to the portfolio</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3959,131 +4362,10 @@ Article Details:
                     onChange={(e) => setPatentForm({...patentForm, abstract: e.target.value})}
                   />
                 </div>
-                <Button variant="ustp" onClick={handleSavePatent}>Save Patent</Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Existing Patents ({patents.length})</CardTitle>
-                <CardDescription>Manage and edit your patent portfolio</CardDescription>
-                
-                {/* Search and Filter */}
-                <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input
-                      placeholder="Search patents by title, ID, or inventor..."
-                      value={patentSearchTerm}
-                      onChange={(e) => setPatentSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Select value={patentFieldFilter} onValueChange={setPatentFieldFilter}>
-                    <SelectTrigger className="w-full sm:w-[200px]">
-                      <Filter className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder="Filter by field" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Fields</SelectItem>
-                      <SelectItem value="agriculture">Agriculture</SelectItem>
-                      <SelectItem value="materials">Materials Science</SelectItem>
-                      <SelectItem value="food">Food Technology</SelectItem>
-                      <SelectItem value="engineering">Engineering</SelectItem>
-                      <SelectItem value="biotechnology">Biotechnology</SelectItem>
-                      <SelectItem value="information-technology">Information Technology</SelectItem>
-                      <SelectItem value="environmental-science">Environmental Science</SelectItem>
-                      <SelectItem value="energy">Energy Technology</SelectItem>
-                      <SelectItem value="medical">Medical Technology</SelectItem>
-                      <SelectItem value="chemical">Chemical Engineering</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {(patentSearchTerm || patentFieldFilter !== 'all') && (
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => {
-                        setPatentSearchTerm('');
-                        setPatentFieldFilter('all');
-                      }}
-                      title="Clear filters"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {patents
-                    .filter((patent) => {
-                      const matchesSearch = !patentSearchTerm || 
-                        patent.title?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
-                        patent.patentId?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
-                        patent.inventors?.toLowerCase().includes(patentSearchTerm.toLowerCase());
-                      
-                      const matchesField = patentFieldFilter === 'all' || 
-                        patent.field?.toLowerCase() === patentFieldFilter.toLowerCase();
-                      
-                      return matchesSearch && matchesField;
-                    })
-                    .map((patent) => (
-                    <div key={patent.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h3 className="font-semibold">{patent.title}</h3>
-                        <div className="flex gap-2 mt-2">
-                          <Badge variant={patent.status === "Granted" ? "default" : "secondary"}>
-                            {patent.status}
-                          </Badge>
-                          <Badge variant="outline">{patent.field}</Badge>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEditPatent(patent)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDeletePatent(patent.id, patent.title)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  {patents.filter((patent) => {
-                    const matchesSearch = !patentSearchTerm || 
-                      patent.title?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
-                      patent.patentId?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
-                      patent.inventors?.toLowerCase().includes(patentSearchTerm.toLowerCase());
-                    
-                    const matchesField = patentFieldFilter === 'all' || 
-                      patent.field?.toLowerCase() === patentFieldFilter.toLowerCase();
-                    
-                    return matchesSearch && matchesField;
-                  }).length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p>No patents match your search criteria.</p>
-                      {(patentSearchTerm || patentFieldFilter !== 'all') && (
-                        <Button 
-                          variant="outline" 
-                          className="mt-4"
-                          onClick={() => {
-                            setPatentSearchTerm('');
-                            setPatentFieldFilter('all');
-                          }}
-                        >
-                          Clear Filters
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <Button variant="ustp" onClick={handleSavePatent}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Save Patent
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -4178,82 +4460,138 @@ Article Details:
               <TabsContent value="active" className="space-y-4 mt-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Additional Service Requests</CardTitle>
-                    <CardDescription>
-                      Active requests submitted through the Additional Services page
-                    </CardDescription>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div>
+                        <CardTitle>Additional Service Requests</CardTitle>
+                        <CardDescription>
+                          Active requests submitted through the Additional Services page
+                        </CardDescription>
+                      </div>
+                    </div>
+                    
+                    {/* Search and Filter Controls */}
+                    <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                          placeholder="Search by name, service, or organization..."
+                          value={serviceRequestSearch}
+                          onChange={(e) => setServiceRequestSearch(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                      <Select value={serviceRequestStatusFilter} onValueChange={(value: string) => setServiceRequestStatusFilter(value)}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                          <Filter className="h-4 w-4 mr-2" />
+                          <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Statuses</SelectItem>
+                          <SelectItem value="Pending">Pending</SelectItem>
+                          <SelectItem value="In Progress">In Progress</SelectItem>
+                          <SelectItem value="Completed">Completed</SelectItem>
+                          <SelectItem value="Cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {(serviceRequestSearch || serviceRequestStatusFilter !== 'all') && (
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          onClick={() => {
+                            setServiceRequestSearch('');
+                            setServiceRequestStatusFilter('all');
+                          }}
+                          title="Clear filters"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
-                    {serviceRequests.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>No active service requests.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {serviceRequests.map((request) => (
-                          <div key={request.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h3 className="font-semibold text-lg">{request.name}</h3>
+                    {(() => {
+                      // Filter service requests
+                      let filteredRequests = serviceRequests.filter((request) => {
+                        // Search filter
+                        const searchLower = serviceRequestSearch.toLowerCase();
+                        const matchesSearch = 
+                          request.name?.toLowerCase().includes(searchLower) ||
+                          request.serviceTitle?.toLowerCase().includes(searchLower) ||
+                          request.organization?.toLowerCase().includes(searchLower) ||
+                          request.email?.toLowerCase().includes(searchLower);
+                        
+                        // Status filter
+                        const matchesStatus = 
+                          serviceRequestStatusFilter === 'all' || 
+                          request.status === serviceRequestStatusFilter;
+                        
+                        return matchesSearch && matchesStatus;
+                      });
+
+                      // Sort by newest first by default
+                      filteredRequests = [...filteredRequests].sort((a, b) => {
+                        return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+                      });
+
+                      if (filteredRequests.length === 0) {
+                        return (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <p>No service requests match your search.</p>
+                            {serviceRequestSearch && (
+                              <Button 
+                                variant="outline" 
+                                className="mt-4"
+                                onClick={() => setServiceRequestSearch('')}
+                              >
+                                Clear Search
+                              </Button>
+                            )}
+                          </div>
+                        ) as any;
+                      }
+
+                      return (
+                        <div className="space-y-3">
+                          <div className="text-sm text-gray-500 mb-2">
+                            Showing {filteredRequests.length} of {serviceRequests.length} requests
+                          </div>
+                          {filteredRequests.map((request) => (
+                          <div key={request.id} className="border rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center justify-between gap-4">
+                              {/* Compact Info */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-semibold truncate">{request.name}</h3>
                                   <Badge 
                                     variant={request.status === 'Pending' ? 'secondary' : 
                                             request.status === 'In Progress' ? 'default' : 'outline'}
+                                    className="text-xs shrink-0"
                                   >
                                     {request.status}
                                   </Badge>
                                 </div>
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                  <div>
-                                    <span className="font-medium text-gray-600">Service:</span>
-                                    <p>{request.serviceTitle}</p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium text-gray-600">Organization:</span>
-                                    <p>{request.organization}</p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium text-gray-600">Email:</span>
-                                    <p>{request.email}</p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium text-gray-600">Phone:</span>
-                                    <p>{request.phone}</p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium text-gray-600">Participants:</span>
-                                    <p>{request.participants} people</p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium text-gray-600">Budget:</span>
-                                    <p>{request.budget?.replace('-', ' - ₱').replace('k', ',000')}</p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium text-gray-600">Timeline:</span>
-                                    <p>{request.timeline?.replace('-', ' ').replace('asap', 'ASAP')}</p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium text-gray-600">Preferred Date:</span>
-                                    <p>{request.preferredDate}</p>
-                                  </div>
-                                </div>
-                                
-                                {request.specificNeeds && (
-                                  <div className="mt-3">
-                                    <span className="font-medium text-gray-600">Specific Needs:</span>
-                                    <p className="text-sm text-gray-700 mt-1 bg-gray-50 p-2 rounded">
-                                      {request.specificNeeds}
-                                    </p>
-                                  </div>
-                                )}
-                                
-                                <div className="mt-2 text-xs text-gray-500">
-                                  Submitted: {new Date(request.submittedAt).toLocaleString()}
-                                </div>
+                                <p className="text-sm text-gray-600 truncate">
+                                  <span className="font-medium">Service:</span> {request.serviceTitle}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {request.organization} • {new Date(request.submittedAt).toLocaleDateString()}
+                                </p>
                               </div>
                               
-                              <div className="flex flex-col gap-2">
+                              {/* Action Buttons */}
+                              <div className="flex items-center gap-2 shrink-0">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setViewingServiceRequest(request);
+                                    setShowServiceRequestModal(true);
+                                  }}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
+                                </Button>
+                                
                                 <Select 
                                   value={request.status} 
                                   onValueChange={async (value) => {
@@ -4266,7 +4604,6 @@ Article Details:
                                       .update({ status: value })
                                       .eq('id', String(request.id));
                                     logActivity('service', 'updated status', request.serviceTitle);
-                                    // If status is Completed or Done, offer to archive
                                     if (value === 'Completed' || value === 'Done') {
                                       if (confirm('Mark this request as complete and move to logs?')) {
                                         await handleArchiveRequest(request.id, true);
@@ -4274,7 +4611,7 @@ Article Details:
                                     }
                                   }}
                                 >
-                                  <SelectTrigger className="w-32">
+                                  <SelectTrigger className="w-28 h-8 text-xs">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -4288,17 +4625,18 @@ Article Details:
                                 
                                 <Button 
                                   variant="outline" 
-                                  size="sm"
+                                  size="icon"
+                                  className="h-8 w-8"
                                   onClick={() => handleArchiveRequest(request.id, true)}
-                                  title="Archive to logs"
+                                  title="Archive"
                                 >
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                  Archive
+                                  <CheckCircle className="h-4 w-4" />
                                 </Button>
                                 
                                 <Button 
                                   variant="outline" 
-                                  size="sm"
+                                  size="icon"
+                                  className="h-8 w-8 text-red-600 hover:text-red-700"
                                   onClick={async () => {
                                     if (confirm('Are you sure you want to delete this service request?')) {
                                       await supabase
@@ -4316,8 +4654,9 @@ Article Details:
                             </div>
                           </div>
                         ))}
-                      </div>
-                    )}
+                        </div>
+                      );
+                    })()}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -5512,6 +5851,72 @@ Article Details:
         </DialogContent>
       </Dialog>
 
+      {/* Patent Download Dialog */}
+      <Dialog open={showDownloadDialog} onOpenChange={setShowDownloadDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Download Patent Portfolio</DialogTitle>
+            <DialogDescription>
+              Select which fields to include in the CSV export. The download will include patents matching your current filters.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="text-sm text-muted-foreground mb-2">
+              Patents to export: {patents.filter((patent) => {
+                const matchesSearch = !patentSearchTerm || 
+                  patent.title?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+                  patent.patentId?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+                  patent.inventors?.toLowerCase().includes(patentSearchTerm.toLowerCase());
+                const matchesField = patentFieldFilter === 'all' || 
+                  patent.field?.toLowerCase() === patentFieldFilter.toLowerCase();
+                return matchesSearch && matchesField;
+              }).length}
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Select Fields to Include:</Label>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {patentFields.map((field) => (
+                  <div key={field.key} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`field-${field.key}`}
+                      checked={selectedPatentFields.includes(field.key)}
+                      onChange={() => togglePatentField(field.key)}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <Label htmlFor={`field-${field.key}`} className="text-sm cursor-pointer">
+                      {field.label}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
+              <p className="font-medium">CSV Format</p>
+              <p className="mt-1">Required columns for upload: title, field</p>
+              <p>Optional columns: patentId, inventors, status, year, description, abstract</p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDownloadDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="ustp" 
+              onClick={handleDownloadCSV}
+              disabled={selectedPatentFields.length === 0}
+            >
+              <FileDown className="mr-2 h-4 w-4" />
+              Download CSV
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Event Edit Modal */}
       <Dialog open={showEventModal} onOpenChange={setShowEventModal}>
         <DialogContent className="max-w-2xl">
@@ -6591,6 +6996,165 @@ Article Details:
             <Button variant="outline" onClick={() => setShowActivityModal(false)}>
               Close
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Service Request Detail Modal */}
+      <Dialog open={showServiceRequestModal} onOpenChange={setShowServiceRequestModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Service Request Details</DialogTitle>
+            <DialogDescription>
+              Complete information about this service request.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {viewingServiceRequest && (
+            <div className="space-y-6">
+              {/* Header Info */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-100">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-bold text-lg text-blue-900">{viewingServiceRequest.name}</h3>
+                  <Badge 
+                    variant={viewingServiceRequest.status === 'Pending' ? 'secondary' : 
+                            viewingServiceRequest.status === 'In Progress' ? 'default' : 'outline'}
+                    className="text-sm"
+                  >
+                    {viewingServiceRequest.status}
+                  </Badge>
+                </div>
+                <p className="text-blue-700 font-medium">{viewingServiceRequest.serviceTitle}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Submitted: {new Date(viewingServiceRequest.submittedAt).toLocaleString()}
+                </p>
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <Users className="h-4 w-4 text-blue-600" />
+                  Contact Information
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+                  <div>
+                    <span className="text-sm text-gray-500">Email</span>
+                    <p className="font-medium">{viewingServiceRequest.email}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Phone</span>
+                    <p className="font-medium">{viewingServiceRequest.phone || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Organization</span>
+                    <p className="font-medium">{viewingServiceRequest.organization || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Position</span>
+                    <p className="font-medium">{viewingServiceRequest.position || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Service Details */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-blue-600" />
+                  Service Details
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+                  <div>
+                    <span className="text-sm text-gray-500">Number of Participants</span>
+                    <p className="font-medium">{viewingServiceRequest.participants} people</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Budget Range</span>
+                    <p className="font-medium">
+                      {viewingServiceRequest.budget 
+                        ? `₱${viewingServiceRequest.budget.replace('-', ' - ₱').replace('k', ',000')}`
+                        : 'Not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Timeline</span>
+                    <p className="font-medium">
+                      {viewingServiceRequest.timeline 
+                        ? viewingServiceRequest.timeline.replace('-', ' ').replace('asap', 'ASAP')
+                        : 'Not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Preferred Date</span>
+                    <p className="font-medium">{viewingServiceRequest.preferredDate || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Specific Needs */}
+              {viewingServiceRequest.specificNeeds && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-blue-600" />
+                    Specific Needs & Requirements
+                  </h4>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                      {viewingServiceRequest.specificNeeds}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Notes */}
+              {viewingServiceRequest.additionalNotes && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                    Additional Notes
+                  </h4>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                      {viewingServiceRequest.additionalNotes}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowServiceRequestModal(false);
+                setViewingServiceRequest(null);
+              }}
+            >
+              Close
+            </Button>
+            {viewingServiceRequest && (
+              <>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    setShowServiceRequestModal(false);
+                    handleArchiveRequest(viewingServiceRequest.id, true);
+                  }}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Archive Request
+                </Button>
+                <Button 
+                  variant="ustp"
+                  onClick={() => {
+                    window.location.href = `mailto:${viewingServiceRequest.email}?subject=Re: ${viewingServiceRequest.serviceTitle} Service Request`;
+                  }}
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Reply via Email
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
