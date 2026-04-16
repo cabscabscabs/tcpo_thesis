@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const chatRouter = require('./chatRouter');
+const facultyRoutes = require('./routes/facultyRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -64,6 +65,7 @@ app.use((req, res, next) => {
 
 // API routes
 app.use('/api', chatRouter);
+app.use('/api/faculty', facultyRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

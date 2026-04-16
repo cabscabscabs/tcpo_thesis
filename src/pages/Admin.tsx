@@ -13,10 +13,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2, Search, Filter, X, Bell, Check, BellOff } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 
 
 const Admin = () => {
+  const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -102,6 +104,11 @@ const Admin = () => {
             .single();
           
           if (!error && profile && (profile.role === 'admin' || profile.role === 'faculty')) {
+            if (profile.role === 'faculty') {
+              // Redirect faculty to faculty dashboard
+              navigate('/faculty');
+              return;
+            }
             setIsLoggedIn(true);
             setCurrentUserRole(profile.role);
           } else {
@@ -1126,7 +1133,14 @@ const Admin = () => {
           return;
         }
 
-        // Login successful
+        // Login successful - redirect based on role
+        if (profile.role === 'faculty') {
+          // Redirect faculty to faculty dashboard
+          navigate('/faculty');
+          return;
+        }
+        
+        // Admin stays on admin page
         setIsLoggedIn(true);
         setCurrentUserRole(profile.role);
         setLoginData({ username: "", password: "" });
@@ -2770,7 +2784,7 @@ Article Details:
                   )}
                 </ScrollArea>
                 {notifications.length > 0 && (
-                  <div className="p-2 border-t">
+                  <div className="p-2 border-t space-y-1">
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -2782,6 +2796,17 @@ Article Details:
                     >
                       <Check className="h-3 w-3 mr-1" />
                       Mark all as read
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full text-xs"
+                      onClick={() => {
+                        navigate('/notifications');
+                        setNotificationOpen(false);
+                      }}
+                    >
+                      View all notifications
                     </Button>
                   </div>
                 )}

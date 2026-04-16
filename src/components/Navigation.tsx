@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, FileText, Users, BookOpen, Info, Newspaper } from "lucide-react";
+import { Menu, X, FileText, Users, BookOpen, Info, Newspaper, LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Navigation = () => {
@@ -42,6 +42,15 @@ const Navigation = () => {
             <Button variant="gold" size="sm" onClick={() => navigate('/contact')}>
               Contact Us
             </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/admin')}
+              className="border-white text-white hover:bg-white hover:text-primary"
+            >
+              <LogIn className="h-4 w-4 mr-2" />
+              Login
+            </Button>
           </div>
 
           {/* Mobile menu button */}
@@ -74,9 +83,21 @@ const Navigation = () => {
                   </div>
                 </button>
               ))}
-              <div className="pt-2">
+              <div className="pt-2 space-y-2">
                 <Button variant="gold" size="sm" className="w-full" onClick={() => navigate('/contact')}>
                   Contact Us
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full border-white text-white hover:bg-white hover:text-primary"
+                  onClick={() => {
+                    navigate('/admin');
+                    setIsOpen(false);
+                  }}
+                >
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Login
                 </Button>
               </div>
             </div>

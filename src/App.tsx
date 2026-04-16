@@ -17,6 +17,10 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Events from "./pages/Events";
 import Admin from "./pages/Admin";
+import FacultyDashboard from "./pages/FacultyDashboard";
+import FacultyApplicationForm from "./pages/FacultyApplicationForm";
+import FacultyApplicationDetail from "./pages/FacultyApplicationDetail";
+import Notifications from "./pages/Notifications";
 import ChatDemo from "./pages/ChatDemo";
 import NotFound from "./pages/NotFound";
 import LatestNewsPage from "./pages/LatestNewsPage";
@@ -49,6 +53,10 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/events" element={<Events />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/faculty" element={<FacultyDashboard />} />
+            <Route path="/faculty/applications/new" element={<FacultyApplicationForm />} />
+            <Route path="/faculty/applications/:id" element={<FacultyApplicationDetail />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/chat-demo" element={<ChatDemo />} />
             <Route path="/latest-news" element={<LatestNewsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
