@@ -18,9 +18,10 @@ import { useNavigate } from "react-router-dom";
 
 interface NotificationPanelProps {
   facultyId: string;
+  darkMode?: boolean;
 }
 
-export function NotificationPanel({ facultyId }: NotificationPanelProps) {
+export function NotificationPanel({ facultyId, darkMode = false }: NotificationPanelProps) {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<FacultyNotification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -120,7 +121,7 @@ export function NotificationPanel({ facultyId }: NotificationPanelProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="relative"
+        className={`relative ${darkMode ? 'text-white hover:bg-white/10' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <Bell className="h-5 w-5" />

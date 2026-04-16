@@ -33,59 +33,74 @@ export function StatsCards({ applications }: StatsCardsProps) {
       value: stats.total,
       icon: FileText,
       color: "text-blue-600",
-      bgColor: "bg-blue-50"
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
+      gradient: "from-blue-500/10 to-blue-600/5"
     },
     {
       title: "Drafts",
       value: stats.drafts,
       icon: Clock,
-      color: "text-gray-600",
-      bgColor: "bg-gray-50"
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
+      gradient: "from-slate-500/10 to-slate-600/5"
     },
     {
       title: "Pending Review",
       value: stats.pending,
       icon: AlertCircle,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-50"
+      color: "text-amber-600",
+      bgColor: "bg-amber-50",
+      borderColor: "border-amber-200",
+      gradient: "from-amber-500/10 to-amber-600/5"
     },
     {
       title: "Approved",
       value: stats.approved,
       icon: CheckCircle,
       color: "text-green-600",
-      bgColor: "bg-green-50"
+      bgColor: "bg-green-50",
+      borderColor: "border-green-200",
+      gradient: "from-green-500/10 to-green-600/5"
     },
     {
       title: "Filed to IPOPHL",
       value: stats.filed,
       icon: TrendingUp,
       color: "text-purple-600",
-      bgColor: "bg-purple-50"
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-200",
+      gradient: "from-purple-500/10 to-purple-600/5"
     },
     {
       title: "Granted",
       value: stats.granted,
       icon: Award,
       color: "text-emerald-600",
-      bgColor: "bg-emerald-50"
+      bgColor: "bg-emerald-50",
+      borderColor: "border-emerald-200",
+      gradient: "from-emerald-500/10 to-emerald-600/5"
     }
   ];
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       {cards.map((card) => (
-        <Card key={card.title} className="hover:shadow-md transition-shadow">
+        <Card 
+          key={card.title} 
+          className={`hover:shadow-lg transition-all duration-300 border-2 ${card.borderColor} bg-gradient-to-br ${card.gradient} overflow-hidden`}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className={`text-sm font-semibold ${card.color}`}>
               {card.title}
             </CardTitle>
-            <div className={`p-2 rounded-full ${card.bgColor}`}>
+            <div className={`p-2 rounded-full ${card.bgColor} shadow-sm`}>
               <card.icon className={`h-4 w-4 ${card.color}`} />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{card.value}</div>
+            <div className={`text-3xl font-bold ${card.color}`}>{card.value}</div>
           </CardContent>
         </Card>
       ))}

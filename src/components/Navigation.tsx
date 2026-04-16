@@ -43,10 +43,9 @@ const Navigation = () => {
               Contact Us
             </Button>
             <Button 
-              variant="outline" 
+              variant="gold" 
               size="sm" 
               onClick={() => navigate('/admin')}
-              className="border-white text-white hover:bg-white hover:text-primary"
             >
               <LogIn className="h-4 w-4 mr-2" />
               Login
@@ -88,9 +87,9 @@ const Navigation = () => {
                   Contact Us
                 </Button>
                 <Button 
-                  variant="outline" 
+                  variant="gold" 
                   size="sm" 
-                  className="w-full border-white text-white hover:bg-white hover:text-primary"
+                  className="w-full"
                   onClick={() => {
                     navigate('/admin');
                     setIsOpen(false);
