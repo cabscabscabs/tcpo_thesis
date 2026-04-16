@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const chatRouter = require('./chatRouter');
 const facultyRoutes = require('./routes/facultyRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -66,6 +67,7 @@ app.use((req, res, next) => {
 // API routes
 app.use('/api', chatRouter);
 app.use('/api/faculty', facultyRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
