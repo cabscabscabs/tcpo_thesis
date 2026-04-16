@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2, Search, Filter, X } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2, Search, Filter, X, Bell, Check, BellOff } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -79,6 +81,12 @@ const Admin = () => {
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityPage, setActivityPage] = useState(1);
   const ACTIVITIES_PER_PAGE = 5;
+
+  // Notification state
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [lastCheckedTime, setLastCheckedTime] = useState<string | null>(null);
   
   // Check session on component mount for auto-login
   useEffect(() => {
@@ -124,7 +132,44 @@ const Admin = () => {
   // Load recent activities from Supabase
   useEffect(() => {
     loadRecentActivities();
+    loadNotifications();
   }, []);
+
+  // Set up real-time subscription for new notifications
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const channel = supabase
+      .channel('activity_logs_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'activity_logs'
+        },
+        (payload) => {
+          // Add new notification
+          const newNotification = {
+            id: payload.new.id,
+            type: payload.new.activity_type,
+            action: payload.new.action,
+            title: payload.new.title,
+            description: payload.new.description,
+            timestamp: payload.new.created_at,
+            isRead: false
+          };
+          
+          setNotifications(prev => [newNotification, ...prev].slice(0, 20));
+          setUnreadCount(prev => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isLoggedIn]);
 
   const loadRecentActivities = async () => {
     try {
@@ -163,6 +208,92 @@ const Admin = () => {
         { id: 3, type: "service", action: "received", title: "Technology licensing inquiry", timestamp: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString() } // 30 hours ago
       ]);
     }
+  };
+
+  // Load notifications for the bell
+  const loadNotifications = async () => {
+    try {
+      // Get the last checked time from localStorage
+      const storedLastChecked = localStorage.getItem('admin_last_notification_check');
+      const lastChecked = storedLastChecked ? new Date(storedLastChecked) : new Date(Date.now() - 24 * 60 * 60 * 1000); // Default to 24 hours ago
+      setLastCheckedTime(storedLastChecked);
+
+      const { data, error } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) {
+        console.error('Error loading notifications:', error);
+        return;
+      }
+
+      if (data) {
+        const mappedNotifications = data.map((activity: any) => ({
+          id: activity.id,
+          type: activity.activity_type,
+          action: activity.action,
+          title: activity.title,
+          description: activity.description,
+          timestamp: activity.created_at,
+          isRead: storedLastChecked ? new Date(activity.created_at) <= new Date(storedLastChecked) : false
+        }));
+
+        setNotifications(mappedNotifications);
+        const unread = mappedNotifications.filter((n: any) => !n.isRead).length;
+        setUnreadCount(unread);
+      }
+    } catch (err) {
+      console.error('Unexpected error loading notifications:', err);
+    }
+  };
+
+  // Mark all notifications as read
+  const markAllNotificationsAsRead = () => {
+    const now = new Date().toISOString();
+    localStorage.setItem('admin_last_notification_check', now);
+    setLastCheckedTime(now);
+    setUnreadCount(0);
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+  };
+
+  // Mark single notification as read
+  const markNotificationAsRead = (notificationId: string) => {
+    setNotifications(prev => 
+      prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  };
+
+  // Get icon for notification type
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'news': return <FileText className="h-4 w-4 text-blue-500" />;
+      case 'technology':
+      case 'patent': return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'service': return <Wrench className="h-4 w-4 text-orange-500" />;
+      case 'user': return <Users className="h-4 w-4 text-purple-500" />;
+      case 'resource': return <BookOpen className="h-4 w-4 text-cyan-500" />;
+      case 'event': return <Calendar className="h-4 w-4 text-pink-500" />;
+      default: return <Bell className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  // Format relative time
+  const formatRelativeTime = (timestamp: string) => {
+    const now = new Date();
+    const date = new Date(timestamp);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return formatDate(timestamp);
   };
 
   // Load all activities for the modal (past logs)
@@ -2567,9 +2698,100 @@ Article Details:
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-ustp-blue">USTP TPCO Admin Panel</h1>
-                    <Button variant="outline" onClick={async () => { await supabase.auth.signOut(); setIsLoggedIn(false); }}>
-            Logout
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Notification Bell */}
+            <Popover open={notificationOpen} onOpenChange={(open) => {
+              setNotificationOpen(open);
+              if (open && unreadCount > 0) {
+                markAllNotificationsAsRead();
+              }
+            }}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="end">
+                <div className="flex items-center justify-between px-4 py-3 border-b">
+                  <h3 className="font-semibold">Notifications</h3>
+                  {notifications.length > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs h-7"
+                      onClick={() => {
+                        loadNotifications();
+                      }}
+                    >
+                      Refresh
+                    </Button>
+                  )}
+                </div>
+                <ScrollArea className="h-80">
+                  {notifications.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                      <BellOff className="h-8 w-8 mb-2" />
+                      <p className="text-sm">No notifications yet</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y">
+                      {notifications.map((notification) => (
+                        <div 
+                          key={notification.id}
+                          className={`px-4 py-3 hover:bg-muted/50 cursor-pointer transition-colors ${
+                            !notification.isRead ? 'bg-blue-50/50' : ''
+                          }`}
+                          onClick={() => markNotificationAsRead(notification.id)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="mt-0.5">
+                              {getNotificationIcon(notification.type)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm ${!notification.isRead ? 'font-medium' : ''}`}>
+                                {notification.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {notification.action} • {formatRelativeTime(notification.timestamp)}
+                              </p>
+                            </div>
+                            {!notification.isRead && (
+                              <div className="h-2 w-2 bg-blue-500 rounded-full mt-1.5" />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+                {notifications.length > 0 && (
+                  <div className="p-2 border-t">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full text-xs"
+                      onClick={() => {
+                        markAllNotificationsAsRead();
+                        setNotificationOpen(false);
+                      }}
+                    >
+                      <Check className="h-3 w-3 mr-1" />
+                      Mark all as read
+                    </Button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+            
+            <Button variant="outline" onClick={async () => { await supabase.auth.signOut(); setIsLoggedIn(false); }}>
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 
