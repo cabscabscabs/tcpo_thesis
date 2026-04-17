@@ -115,6 +115,13 @@ export default function FacultyApplicationForm() {
     }
   };
 
+  const handleStepClick = (stepId: number) => {
+    if (stepId < currentStep) {
+      setCurrentStep(stepId);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   const handleSaveDraft = async () => {
     setIsSaving(true);
     try {
@@ -216,18 +223,38 @@ export default function FacultyApplicationForm() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Step Indicator */}
         <div className="mb-8">
-          <StepIndicator steps={steps} currentStep={currentStep} />
+          <StepIndicator steps={steps} currentStep={currentStep} onStepClick={handleStepClick} />
         </div>
 
         {/* Form */}
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Card className="p-6 mb-6">
-              {renderStepContent()}
+            <Card className="shadow-sm border-t-4 border-t-blue-600 mb-6">
+              <div className="bg-gradient-to-r from-blue-50 to-white p-4 border-b">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {steps[currentStep - 1]?.title}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {steps[currentStep - 1]?.description}
+                    </p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm font-medium">
+                    <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs">
+                      {currentStep}
+                    </span>
+                    of {steps.length}
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                {renderStepContent()}
+              </div>
             </Card>
 
             {/* Navigation Buttons */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between bg-white rounded-lg border p-4">
               <div>
                 {currentStep > 1 && (
                   <Button
@@ -235,8 +262,9 @@ export default function FacultyApplicationForm() {
                     variant="outline"
                     onClick={handlePrevious}
                     disabled={isSubmitting || isSaving}
+                    className="gap-2"
                   >
-                    <ChevronLeft className="h-4 w-4 mr-2" />
+                    <ChevronLeft className="h-4 w-4" />
                     Previous
                   </Button>
                 )}
@@ -246,9 +274,10 @@ export default function FacultyApplicationForm() {
                 {/* Save Draft Button */}
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   onClick={handleSaveDraft}
                   disabled={isSaving || isSubmitting}
+                  className="text-gray-600"
                 >
                   <Save className="h-4 w-4 mr-2" />
                   {isSaving ? "Saving..." : "Save Draft"}
@@ -259,17 +288,18 @@ export default function FacultyApplicationForm() {
                     type="button"
                     onClick={handleNext}
                     disabled={isSubmitting || isSaving}
+                    className="bg-blue-600 hover:bg-blue-700 gap-2"
                   >
                     Next
-                    <ChevronRight className="h-4 w-4 ml-2" />
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
                 ) : (
                   <Button
                     type="submit"
                     disabled={isSubmitting || isSaving}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-green-600 hover:bg-green-700 gap-2"
                   >
-                    <Send className="h-4 w-4 mr-2" />
+                    <Send className="h-4 w-4" />
                     {isSubmitting ? "Submitting..." : "Submit Application"}
                   </Button>
                 )}
