@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Download, BookOpen, Video, FileText, Users, Calendar, ExternalLink, Clock, Loader2, CheckCircle, Info } from "lucide-react";
+import { Download, BookOpen, FileText, Users, Calendar, ExternalLink, Clock, Loader2, CheckCircle, Info } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,7 +27,7 @@ const formatTime = (timeString) => {
   }
 };
 
-const VALID_TABS = ["templates", "tutorials", "facilities", "guidelines"];
+const VALID_TABS = ["templates", "guidelines"];
 
 const Resources = () => {
   const navigate = useNavigate();
@@ -246,27 +246,6 @@ const Resources = () => {
     }
   ]);
 
-  const [tutorials, setTutorials] = useState<any[]>([
-    {
-      id: 1,
-      title: "Introduction to Intellectual Property",
-      description: "Fundamentals of IP protection, types of IP, and why it matters for researchers",
-      duration: "45 minutes",
-      modules: 6,
-      level: "Beginner"
-    }
-  ]);
-
-  const [facilities, setFacilities] = useState<any[]>([
-    {
-      id: 1,
-      name: "Advanced Materials Testing Lab",
-      description: "State-of-the-art equipment for materials characterization and testing",
-      capacity: "10 researchers",
-      hourlyRate: "₱500"
-    }
-  ]);
-
   const [guidelines, setGuidelines] = useState<any[]>([
     {
       id: 1,
@@ -298,25 +277,6 @@ const Resources = () => {
             file_url: r.file_url
           }));
 
-          const dbTutorials = data.filter((r: any) => r.category === 'IP 101 Tutorials').map((r: any) => ({
-            id: r.id,
-            title: r.title,
-            description: r.content || '',
-            duration: r.duration || 'Self-paced',
-            modules: r.modules_count || 0,
-            level: r.level || 'Beginner',
-            url: r.url
-          }));
-
-          const dbFacilities = data.filter((r: any) => r.category === 'SSF Booking').map((r: any) => ({
-            id: r.id,
-            name: r.title,
-            description: r.content || '',
-            capacity: r.capacity,
-            hourlyRate: r.hourly_rate ? `₱${r.hourly_rate}` : 'Contact for pricing',
-            equipment: r.equipment || []
-          }));
-
           const dbGuidelines = data.filter((r: any) => r.category === 'Guidelines').map((r: any) => ({
             id: r.id,
             title: r.title,
@@ -329,8 +289,6 @@ const Resources = () => {
 
           // Only update if there are resources from DB
           if (dbTemplates.length > 0) setTemplates(dbTemplates);
-          if (dbTutorials.length > 0) setTutorials(dbTutorials);
-          if (dbFacilities.length > 0) setFacilities(dbFacilities);
           if (dbGuidelines.length > 0) setGuidelines(dbGuidelines);
         }
       } catch (error) {
@@ -377,14 +335,10 @@ const Resources = () => {
             Access comprehensive resources, learning materials, and tools to support 
             your innovation journey and technology transfer activities.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Button variant="gold" size="lg" onClick={() => navigate('/browse-resources')}>
               Browse All Resources
               <BookOpen className="ml-2" />
-            </Button>
-            <Button variant="gold-outline" size="lg" onClick={() => navigate('/facility-booking')}>
-              Book Facility Access
-              <Calendar className="ml-2" />
             </Button>
           </div>
         </div>
@@ -394,10 +348,8 @@ const Resources = () => {
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 text-white">
+            <TabsList className="grid w-full grid-cols-2 text-white">
               <TabsTrigger value="templates">Templates</TabsTrigger>
-              <TabsTrigger value="tutorials">IP 101 Tutorials</TabsTrigger>
-              <TabsTrigger value="facilities">SSF Booking</TabsTrigger>
               <TabsTrigger value="guidelines">Guidelines</TabsTrigger>
             </TabsList>
             
@@ -457,111 +409,7 @@ const Resources = () => {
               </div>
             </TabsContent>
             
-            {/* Tutorials Tab */}
-            <TabsContent value="tutorials" className="mt-8">
-              <div className="mb-8">
-                <h2 className="text-2xl font-roboto font-bold text-primary mb-4">
-                  IP 101 Learning Modules
-                </h2>
-                <p className="text-gray-600 mb-6">
-                  Interactive video tutorials and learning modules covering intellectual property fundamentals.
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {tutorials.map((tutorial, index) => (
-                  <Card key={index} className="hover:shadow-card transition-all duration-300">
-                    <CardHeader className="bg-secondary/10">
-                      <div className="flex items-start justify-between mb-2">
-                        <Video className="text-secondary flex-shrink-0" size={24} />
-                        <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-800">
-                          {tutorial.level}
-                        </span>
-                      </div>
-                      <CardTitle className="text-xl font-roboto text-primary">
-                        {tutorial.title}
-                      </CardTitle>
-                      <CardDescription>
-                        {tutorial.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="flex justify-between text-sm mb-4">
-                        <div className="flex items-center">
-                          <Clock size={16} className="mr-1 text-gray-500" />
-                          <span>{tutorial.duration}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <BookOpen size={16} className="mr-1 text-gray-500" />
-                          <span>{tutorial.modules} modules</span>
-                        </div>
-                      </div>
-                      
-                      <Button variant="gold" size="sm" className="w-full">
-                        Start Learning
-                        <ExternalLink size={16} className="ml-2" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-            
-            {/* SSF Facilities Tab */}
-            <TabsContent value="facilities" className="mt-8">
-              <div className="mb-8">
-                <h2 className="text-2xl font-roboto font-bold text-primary mb-4">
-                  Shared Service Facilities (SSF)
-                </h2>
-                <p className="text-gray-600 mb-6">
-                  Book access to state-of-the-art research facilities and equipment.
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {facilities.map((facility, index) => (
-                  <Card key={index} className="hover:shadow-card transition-all duration-300">
-                    <CardHeader>
-                      <CardTitle className="text-xl font-roboto text-primary">
-                        {facility.name}
-                      </CardTitle>
-                      <CardDescription>
-                        {facility.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          {facility.capacity && (
-                            <div>
-                              <span className="text-gray-500">Capacity:</span>
-                              <div className="font-medium">{facility.capacity}</div>
-                            </div>
-                          )}
-                          {facility.hourlyRate && (
-                            <div>
-                              <span className="text-gray-500">Hourly Rate:</span>
-                              <div className="font-medium text-secondary">{facility.hourlyRate}</div>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <Button 
-                          variant="gold-outline" 
-                          size="sm" 
-                          className="w-full"
-                          onClick={() => navigate('/facility-booking')}
-                        >
-                          Book Facility
-                          <Calendar size={16} className="ml-2" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-            
+
             {/* Guidelines Tab */}
             <TabsContent value="guidelines" className="mt-8">
               <div className="mb-8">
