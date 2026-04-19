@@ -11,7 +11,8 @@ import {
   ClaimsAndDrawingsStep,
   ReviewStep,
 } from "@/components/faculty/application-form";
-import { ChevronLeft, ChevronRight, Save, Send } from "lucide-react";
+import { ChevronLeft, ChevronRight, Save, Send, AlertCircle } from "lucide-react";
+import { useDocumentValidation, IPType } from "@/hooks/useDocumentValidation";
 
 const steps = [
   {
@@ -67,7 +68,27 @@ export default function FacultyApplicationForm() {
     mode: "onChange",
   });
 
-  const { handleSubmit, trigger, formState: { errors } } = methods;
+  const { handleSubmit, trigger, formState: { errors }, watch } = methods;
+  
+  // Watch form values for document validation
+  const formValues = watch();
+  const ipType = formValues.ip_type as IPType;
+  
+  // Document validation
+  const {
+    isValid: documentsValid,
+    isComplete: documentsComplete,
+    missingDocs,
+    getErrorMessages
+  } = useDocumentValidation(ipType, {
+    ip_type: ipType,
+    claimsPriority: formValues.claimsPriority,
+    isAgentFiling: formValues.isAgentFiling,
+    isSmallEntity: formValues.isSmallEntity,
+    isApplicantInventor: formValues.isApplicantInventor,
+    isOwnerAuthor: formValues.isOwnerAuthor,
+    attachments: formValues.attachments
+  });
 
   const validateStep = async (step: number) => {
     switch (step) {
@@ -87,7 +108,24 @@ export default function FacultyApplicationForm() {
           "field_of_technology",
         ] as const);
       case 3:
-        // Claims and drawings are optional
+        // Validate document uploads
+        if (!documentsComplete) {
+          toast({
+            title: "Missing Documents",
+            description: `Please upload: ${missingDocs.join(', ')}`,
+            variant: "destructive",
+          });
+          return false;
+        }
+        if (!documentsValid) {
+          const errors = getErrorMessages();
+          toast({
+            title: "Document Validation Failed",
+            description: errors[0] || "Please check your uploaded documents",
+            variant: "destructive",
+          });
+          return false;
+        }
         return true;
       case 4:
         return await trigger([
@@ -152,6 +190,19 @@ export default function FacultyApplicationForm() {
   };
 
   const onSubmit = async (data: any) => {
+    // Final document validation before submission
+    if (!documentsValid) {
+      const errors = getErrorMessages();
+      toast({
+        title: "Cannot Submit Application",
+        description: errors[0] || "Please ensure all required documents are uploaded correctly",
+        variant: "destructive",
+      });
+      // Go to step 3 to fix document issues
+      setCurrentStep(3);
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       // TODO: Replace with actual API call

@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ListOrdered, 
   Upload, 
@@ -12,9 +13,11 @@ import {
   FileText, 
   X,
   Plus,
-  AlertCircle
+  AlertCircle,
+  FileCheck
 } from "lucide-react";
 import { IPClaim } from "@/types/ipApplication";
+import { DocumentChecklist } from "./DocumentChecklist";
 
 export function ClaimsAndDrawingsStep() {
   const { register, watch, setValue, formState: { errors } } = useFormContext();
@@ -71,6 +74,13 @@ export function ClaimsAndDrawingsStep() {
   };
 
   const showClaims = ipType === 'Patent' || ipType === 'Utility Model';
+  
+  // Conditional fields for document requirements
+  const claimsPriority = watch('claimsPriority');
+  const isAgentFiling = watch('isAgentFiling');
+  const isSmallEntity = watch('isSmallEntity');
+  const isApplicantInventor = watch('isApplicantInventor') !== false; // Default true
+  const isOwnerAuthor = watch('isOwnerAuthor') !== false; // Default true
 
   return (
     <div className="space-y-6">
@@ -176,12 +186,117 @@ export function ClaimsAndDrawingsStep() {
         </Card>
       )}
 
-      {/* Attachments Section */}
+      {/* Filing Options */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileCheck className="h-5 w-5 text-purple-600" />
+            Filing Options
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Priority Claim */}
+            <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+              <Checkbox
+                id="claimsPriority"
+                checked={claimsPriority}
+                onCheckedChange={(checked) => setValue('claimsPriority', checked)}
+              />
+              <div className="space-y-1">
+                <Label htmlFor="claimsPriority" className="font-medium cursor-pointer">
+                  Claims Priority
+                </Label>
+                <p className="text-sm text-gray-500">
+                  Based on earlier filing in another country
+                </p>
+              </div>
+            </div>
+
+            {/* Agent Filing */}
+            <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+              <Checkbox
+                id="isAgentFiling"
+                checked={isAgentFiling}
+                onCheckedChange={(checked) => setValue('isAgentFiling', checked)}
+              />
+              <div className="space-y-1">
+                <Label htmlFor="isAgentFiling" className="font-medium cursor-pointer">
+                  Filing via Agent
+                </Label>
+                <p className="text-sm text-gray-500">
+                  Using a patent attorney or agent
+                </p>
+              </div>
+            </div>
+
+            {/* Small Entity */}
+            <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+              <Checkbox
+                id="isSmallEntity"
+                checked={isSmallEntity}
+                onCheckedChange={(checked) => setValue('isSmallEntity', checked)}
+              />
+              <div className="space-y-1">
+                <Label htmlFor="isSmallEntity" className="font-medium cursor-pointer">
+                  Small Entity
+                </Label>
+                <p className="text-sm text-gray-500">
+                  Eligible for reduced fees
+                </p>
+              </div>
+            </div>
+
+            {/* Applicant is Inventor (for Patent/Utility Model) */}
+            {(ipType === 'Patent' || ipType === 'Utility Model') && (
+              <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                <Checkbox
+                  id="isApplicantInventor"
+                  checked={isApplicantInventor}
+                  onCheckedChange={(checked) => setValue('isApplicantInventor', checked)}
+                />
+                <div className="space-y-1">
+                  <Label htmlFor="isApplicantInventor" className="font-medium cursor-pointer">
+                    Applicant is Inventor
+                  </Label>
+                  <p className="text-sm text-gray-500">
+                    No assignment needed
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Owner is Author (for Copyright) */}
+            {ipType === 'Copyright' && (
+              <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                <Checkbox
+                  id="isOwnerAuthor"
+                  checked={isOwnerAuthor}
+                  onCheckedChange={(checked) => setValue('isOwnerAuthor', checked)}
+                />
+                <div className="space-y-1">
+                  <Label htmlFor="isOwnerAuthor" className="font-medium cursor-pointer">
+                    Owner is Author
+                  </Label>
+                  <p className="text-sm text-gray-500">
+                    No ownership affidavit needed
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Document Checklist */}
+      <DocumentChecklist />
+
+      {/* Legacy Attachments Section - Keep for additional files */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5 text-green-600" />
-            Attachments
+            Additional Attachments
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
