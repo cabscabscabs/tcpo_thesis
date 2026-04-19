@@ -99,6 +99,20 @@ const Admin = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [lastCheckedTime, setLastCheckedTime] = useState<string | null>(null);
+
+  // IP Applications state
+  const [ipApplications, setIpApplications] = useState<any[]>([]);
+  const [ipAppLoading, setIpAppLoading] = useState(false);
+  const [ipAppSearchTerm, setIpAppSearchTerm] = useState('');
+  const [ipAppStatusFilter, setIpAppStatusFilter] = useState('all');
+  const [ipAppTypeFilter, setIpAppTypeFilter] = useState('all');
+  const [selectedIpApp, setSelectedIpApp] = useState<any>(null);
+  const [showIpAppDetailModal, setShowIpAppDetailModal] = useState(false);
+  const [showIpAppReviewModal, setShowIpAppReviewModal] = useState(false);
+  const [ipAppReviewNotes, setIpAppReviewNotes] = useState('');
+  const [ipAppReviewAction, setIpAppReviewAction] = useState<'approve' | 'return' | 'reject'>('approve');
+  const [ipAppCurrentPage, setIpAppCurrentPage] = useState(1);
+  const ipAppsPerPage = 10;
   
   // Check session on component mount for auto-login
   useEffect(() => {
@@ -192,6 +206,7 @@ const Admin = () => {
   useEffect(() => {
     loadRecentActivities();
     loadNotifications();
+    loadIpApplications();
   }, []);
 
   // Set up real-time subscription for new notifications
@@ -353,6 +368,161 @@ const Admin = () => {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return formatDate(timestamp);
+  };
+
+  // IP Applications Functions
+  const loadIpApplications = async () => {
+    setIpAppLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('ip_applications')
+        .select(`
+          *,
+          faculty:faculty_id (full_name, email, department)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading IP applications:', error);
+        // Use mock data for development
+        setIpApplications([
+          {
+            id: '1',
+            title: 'Smart Agriculture Monitoring System',
+            ip_type: 'Patent',
+            status: 'Submitted for Internal Review',
+            applicant_full_name: 'Dr. Juan Dela Cruz',
+            faculty: { full_name: 'Dr. Juan Dela Cruz', email: 'juan@ustp.edu.ph', department: 'Engineering' },
+            field_of_technology: 'Agricultural Technology',
+            created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            submitted_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            abstract: 'An innovative system for monitoring agricultural conditions using IoT sensors and ML algorithms.',
+          },
+          {
+            id: '2',
+            title: 'Biodegradable Packaging Material from Banana Peels',
+            ip_type: 'Utility Model',
+            status: 'Under Internal Review',
+            applicant_full_name: 'Dr. Maria Santos',
+            faculty: { full_name: 'Dr. Maria Santos', email: 'maria@ustp.edu.ph', department: 'Food Technology' },
+            field_of_technology: 'Food Technology',
+            created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+            submitted_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+            abstract: 'A sustainable packaging material derived from banana peel waste.',
+          },
+          {
+            id: '3',
+            title: 'Mobile App for Student Mental Health',
+            ip_type: 'Copyright',
+            status: 'Needs Revision',
+            applicant_full_name: 'Engr. Pedro Reyes',
+            faculty: { full_name: 'Engr. Pedro Reyes', email: 'pedro@ustp.edu.ph', department: 'IT' },
+            field_of_technology: 'Information Technology',
+            created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+            submitted_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+            abstract: 'A mental health tracking application for university students.',
+            admin_notes: 'Please provide more details on data privacy measures.',
+          },
+        ]);
+      } else {
+        setIpApplications(data || []);
+      }
+    } catch (err) {
+      console.error('Error loading IP applications:', err);
+    } finally {
+      setIpAppLoading(false);
+    }
+  };
+
+  const handleIpAppStatusUpdate = async (appId: string, newStatus: string, notes?: string) => {
+    try {
+      const { error } = await supabase
+        .from('ip_applications')
+        .update({
+          status: newStatus,
+          admin_notes: notes,
+          status_updated_at: new Date().toISOString(),
+          status_updated_by: (await supabase.auth.getUser()).data.user?.id
+        })
+        .eq('id', appId);
+
+      if (error) {
+        console.error('Error updating IP application status:', error);
+        alert('Failed to update status. Please try again.');
+        return false;
+      }
+
+      // Refresh the list
+      await loadIpApplications();
+      return true;
+    } catch (err) {
+      console.error('Error updating status:', err);
+      alert('An error occurred. Please try again.');
+      return false;
+    }
+  };
+
+  const handleIpAppReview = async () => {
+    if (!selectedIpApp) return;
+
+    const statusMap = {
+      'approve': 'Approved for IPOPHL Filing',
+      'return': 'Needs Revision',
+      'reject': 'Rejected'
+    };
+
+    const success = await handleIpAppStatusUpdate(
+      selectedIpApp.id,
+      statusMap[ipAppReviewAction],
+      ipAppReviewNotes
+    );
+
+    if (success) {
+      setShowIpAppReviewModal(false);
+      setIpAppReviewNotes('');
+      setSelectedIpApp(null);
+      // TODO: Send email notification to faculty
+    }
+  };
+
+  const getIpAppStatusBadge = (status: string) => {
+    const statusColors: Record<string, string> = {
+      'Draft': 'bg-gray-500',
+      'Submitted for Internal Review': 'bg-blue-500',
+      'Under Internal Review': 'bg-yellow-500',
+      'Needs Revision': 'bg-orange-500',
+      'Approved for IPOPHL Filing': 'bg-green-500',
+      'Filed to IPOPHL': 'bg-purple-500',
+      'Under IPOPHL Examination': 'bg-indigo-500',
+      'Granted': 'bg-emerald-600',
+      'Rejected': 'bg-red-500'
+    };
+    return statusColors[status] || 'bg-gray-500';
+  };
+
+  const getFilteredIpApplications = () => {
+    return ipApplications.filter(app => {
+      const matchesSearch = 
+        app.title?.toLowerCase().includes(ipAppSearchTerm.toLowerCase()) ||
+        app.applicant_full_name?.toLowerCase().includes(ipAppSearchTerm.toLowerCase()) ||
+        app.faculty?.email?.toLowerCase().includes(ipAppSearchTerm.toLowerCase()) ||
+        app.field_of_technology?.toLowerCase().includes(ipAppSearchTerm.toLowerCase());
+      
+      const matchesStatus = ipAppStatusFilter === 'all' || app.status === ipAppStatusFilter;
+      const matchesType = ipAppTypeFilter === 'all' || app.ip_type === ipAppTypeFilter;
+      
+      return matchesSearch && matchesStatus && matchesType;
+    });
+  };
+
+  const getPaginatedIpApplications = () => {
+    const filtered = getFilteredIpApplications();
+    const startIndex = (ipAppCurrentPage - 1) * ipAppsPerPage;
+    return filtered.slice(startIndex, startIndex + ipAppsPerPage);
+  };
+
+  const getTotalIpAppPages = () => {
+    return Math.ceil(getFilteredIpApplications().length / ipAppsPerPage);
   };
 
   // Load all activities for the modal (past logs)
@@ -3117,12 +3287,13 @@ Article Details:
 
       <main className="container mx-auto px-4 py-8 ">
         <Tabs defaultValue="dashboard" className="space-y-6 ">
-          <TabsList className={`grid w-full text-[#f7f7f7] ${currentUserRole === 'admin' ? 'grid-cols-8' : 'grid-cols-7'}`}>
+          <TabsList className={`grid w-full text-[#f7f7f7] ${currentUserRole === 'admin' ? 'grid-cols-9' : 'grid-cols-8'}`}>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="news">News</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
             <TabsTrigger value="patents">Patents</TabsTrigger>
+            <TabsTrigger value="ip-applications">IP Applications</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="resources">Resources</TabsTrigger>
             {currentUserRole === 'admin' && <TabsTrigger value="users">Users</TabsTrigger>}
@@ -4366,6 +4537,267 @@ Article Details:
                   <Plus className="mr-2 h-4 w-4" />
                   Save Patent
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* IP Applications Tab */}
+          <TabsContent value="ip-applications" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold">IP Applications</h2>
+                <p className="text-muted-foreground">Review and manage faculty IP submissions</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={loadIpApplications} disabled={ipAppLoading}>
+                  {ipAppLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Clock className="mr-2 h-4 w-4" />}
+                  Refresh
+                </Button>
+              </div>
+            </div>
+
+            {/* Statistics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Applications</p>
+                      <p className="text-2xl font-bold">{ipApplications.length}</p>
+                    </div>
+                    <FileText className="h-8 w-8 text-blue-500" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Pending Review</p>
+                      <p className="text-2xl font-bold">
+                        {ipApplications.filter(app => 
+                          app.status === 'Submitted for Internal Review' || 
+                          app.status === 'Under Internal Review'
+                        ).length}
+                      </p>
+                    </div>
+                    <Clock className="h-8 w-8 text-yellow-500" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Needs Revision</p>
+                      <p className="text-2xl font-bold">
+                        {ipApplications.filter(app => app.status === 'Needs Revision').length}
+                      </p>
+                    </div>
+                    <Edit className="h-8 w-8 text-orange-500" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Approved</p>
+                      <p className="text-2xl font-bold">
+                        {ipApplications.filter(app => 
+                          app.status === 'Approved for IPOPHL Filing' ||
+                          app.status === 'Filed to IPOPHL' ||
+                          app.status === 'Granted'
+                        ).length}
+                      </p>
+                    </div>
+                    <CheckCircle className="h-8 w-8 text-green-500" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Filters */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search by title, applicant, or field..."
+                      value={ipAppSearchTerm}
+                      onChange={(e) => {
+                        setIpAppSearchTerm(e.target.value);
+                        setIpAppCurrentPage(1);
+                      }}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Select value={ipAppStatusFilter} onValueChange={(value) => {
+                    setIpAppStatusFilter(value);
+                    setIpAppCurrentPage(1);
+                  }}>
+                    <SelectTrigger className="w-full md:w-[200px]">
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="Draft">Draft</SelectItem>
+                      <SelectItem value="Submitted for Internal Review">Submitted for Review</SelectItem>
+                      <SelectItem value="Under Internal Review">Under Review</SelectItem>
+                      <SelectItem value="Needs Revision">Needs Revision</SelectItem>
+                      <SelectItem value="Approved for IPOPHL Filing">Approved for Filing</SelectItem>
+                      <SelectItem value="Filed to IPOPHL">Filed to IPOPHL</SelectItem>
+                      <SelectItem value="Under IPOPHL Examination">Under Examination</SelectItem>
+                      <SelectItem value="Granted">Granted</SelectItem>
+                      <SelectItem value="Rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={ipAppTypeFilter} onValueChange={(value) => {
+                    setIpAppTypeFilter(value);
+                    setIpAppCurrentPage(1);
+                  }}>
+                    <SelectTrigger className="w-full md:w-[200px]">
+                      <FileText className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filter by type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="Patent">Patent</SelectItem>
+                      <SelectItem value="Utility Model">Utility Model</SelectItem>
+                      <SelectItem value="Industrial Design">Industrial Design</SelectItem>
+                      <SelectItem value="Copyright">Copyright</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Applications Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Applications ({getFilteredIpApplications().length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {ipAppLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                  </div>
+                ) : getFilteredIpApplications().length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                    <p>No IP applications found.</p>
+                    <p className="text-sm">Applications submitted by faculty will appear here.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b bg-gray-50">
+                            <th className="text-left p-3 text-sm font-semibold text-gray-700">Application</th>
+                            <th className="text-left p-3 text-sm font-semibold text-gray-700">Applicant</th>
+                            <th className="text-left p-3 text-sm font-semibold text-gray-700">Type</th>
+                            <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
+                            <th className="text-left p-3 text-sm font-semibold text-gray-700">Submitted</th>
+                            <th className="text-left p-3 text-sm font-semibold text-gray-700">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {getPaginatedIpApplications().map((app) => (
+                            <tr key={app.id} className="border-b hover:bg-gray-50">
+                              <td className="p-3">
+                                <div>
+                                  <p className="font-medium text-sm">{app.title}</p>
+                                  <p className="text-xs text-gray-500">{app.field_of_technology}</p>
+                                </div>
+                              </td>
+                              <td className="p-3">
+                                <div>
+                                  <p className="text-sm">{app.applicant_full_name}</p>
+                                  <p className="text-xs text-gray-500">{app.faculty?.department}</p>
+                                </div>
+                              </td>
+                              <td className="p-3">
+                                <Badge variant="outline">{app.ip_type}</Badge>
+                              </td>
+                              <td className="p-3">
+                                <Badge className={`${getIpAppStatusBadge(app.status)} text-white`}>
+                                  {app.status}
+                                </Badge>
+                              </td>
+                              <td className="p-3 text-sm text-gray-600">
+                                {app.submitted_at ? formatRelativeTime(app.submitted_at) : 'Draft'}
+                              </td>
+                              <td className="p-3">
+                                <div className="flex items-center gap-1">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedIpApp(app);
+                                      setShowIpAppDetailModal(true);
+                                    }}
+                                    title="View Details"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  {(app.status === 'Submitted for Internal Review' || app.status === 'Under Internal Review') && (
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedIpApp(app);
+                                        setIpAppReviewAction('approve');
+                                        setIpAppReviewNotes('');
+                                        setShowIpAppReviewModal(true);
+                                      }}
+                                      title="Review Application"
+                                      className="text-blue-600"
+                                    >
+                                      <CheckCircle className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Pagination */}
+                    {getTotalIpAppPages() > 1 && (
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                        <p className="text-sm text-gray-600">
+                          Showing {((ipAppCurrentPage - 1) * ipAppsPerPage) + 1} - {Math.min(ipAppCurrentPage * ipAppsPerPage, getFilteredIpApplications().length)} of {getFilteredIpApplications().length}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIpAppCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={ipAppCurrentPage === 1}
+                          >
+                            Previous
+                          </Button>
+                          <span className="flex items-center px-3 text-sm">
+                            Page {ipAppCurrentPage} of {getTotalIpAppPages()}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIpAppCurrentPage(prev => Math.min(getTotalIpAppPages(), prev + 1))}
+                            disabled={ipAppCurrentPage === getTotalIpAppPages()}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -7155,6 +7587,213 @@ Article Details:
                 </Button>
               </>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* IP Application Detail Modal */}
+      <Dialog open={showIpAppDetailModal} onOpenChange={setShowIpAppDetailModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>IP Application Details</DialogTitle>
+            <DialogDescription>
+              Review the complete application submission
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedIpApp && (
+            <div className="space-y-6">
+              {/* Header Info */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-semibold text-lg">{selectedIpApp.title}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{selectedIpApp.field_of_technology}</p>
+                  </div>
+                  <Badge className={`${getIpAppStatusBadge(selectedIpApp.status)} text-white`}>
+                    {selectedIpApp.status}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Applicant Information */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Users className="h-4 w-4 text-blue-600" />
+                    Applicant Information
+                  </h4>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <p><span className="font-medium">Name:</span> {selectedIpApp.applicant_full_name}</p>
+                    <p><span className="font-medium">Email:</span> {selectedIpApp.applicant_email}</p>
+                    <p><span className="font-medium">Department:</span> {selectedIpApp.faculty?.department || 'N/A'}</p>
+                    <p><span className="font-medium">Nationality:</span> {selectedIpApp.applicant_nationality || 'N/A'}</p>
+                  </div>
+                </div>
+
+                {/* Application Details */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                    Application Details
+                  </h4>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <p><span className="font-medium">Type:</span> {selectedIpApp.ip_type}</p>
+                    <p><span className="font-medium">Submitted:</span> {selectedIpApp.submitted_at ? formatDate(selectedIpApp.submitted_at) : 'Draft'}</p>
+                    <p><span className="font-medium">Application ID:</span> {selectedIpApp.id}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Abstract */}
+              {selectedIpApp.abstract && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-900">Abstract</h4>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedIpApp.abstract}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Admin Notes */}
+              {selectedIpApp.admin_notes && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Edit className="h-4 w-4 text-orange-600" />
+                    Admin Notes
+                  </h4>
+                  <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedIpApp.admin_notes}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button variant="outline" onClick={() => setShowIpAppDetailModal(false)}>
+              Close
+            </Button>
+            {selectedIpApp && (selectedIpApp.status === 'Submitted for Internal Review' || selectedIpApp.status === 'Under Internal Review') && (
+              <Button 
+                variant="ustp"
+                onClick={() => {
+                  setShowIpAppDetailModal(false);
+                  setIpAppReviewAction('approve');
+                  setIpAppReviewNotes('');
+                  setShowIpAppReviewModal(true);
+                }}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Review Application
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* IP Application Review Modal */}
+      <Dialog open={showIpAppReviewModal} onOpenChange={setShowIpAppReviewModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Review IP Application</DialogTitle>
+            <DialogDescription>
+              {selectedIpApp?.title}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Action Selection */}
+            <div className="space-y-2">
+              <Label>Review Decision</Label>
+              <div className="grid grid-cols-3 gap-4">
+                <button
+                  onClick={() => setIpAppReviewAction('approve')}
+                  className={`p-4 rounded-lg border-2 text-center transition-colors ${
+                    ipAppReviewAction === 'approve' 
+                      ? 'border-green-500 bg-green-50' 
+                      : 'border-gray-200 hover:border-green-300'
+                  }`}
+                >
+                  <CheckCircle className={`h-8 w-8 mx-auto mb-2 ${ipAppReviewAction === 'approve' ? 'text-green-600' : 'text-gray-400'}`} />
+                  <p className="font-medium text-sm">Approve</p>
+                  <p className="text-xs text-gray-500">For IPOPHL Filing</p>
+                </button>
+                <button
+                  onClick={() => setIpAppReviewAction('return')}
+                  className={`p-4 rounded-lg border-2 text-center transition-colors ${
+                    ipAppReviewAction === 'return' 
+                      ? 'border-orange-500 bg-orange-50' 
+                      : 'border-gray-200 hover:border-orange-300'
+                  }`}
+                >
+                  <Edit className={`h-8 w-8 mx-auto mb-2 ${ipAppReviewAction === 'return' ? 'text-orange-600' : 'text-gray-400'}`} />
+                  <p className="font-medium text-sm">Return</p>
+                  <p className="text-xs text-gray-500">For Revision</p>
+                </button>
+                <button
+                  onClick={() => setIpAppReviewAction('reject')}
+                  className={`p-4 rounded-lg border-2 text-center transition-colors ${
+                    ipAppReviewAction === 'reject' 
+                      ? 'border-red-500 bg-red-50' 
+                      : 'border-gray-200 hover:border-red-300'
+                  }`}
+                >
+                  <XCircle className={`h-8 w-8 mx-auto mb-2 ${ipAppReviewAction === 'reject' ? 'text-red-600' : 'text-gray-400'}`} />
+                  <p className="font-medium text-sm">Reject</p>
+                  <p className="text-xs text-gray-500">Not Suitable</p>
+                </button>
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="review-notes">
+                Review Notes {ipAppReviewAction === 'return' && <span className="text-red-500">*</span>}
+              </Label>
+              <Textarea
+                id="review-notes"
+                placeholder={
+                  ipAppReviewAction === 'approve' 
+                    ? 'Add any comments or next steps...'
+                    : ipAppReviewAction === 'return'
+                    ? 'Specify what needs to be revised...'
+                    : 'Provide reason for rejection...'
+                }
+                value={ipAppReviewNotes}
+                onChange={(e) => setIpAppReviewNotes(e.target.value)}
+                rows={4}
+              />
+            </div>
+
+            {/* Summary */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm">
+                <span className="font-medium">Action:</span>{' '}
+                {ipAppReviewAction === 'approve' && 'Approve for IPOPHL Filing'}
+                {ipAppReviewAction === 'return' && 'Return for Revision'}
+                {ipAppReviewAction === 'reject' && 'Reject Application'}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                The applicant will be notified via email of this decision.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowIpAppReviewModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant={ipAppReviewAction === 'approve' ? 'default' : ipAppReviewAction === 'return' ? 'secondary' : 'destructive'}
+              onClick={handleIpAppReview}
+              disabled={ipAppReviewAction === 'return' && !ipAppReviewNotes.trim()}
+            >
+              {ipAppReviewAction === 'approve' && <CheckCircle className="h-4 w-4 mr-2" />}
+              {ipAppReviewAction === 'return' && <Edit className="h-4 w-4 mr-2" />}
+              {ipAppReviewAction === 'reject' && <XCircle className="h-4 w-4 mr-2" />}
+              Confirm {ipAppReviewAction === 'approve' ? 'Approval' : ipAppReviewAction === 'return' ? 'Return' : 'Rejection'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
