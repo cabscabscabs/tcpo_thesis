@@ -518,8 +518,6 @@ function EnhancedFilingTrends({
               const cumValue = cumulative[index];
               const avgValue = movingAvg[index];
               const barHeight = maxValue > 0 ? (value / maxValue) * 100 : 0;
-              const lineY = maxValue > 0 ? 100 - (avgValue / maxValue) * 100 : 50;
-              const cumY = maxCumulative > 0 ? 100 - (cumValue / maxCumulative) * 100 : 50;
 
               return (
                 <div key={year} className="flex-1 flex flex-col items-center gap-1 relative group">
@@ -542,15 +540,23 @@ function EnhancedFilingTrends({
                   {/* Line point for moving average */}
                   {(chartType === 'line' || chartType === 'combo') && (
                     <>
-                      {/* Moving average dot */}
+                      {/* Moving average dot - positioned relative to chart height */}
                       <div 
-                        className="absolute w-2 h-2 bg-yellow-500 rounded-full border-2 border-white shadow-sm"
-                        style={{ bottom: `${lineY}%`, transform: 'translateY(50%)' }}
+                        className="absolute w-2 h-2 bg-yellow-500 rounded-full border-2 border-white shadow-sm z-10"
+                        style={{ 
+                          bottom: `${Math.max(0, Math.min(100, (avgValue / maxValue) * 100))}%`,
+                          left: '50%',
+                          transform: 'translate(-50%, 50%)'
+                        }}
                       />
-                      {/* Cumulative line dot */}
+                      {/* Cumulative line dot - positioned on secondary scale */}
                       <div 
-                        className="absolute w-2 h-2 bg-green-500 rounded-full border-2 border-white shadow-sm"
-                        style={{ bottom: `${cumY}%`, transform: 'translateY(50%)' }}
+                        className="absolute w-2 h-2 bg-green-500 rounded-full border-2 border-white shadow-sm z-10"
+                        style={{ 
+                          bottom: `${Math.max(0, Math.min(100, (cumValue / maxCumulative) * 100))}%`,
+                          left: '50%',
+                          transform: 'translate(-50%, 50%)'
+                        }}
                       />
                     </>
                   )}
@@ -563,31 +569,29 @@ function EnhancedFilingTrends({
 
             {/* Connecting lines */}
             {(chartType === 'line' || chartType === 'combo') && (
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 100">
                 {/* Moving average line */}
                 <polyline
                   fill="none"
                   stroke="#eab308"
-                  strokeWidth="2"
+                  strokeWidth="0.5"
                   points={years.map((_, i) => {
                     const x = ((i + 0.5) / years.length) * 100;
                     const y = 100 - (movingAvg[i] / maxValue) * 100;
                     return `${x},${y}`;
                   }).join(' ')}
-                  style={{ vectorEffect: 'non-scaling-stroke' }}
                 />
                 {/* Cumulative line */}
                 <polyline
                   fill="none"
                   stroke="#22c55e"
-                  strokeWidth="2"
-                  strokeDasharray="4,4"
+                  strokeWidth="0.5"
+                  strokeDasharray="2,2"
                   points={years.map((_, i) => {
                     const x = ((i + 0.5) / years.length) * 100;
                     const y = 100 - (cumulative[i] / maxCumulative) * 100;
                     return `${x},${y}`;
                   }).join(' ')}
-                  style={{ vectorEffect: 'non-scaling-stroke' }}
                 />
               </svg>
             )}
