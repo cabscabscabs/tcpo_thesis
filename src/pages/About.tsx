@@ -104,33 +104,67 @@ const About = () => {
   const partners = [
     {
       name: "Oro Chamber of Commerce and Industry",
-      type: "Industry Association",
-      description: "Leading chamber representing business interests in Northern Mindanao"
+      logo: "/images/partners/oro-chamber.png"
     },
     {
       name: "Ateneo Innovation and Patent Office (IPO)",
-      type: "Academic Partner", 
-      description: "Strategic partnership for IP protection and technology transfer expertise"
+      logo: "/images/partners/ateneo-ipo.png",
+      large: true
     },
     {
       name: "Department of Science and Technology (DOST) Region X",
-      type: "Government Agency",
-      description: "Primary government partner for research funding and technology development"
+      logo: "/images/partners/dost-region-x.png"
     },
     {
       name: "Department of Trade and Industry (DTI) Misamis Oriental",
-      type: "Government Agency",
-      description: "Supporting SME development and business partnerships"
+      logo: "/images/partners/dti-mis-or.png"
     },
     {
-      name: "CDO b.i.t.e.s. (Cagayan de Oro business innovation technology e-startup)",
-      type: "Incubator",
-      description: "Premier startup incubator and innovation hub in Cagayan de Oro"
+      name: "CDO b.i.t.e.s.",
+      logo: "/images/partners/cdo-bites.jpg"
     },
     {
       name: "Intellectual Property Office of the Philippines (IPOPhil)",
-      type: "Government Agency",
-      description: "Official IP registration and protection agency"
+      logo: "/images/partners/ipophil.png"
+    },
+    {
+      name: "USAID",
+      logo: "/images/partners/usaid.png",
+      xlarge: true
+    },
+    {
+      name: "RTI International",
+      logo: "/images/partners/rti-international.png",
+      large: true
+    },
+    {
+      name: "Food Innovation Center (Northern Mindanao)",
+      logo: "/images/partners/food-innovation-center.png",
+      large: true
+    },
+    {
+      name: "OROBEST Innovation",
+      logo: "/images/partners/orobest-innovation.png"
+    },
+    {
+      name: "DOST-PCIEERD",
+      logo: "/images/partners/dost-pcieerd.png"
+    },
+    {
+      name: "Best Friend Goodies",
+      logo: "/images/partners/best-friend-goodies.png"
+    },
+    {
+      name: "Bukidnon State University",
+      logo: "/images/partners/bukidnon-state-university.png"
+    },
+    {
+      name: "European Chamber of Commerce of the Philippines (ECCP)",
+      logo: "/images/partners/eccp.png"
+    },
+    {
+      name: "Asian Development Bank",
+      logo: "/images/partners/asian-development-bank.png"
     }
   ];
 
@@ -242,6 +276,25 @@ const About = () => {
         </div>
       </section>
 
+      {/* About Us Section */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-8 text-center">
+              About Us
+            </h2>
+            <div className="space-y-6 text-muted-foreground leading-relaxed text-lg">
+              <p>
+                The Technology Promotions and Commercialization Office (TPCO) serves as the interface between the talent and technology housed in the academic institute, the industry, and the community; fostering new relationships and partnerships resulting in life-changing innovations, enhanced productivity and ingenious discoveries that amends the human condition. The TPCO ambitiously aspires to be in the innovation map, visibly interfacing with stakeholders and creating a significant mark in fostering innovations not just in the academe but in the whole innovation community.
+              </p>
+              <p>
+                At the TPCO, we contribute towards nurturing an empowered innovation ecosystem that promotes entrepreneurship and commercialization of technologies to contribute to the economic and social development of the community it serves. As part of the university's commitment in delivering its Strategic Directional Areas, the TPCO was established and approved by the Board of Regents in May 2020 amidst the challenges of the COVID-19 pandemic in the country. The office was officially launched to the public in August 2020 and is strategically poised right at the forefront of the university making it accessible for stakeholders.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Mission, Vision, Values */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -253,9 +306,7 @@ const About = () => {
                 </div>
                 <h3 className="text-2xl font-roboto font-bold text-primary mb-4">Our Mission</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  To accelerate the translation of USTP research innovations into market-ready 
-                  technologies that address regional and national development needs while fostering 
-                  sustainable industry-academe partnerships.
+                  Create and nurture a working innovation ecosystem that promotes entrepreneurship and commercialization of technologies to contribute to the economic and social development of the community it services.
                 </p>
               </CardContent>
             </Card>
@@ -267,9 +318,7 @@ const About = () => {
                 </div>
                 <h3 className="text-2xl font-roboto font-bold text-primary mb-4">Our Vision</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  To be the premier technology transfer office in the Philippines, recognized for 
-                  excellence in innovation commercialization and as the catalyst for economic 
-                  development in Northern Mindanao.
+                  To be on the innovation map, visibly interfacing with stakeholders and creating a significant mark in fostering innovations not just in the academe but in the whole innovation community.
                 </p>
               </CardContent>
             </Card>
@@ -388,7 +437,7 @@ const About = () => {
       </section>
 
       {/* Partners Section */}
-      <section className="py-16 bg-muted">
+      <section id="strategic-partners" className="py-16 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4 text-white">
@@ -399,19 +448,19 @@ const About = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-10 items-center justify-items-center">
             {partners.map((partner, index) => (
-              <Card key={index} className="hover:shadow-card transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="mb-3">
-                    <h3 className="font-roboto font-bold text-primary mb-1">{partner.name}</h3>
-                    <span className="text-xs px-2 py-1 bg-secondary/10 text-secondary rounded-full">
-                      {partner.type}
-                    </span>
-                  </div>
-                  <p className="text-muted-foreground text-sm">{partner.description}</p>
-                </CardContent>
-              </Card>
+              <div
+                key={index}
+                className="flex flex-col items-center justify-center bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-8 w-full min-h-[220px]"
+                title={partner.name}
+              >
+                <img
+                  src={partner.logo}
+                  alt={partner.name}
+                  className={`object-contain ${partner.xlarge ? 'max-w-[270px] max-h-[190px]' : partner.large ? 'max-w-[260px] max-h-[180px]' : 'max-w-[220px] max-h-[160px]'} w-auto h-auto`}
+                />
+              </div>
             ))}
           </div>
         </div>

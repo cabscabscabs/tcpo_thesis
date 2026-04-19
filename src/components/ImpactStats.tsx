@@ -1,35 +1,41 @@
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, Award, Building, Users, Lightbulb, DollarSign } from "lucide-react";
 
 const ImpactStats = () => {
+  const navigate = useNavigate();
+
   const stats = [
     {
       icon: Award,
-      value: "24",
+      value: "24+",
       label: "Patents Granted",
       trend: "+6 this year",
-      color: "text-green-600"
+      color: "text-green-600",
+      link: "/ip-portfolio"
     },
     {
       icon: Building,
       value: "12",
       label: "Startups Incubated",
-      trend: "+4 this year", 
+      trend: "+4 this year",
       color: "text-blue-600"
     },
     {
       icon: Users,
-      value: "50+",
+      value: "6+",
       label: "Industry Partners",
       trend: "+15 this year",
-      color: "text-purple-600"
+      color: "text-purple-600",
+      link: "/about#strategic-partners"
     },
     {
       icon: Lightbulb,
-      value: "100+",
+      value: "8+",
       label: "Technologies Developed",
       trend: "+25 this year",
-      color: "text-primary"
+      color: "text-primary",
+      link: "/ip-portfolio"
     },
     {
       icon: DollarSign,
@@ -62,7 +68,24 @@ const ImpactStats = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {stats.map((stat, index) => (
-            <Card key={index} className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1">
+            <Card
+              key={index}
+              className={`group hover:shadow-card transition-all duration-300 hover:-translate-y-1 ${stat.link ? "cursor-pointer" : ""}`}
+              onClick={() => {
+                if (stat.link) {
+                  const [path, hash] = stat.link.split("#");
+                  navigate(path + (hash ? `#${hash}` : ""));
+                  if (hash) {
+                    setTimeout(() => {
+                      const el = document.getElementById(hash);
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }
+                    }, 300);
+                  }
+                }
+              }}
+            >
               <CardContent className="p-6 text-center">
                 <div className="flex justify-center mb-4">
                   <div className="p-3 bg-secondary/10 rounded-full">

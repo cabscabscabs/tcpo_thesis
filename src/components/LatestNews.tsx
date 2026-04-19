@@ -8,9 +8,11 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Filter, Calendar, User, ExternalLink, ArrowRight, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const LatestNews = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [visibleCount, setVisibleCount] = useState(6);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -436,7 +438,7 @@ const LatestNews = () => {
               className="px-8"
               onClick={() => {
                 // Simple newsletter subscription placeholder
-                alert('🚀 Newsletter subscription feature coming soon! \n\nStay tuned for real-time updates about USTP TPCO developments, new patent announcements, and innovation opportunities.');
+                toast({ title: 'Coming Soon', description: 'Newsletter subscription feature coming soon! Stay tuned for real-time updates about USTP TPCO developments, new patent announcements, and innovation opportunities.' });
               }}
             >
               Subscribe to Newsletter

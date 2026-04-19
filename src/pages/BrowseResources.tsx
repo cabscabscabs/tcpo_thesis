@@ -9,104 +9,14 @@ import { Download, Search, Filter, FileText, Video, Calendar, ArrowLeft, Externa
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const BrowseResources = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   
-  // Default static resources (same as Resources page)
-  const defaultResources = [
-    {
-      id: 1,
-      title: "Non-Disclosure Agreement (NDA)",
-      description: "Standard template for protecting confidential information during technology discussions",
-      type: "template",
-      category: "Templates",
-      format: "PDF, DOCX",
-      lastUpdated: "March 2024",
-      url: null,
-      file: null
-    },
-    {
-      id: 2,
-      title: "Memorandum of Understanding (MOU)",
-      description: "Framework for establishing research partnerships and collaboration agreements",
-      type: "template",
-      category: "Templates",
-      format: "PDF, DOCX",
-      lastUpdated: "February 2024",
-      url: null,
-      file: null
-    },
-    {
-      id: 3,
-      title: "Introduction to Intellectual Property",
-      description: "Fundamentals of IP protection, types of IP, and why it matters for researchers",
-      type: "tutorial",
-      category: "IP 101 Tutorials",
-      format: "Video",
-      lastUpdated: "February 2024",
-      url: null,
-      file: null
-    },
-    {
-      id: 4,
-      title: "Patent Application Process",
-      description: "Step-by-step guide through the patent application process from idea to grant",
-      type: "tutorial",
-      category: "IP 101 Tutorials",
-      format: "Video",
-      lastUpdated: "January 2024",
-      url: null,
-      file: null
-    },
-    {
-      id: 5,
-      title: "Advanced Materials Testing Lab",
-      description: "State-of-the-art equipment for materials characterization and testing",
-      type: "facility",
-      category: "SSF Booking",
-      format: "Facility",
-      lastUpdated: "January 2024",
-      url: null,
-      file: null
-    },
-    {
-      id: 6,
-      title: "Biotechnology Research Facility",
-      description: "Fully equipped lab for biotechnology and life sciences research",
-      type: "facility",
-      category: "SSF Booking",
-      format: "Facility",
-      lastUpdated: "December 2023",
-      url: null,
-      file: null
-    },
-    {
-      id: 7,
-      title: "USTP Research Ethics Guidelines",
-      description: "Comprehensive guide to ethical considerations in research and development",
-      type: "guideline",
-      category: "Guidelines",
-      format: "PDF",
-      lastUpdated: "March 2024",
-      url: null,
-      file: null
-    },
-    {
-      id: 8,
-      title: "IP Protection Best Practices",
-      description: "Best practices for protecting intellectual property throughout the research process",
-      type: "guideline",
-      category: "Guidelines",
-      format: "PDF",
-      lastUpdated: "February 2024",
-      url: null,
-      file: null
-    }
-  ];
-  
-  const [resources, setResources] = useState(defaultResources);
-  const [filteredResources, setFilteredResources] = useState(defaultResources);
+  const [resources, setResources] = useState<any[]>([]);
+  const [filteredResources, setFilteredResources] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -143,18 +53,11 @@ const BrowseResources = () => {
             hourlyRate: r.hourly_rate ? `₱${r.hourly_rate}` : null
           }));
           
-          // Combine with default resources
-          const combinedResources = [...supabaseResources, ...defaultResources];
-          setResources(combinedResources);
-          setFilteredResources(combinedResources);
-        } else {
-          setResources(defaultResources);
-          setFilteredResources(defaultResources);
+          setResources(supabaseResources);
+          setFilteredResources(supabaseResources);
         }
       } catch (error) {
         console.error('Failed to load resources:', error);
-        setResources(defaultResources);
-        setFilteredResources(defaultResources);
       }
     };
 
@@ -204,12 +107,7 @@ const BrowseResources = () => {
       window.open(resource.url, '_blank');
     } else {
       // For now, show alert - in future, could navigate to resource detail page
-      alert(`Opening resource: "${resource.title}"
-
-Description: ${resource.description}
-
-Type: ${resource.type}
-Category: ${resource.category}`);
+      toast({ title: 'Info', description: `Opening resource: "${resource.title}" - ${resource.description} (${resource.type}, ${resource.category})` });
     }
   };
 

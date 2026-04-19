@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Calendar, 
   User, 
@@ -27,11 +28,14 @@ interface NewsArticle {
   image?: string;
   tags?: string[];
   status: string;
+  contentImages?: string[];
+  youtubeUrl?: string;
 }
 
 const NewsDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [article, setArticle] = useState<NewsArticle | null>(null);
   const [loading, setLoading] = useState(true);
   const [relatedArticles, setRelatedArticles] = useState<NewsArticle[]>([]);
@@ -68,7 +72,9 @@ const NewsDetail = () => {
               author: article.author || 'Admin',
               image: article.cover_image_url,
               tags: article.tags || [],
-              status: article.status
+              status: article.status,
+              contentImages: article.content_images || [],
+              youtubeUrl: article.youtube_url || ''
             });
             
             // Get related articles (same category, excluding current)
@@ -85,7 +91,9 @@ const NewsDetail = () => {
                 author: a.author || 'Admin',
                 image: a.cover_image_url,
                 tags: a.tags || [],
-                status: a.status
+                status: a.status,
+                contentImages: a.content_images || [],
+                youtubeUrl: a.youtube_url || ''
               }));
             setRelatedArticles(related);
           }
@@ -110,7 +118,7 @@ const NewsDetail = () => {
     } else {
       // Fallback to copy to clipboard
       navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
+      toast({ title: 'Success', description: 'Link copied to clipboard!' });
     }
   };
 
@@ -128,6 +136,51 @@ const NewsDetail = () => {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
     navigate(`/news/${articleSlug}`);
+  };
+
+  // Helper function to extract YouTube video ID from URL
+  const getYoutubeVideoId = (url: string): string | null => {
+    if (!url) return null;
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\s?]+)/,
+      /youtube\.com\/watch\?.*v=([^&\s]+)/
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+
+  // Render article content with inline [IMAGE:N] markers replaced by actual images
+  const renderArticleContent = (content: string, contentImages: string[]) => {
+    const lines = content.split('\n');
+    return lines.map((line, index) => {
+      const imageMatch = line.match(/^\[IMAGE:(\d+)\]$/);
+      if (imageMatch) {
+        const imageIndex = parseInt(imageMatch[1], 10);
+        const imageUrl = contentImages[imageIndex];
+        if (imageUrl) {
+          return (
+            <div key={index} className="my-6">
+              <img 
+                src={imageUrl} 
+                alt={`Article image ${imageIndex + 1}`}
+                className="w-full h-auto rounded-lg shadow-md"
+              />
+            </div>
+          );
+        }
+        return null;
+      }
+      // Skip empty lines (they create spacing between paragraphs)
+      if (line.trim() === '') return <div key={index} className="h-2" />;
+      return (
+        <p key={index} className="mb-4 text-gray-700 leading-relaxed break-words">
+          {line}
+        </p>
+      );
+    });
   };
 
   if (loading) {
@@ -240,11 +293,22 @@ const NewsDetail = () => {
           {/* Article Content */}
           <div className="bg-white rounded-lg shadow-sm p-8">
             <div className="prose prose-lg max-w-none">
-              {article.content.split('\n').map((paragraph, index) => (
-                <p key={index} className="mb-4 text-gray-700 leading-relaxed break-words">
-                  {paragraph}
-                </p>
-              ))}
+              {renderArticleContent(article.content, article.contentImages || [])}
+              
+              {/* YouTube Video Embed */}
+              {article.youtubeUrl && getYoutubeVideoId(article.youtubeUrl) && (
+                <div className="mt-8">
+                  <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                    <iframe
+                      src={`https://www.youtube.com/embed/${getYoutubeVideoId(article.youtubeUrl)}`}
+                      title="YouTube video player"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="absolute top-0 left-0 w-full h-full rounded-lg"
+                    ></iframe>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

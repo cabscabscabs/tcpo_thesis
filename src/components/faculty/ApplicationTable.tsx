@@ -64,7 +64,7 @@ export function ApplicationTable({ applications, isLoading = false, onRefresh }:
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full sm:w-auto">
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative flex-1 max-w-sm m-[5px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search by title or application number..."
@@ -73,9 +73,9 @@ export function ApplicationTable({ applications, isLoading = false, onRefresh }:
               className="pl-10"
             />
           </div>
-          
+
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as ApplicationStatus | "all")}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] m-[5px]">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -94,7 +94,7 @@ export function ApplicationTable({ applications, isLoading = false, onRefresh }:
           </Select>
 
           <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as IPType | "all")}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] m-[5px]">
               <FileText className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
@@ -109,7 +109,7 @@ export function ApplicationTable({ applications, isLoading = false, onRefresh }:
           </Select>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 m-[5px]">
           <Badge variant="outline" className="font-normal">
             {filteredApplications.length} applications
           </Badge>
@@ -117,7 +117,7 @@ export function ApplicationTable({ applications, isLoading = false, onRefresh }:
       </div>
 
       {/* Table */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded-lg overflow-hidden max-h-[500px] overflow-y-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">

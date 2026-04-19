@@ -13,7 +13,7 @@ const Hero = () => {
     heroImage: null as string | null,
     patentsCount: 24,
     partnersCount: 50,
-    technologiesCount: 100
+    technologiesCount: 8
   });
 
   // Load saved homepage content from Supabase
@@ -82,7 +82,12 @@ const Hero = () => {
 
         {/* Stats Counter */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+          <div
+            className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 cursor-pointer hover:bg-white/20 transition-colors"
+            onClick={() => {
+              navigate('/ip-portfolio');
+            }}
+          >
             <div className="flex items-center justify-center mb-4">
               <Award className="text-secondary" size={40} />
             </div>
@@ -90,7 +95,18 @@ const Hero = () => {
             <div className="text-white/90">Patents Granted</div>
           </div>
           
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+          <div
+            className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 cursor-pointer hover:bg-white/20 transition-colors"
+            onClick={() => {
+              navigate('/about');
+              setTimeout(() => {
+                const el = document.getElementById('strategic-partners');
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }, 300);
+            }}
+          >
             <div className="flex items-center justify-center mb-4">
               <Users className="text-secondary" size={40} />
             </div>
@@ -98,7 +114,12 @@ const Hero = () => {
             <div className="text-white/90">Industry Partners</div>
           </div>
           
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+          <div
+            className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 cursor-pointer hover:bg-white/20 transition-colors"
+            onClick={() => {
+              navigate('/ip-portfolio');
+            }}
+          >
             <div className="flex items-center justify-center mb-4">
               <Lightbulb className="text-secondary" size={40} />
             </div>

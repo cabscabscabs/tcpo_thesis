@@ -9,12 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Users, 
   FileText, 
   Building, 
   Clock, 
-  CheckCircle, 
+  CheckCircle,
+  CheckCircle2,
   ArrowLeft, 
   ArrowRight,
   Calendar,
@@ -33,18 +36,18 @@ import servicesImage from "@/assets/services-bg.jpg";
 
 const AdditionalServices = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [submittedRequestId, setSubmittedRequestId] = useState('');
+  const [submittedServiceTitle, setSubmittedServiceTitle] = useState('');
   const [selectedService, setSelectedService] = useState("training");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     organization: "",
-    service: "",
-    preferredDate: "",
-    participants: "",
     specificNeeds: "",
-    budget: "",
-    timeline: ""
+    preferredContact: ""
   });
 
   const services = [
@@ -157,7 +160,11 @@ const AdditionalServices = () => {
     
     // Validate required fields
     if (!formData.name || !formData.email || !selectedService) {
-      alert('Please fill in all required fields (Name, Email, Service Type).');
+      toast({
+        title: 'Missing required fields',
+        description: 'Please fill in Name, Email, and Service Type to continue.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -175,18 +182,18 @@ const AdditionalServices = () => {
         organization: formData.organization,
         service_type: selectedService,
         service_title: serviceTitle,
-        preferred_date: formData.preferredDate,
-        participants: formData.participants,
         specific_needs: formData.specificNeeds,
-        budget: formData.budget,
-        timeline: formData.timeline,
         status: 'Pending',
       }])
       .select();
     
     if (insertError) {
       console.error('Error submitting service request:', insertError);
-      alert('There was an error submitting your request. Please try again.');
+      toast({
+        title: 'Submission failed',
+        description: 'There was an error submitting your request. Please try again.',
+        variant: 'destructive',
+      });
       return;
     }
     
@@ -195,12 +202,10 @@ const AdditionalServices = () => {
     
     // Show success message
     const requestId = data && data[0] ? (data[0] as any).id : 'Submitted';
-    alert(
-      `Thank you for your service request!\n\n` +
-      `Service: ${serviceTitle}\n` +
-      `We will contact you at ${formData.phone} within 24 hours to discuss your requirements.\n\n` +
-      `Request ID: ${requestId}`
-    );
+    // Show success dialog
+    setSubmittedRequestId(String(requestId));
+    setSubmittedServiceTitle(serviceTitle);
+    setShowSuccessDialog(true);
     
     // Reset form
     setFormData({
@@ -208,12 +213,8 @@ const AdditionalServices = () => {
       email: "",
       phone: "",
       organization: "",
-      service: "",
-      preferredDate: "",
-      participants: "",
       specificNeeds: "",
-      budget: "",
-      timeline: ""
+      preferredContact: ""
     });
   };
 
@@ -489,7 +490,6 @@ const AdditionalServices = () => {
                         value={selectedService} 
                         onValueChange={(value) => {
                           setSelectedService(value);
-                          setFormData({...formData, service: value});
                         }}
                       >
                         <SelectTrigger>
@@ -505,29 +505,6 @@ const AdditionalServices = () => {
                       </Select>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="preferredDate">Preferred Start Date</Label>
-                        <Input
-                          id="preferredDate"
-                          type="date"
-                          value={formData.preferredDate}
-                          onChange={(e) => setFormData({...formData, preferredDate: e.target.value})}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="participants">Number of Participants</Label>
-                        <Input
-                          id="participants"
-                          type="number"
-                          value={formData.participants}
-                          onChange={(e) => setFormData({...formData, participants: e.target.value})}
-                          placeholder="Number of participants"
-                          className="placeholder:text-gray-400"
-                        />
-                      </div>
-                    </div>
-
                     <div>
                       <Label htmlFor="specificNeeds">Specific Needs & Requirements</Label>
                       <Textarea
@@ -540,42 +517,22 @@ const AdditionalServices = () => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="budget">Budget Range</Label>
-                        <Select 
-                          value={formData.budget} 
-                          onValueChange={(value) => setFormData({...formData, budget: value})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select budget range" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="under-25k">Under ₱25,000</SelectItem>
-                            <SelectItem value="25k-50k">₱25,000 - ₱50,000</SelectItem>
-                            <SelectItem value="50k-100k">₱50,000 - ₱100,000</SelectItem>
-                            <SelectItem value="over-100k">Over ₱100,000</SelectItem>
-                            <SelectItem value="flexible">Flexible</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="timeline">Preferred Timeline</Label>
-                        <Select 
-                          value={formData.timeline} 
-                          onValueChange={(value) => setFormData({...formData, timeline: value})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select timeline" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="asap">As soon as possible</SelectItem>
-                            <SelectItem value="1-month">Within 1 month</SelectItem>
-                            <SelectItem value="2-3-months">2-3 months</SelectItem>
-                            <SelectItem value="flexible">Flexible</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div>
+                      <Label htmlFor="preferredContact">Preferred Contact Method</Label>
+                      <Select 
+                        value={formData.preferredContact} 
+                        onValueChange={(value) => setFormData({...formData, preferredContact: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select contact method" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="phone">Phone Call</SelectItem>
+                          <SelectItem value="video">Video Meeting</SelectItem>
+                          <SelectItem value="in-person">In-person Meeting</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <Button type="submit" className="w-full" variant="gold">
@@ -647,6 +604,49 @@ const AdditionalServices = () => {
       </section>
 
       <Footer />
+
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle2 className="h-10 w-10 text-green-600" />
+            </div>
+            <DialogTitle className="text-center text-xl">Request Submitted Successfully!</DialogTitle>
+            <DialogDescription className="text-center">
+              Thank you for your service request. We'll get back to you soon.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 rounded-lg bg-gray-50 p-4">
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Service</span>
+              <span className="text-sm font-medium">{submittedServiceTitle}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Email</span>
+              <span className="text-sm font-medium">{formData.email}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Request ID</span>
+              <span className="text-sm font-medium">{submittedRequestId}</span>
+            </div>
+            <div className="pt-2 border-t text-center">
+              <p className="text-sm text-gray-600">Our team will get back to you to discuss your requirements.</p>
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-center">
+            <Button
+              variant="ustp"
+              onClick={() => {
+                setShowSuccessDialog(false);
+                navigate('/services');
+              }}
+            >
+              Back to Services
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

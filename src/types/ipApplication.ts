@@ -164,62 +164,63 @@ export interface IPApplicationDetailResponse extends IPApplication {
   comments: IPApplicationComment[];
 }
 
-// Status badge configuration
+// Status badge configuration - Uniform color structure
+// Green = Approved/Granted/Success, Blue = In Progress, Yellow/Orange = Attention Needed, Red = Rejected, Gray = Inactive
 export const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
-  'Draft': { 
-    label: 'Draft', 
-    color: 'text-gray-700', 
-    bgColor: 'bg-gray-100' 
+  'Draft': {
+    label: 'Draft',
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-100'
   },
-  'Submitted for Internal Review': { 
-    label: 'Submitted', 
-    color: 'text-blue-700', 
-    bgColor: 'bg-blue-100' 
+  'Submitted for Internal Review': {
+    label: 'Submitted',
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-100'
   },
-  'Under Internal Review': { 
-    label: 'Under Review', 
-    color: 'text-yellow-700', 
-    bgColor: 'bg-yellow-100' 
+  'Under Internal Review': {
+    label: 'Under Review',
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-100'
   },
-  'Needs Revision': { 
-    label: 'Needs Revision', 
-    color: 'text-orange-700', 
-    bgColor: 'bg-orange-100' 
+  'Needs Revision': {
+    label: 'Needs Revision',
+    color: 'text-amber-700',
+    bgColor: 'bg-amber-100'
   },
-  'Approved for IPOPHL Filing': { 
-    label: 'Approved', 
-    color: 'text-green-700', 
-    bgColor: 'bg-green-100' 
+  'Approved for IPOPHL Filing': {
+    label: 'Approved',
+    color: 'text-green-700',
+    bgColor: 'bg-green-100'
   },
-  'Filed to IPOPHL': { 
-    label: 'Filed to IPOPHL', 
-    color: 'text-purple-700', 
-    bgColor: 'bg-purple-100' 
+  'Filed to IPOPHL': {
+    label: 'Filed to IPOPHL',
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-100'
   },
-  'Under IPOPHL Examination': { 
-    label: 'Under Examination', 
-    color: 'text-indigo-700', 
-    bgColor: 'bg-indigo-100' 
+  'Under IPOPHL Examination': {
+    label: 'Under Examination',
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-100'
   },
-  'Published': { 
-    label: 'Published', 
-    color: 'text-cyan-700', 
-    bgColor: 'bg-cyan-100' 
+  'Published': {
+    label: 'Published',
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-100'
   },
-  'Granted': { 
-    label: 'Granted', 
-    color: 'text-emerald-700', 
-    bgColor: 'bg-emerald-100' 
+  'Granted': {
+    label: 'Granted',
+    color: 'text-green-700',
+    bgColor: 'bg-green-100'
   },
-  'Rejected': { 
-    label: 'Rejected', 
-    color: 'text-red-700', 
-    bgColor: 'bg-red-100' 
+  'Rejected': {
+    label: 'Rejected',
+    color: 'text-red-700',
+    bgColor: 'bg-red-100'
   },
-  'Withdrawn': { 
-    label: 'Withdrawn', 
-    color: 'text-gray-500', 
-    bgColor: 'bg-gray-200' 
+  'Withdrawn': {
+    label: 'Withdrawn',
+    color: 'text-gray-500',
+    bgColor: 'bg-gray-200'
   }
 };
 

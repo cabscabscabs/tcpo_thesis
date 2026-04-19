@@ -476,6 +476,13 @@ const IPPortfolio = () => {
       {/* Portfolio Grid */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Results count */}
+          <div className="flex items-center justify-between mb-6">
+            <p className="text-sm text-gray-500">
+              Showing {portfolioItems.length} of {totalItems} {totalItems === 1 ? 'patent' : 'patents'}
+            </p>
+          </div>
+
           {portfolioItems.length === 0 ? (
             <div className="text-center py-16">
               <Filter className="mx-auto h-16 w-16 text-gray-400 mb-4" />
@@ -489,67 +496,44 @@ const IPPortfolio = () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="max-h-[1000px] overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {portfolioItems.map((item) => (
                   <Card 
                     key={item.id} 
-                    className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                    className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden"
                     onClick={() => {
                       console.log("Navigating to technology with slug:", item.slug);
                       navigate(`/technology/${item.slug}`);
                     }}
                   >
-                    <CardHeader className="bg-gradient-to-r from-primary to-accent text-white">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex gap-2">
+                    <CardHeader className="bg-gradient-to-r from-primary to-accent text-white pb-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex gap-2 flex-wrap">
                           {item.status && (
-                            <Badge className={`${getStatusColor(item.status)} text-xs pointer-events-none`}>
-                              {item.status}
-                            </Badge>
+                            <Badge className={`${getStatusColor(item.status)} text-xs pointer-events-none`}>{item.status}</Badge>
                           )}
                           {(item.field || item.category) && (
-                            <Badge className={`${getFieldColor(item.field || item.category || '')} text-xs pointer-events-none`}>
-                              {item.field || item.category}
-                            </Badge>
+                            <Badge className={`${getFieldColor(item.field || item.category || '')} text-xs pointer-events-none`}>{item.field || item.category}</Badge>
                           )}
                         </div>
-                        <span className="text-secondary text-sm font-mono">{item.year || new Date(item.created_at || new Date()).getFullYear()}</span>
+                        <span className="text-secondary text-sm font-mono whitespace-nowrap ml-2">{item.year || new Date(item.created_at || new Date()).getFullYear()}</span>
                       </div>
-                      <CardTitle className="text-xl font-roboto group-hover:text-secondary transition-colors">
-                        {item.title || "Untitled Technology"}
-                      </CardTitle>
-                      <CardDescription className="text-gray-200 line-clamp-3 break-words">
-                        {item.description || item.abstract || "No description available"}
-                      </CardDescription>
+                      <CardTitle className="text-lg font-roboto group-hover:text-secondary transition-colors line-clamp-2">{item.title || "Untitled Technology"}</CardTitle>
                     </CardHeader>
                     
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div>
-                          <h4 className="font-semibold text-primary mb-2">Inventors</h4>
-                          <div className="flex items-center text-sm text-gray-600">
-                            <Users size={16} className="mr-2" />
-                            <span>{item.inventors || item.inventor || 'Not specified'}</span>
-                          </div>
+                    <CardContent className="p-5">
+                      <p className="text-sm text-gray-600 line-clamp-2 mb-4 break-words">{item.description || item.abstract || "No description available"}</p>
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Users size={15} className="mr-2 text-primary/70 flex-shrink-0" />
+                          <span className="truncate">{item.inventors || item.inventor || 'Not specified'}</span>
                         </div>
-                        
-                        <div>
-                          <h4 className="font-semibold text-primary mb-2">Field</h4>
-                          <div className="flex flex-wrap gap-1">
-                            {(item.field || item.category) && (
-                              <Badge variant="outline" className="text-xs">
-                                {item.field || item.category}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        
                         <div className="flex items-center text-sm text-gray-500">
-                          <Calendar size={16} className="mr-1" />
+                          <Calendar size={15} className="mr-2 text-primary/70 flex-shrink-0" />
                           <span>{item.year || new Date(item.created_at).getFullYear()}</span>
                         </div>
-                        
-                        <div className="flex gap-2 pt-4">
+                        <div className="flex gap-2 pt-3 border-t">
                           <Button 
                             variant="gold" 
                             size="sm" 
@@ -560,23 +544,23 @@ const IPPortfolio = () => {
                             }}
                           >
                             Contact for Licensing
-                            <ExternalLink size={16} className="ml-2" />
+                            <ExternalLink size={14} className="ml-2" />
                           </Button>
                           <Button 
                             variant="gold-outline" 
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              // Handle download
                             }}
                           >
-                            <Download size={16} />
+                            <Download size={14} />
                           </Button>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
+              </div>
               </div>
               
               {/* Pagination */}

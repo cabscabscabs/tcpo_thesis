@@ -15,12 +15,13 @@ import {
   IPApplicationComment 
 } from "@/types/ipApplication";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  ChevronLeft, 
-  Edit, 
-  FileText, 
-  Clock, 
-  MessageSquare, 
+import { supabase } from "@/integrations/supabase/client";
+import {
+  ChevronLeft,
+  Edit,
+  FileText,
+  Clock,
+  MessageSquare,
   Download,
   User,
   Calendar,
@@ -47,144 +48,127 @@ export default function FacultyApplicationDetail() {
   const loadApplicationDetails = async () => {
     setIsLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/faculty/ip-applications/${id}`);
-      // const data = await response.json();
+      if (!id) {
+        toast({
+          title: "Error",
+          description: "Invalid application ID.",
+          variant: "destructive"
+        });
+        return;
+      }
 
-      // Mock data
-      const mockApplication: IPApplication = {
-        id: id || "app-1",
-        application_number: "IP-2026-00001",
-        faculty_id: "faculty-1",
-        ip_type: "Patent",
-        title: "Smart Agriculture Monitoring System Using IoT and Machine Learning",
-        status: "Under Internal Review",
-        applicant_name: "Dr. Juan Dela Cruz",
-        applicant_address: "University of Science and Technology of Southern Philippines\nCagayan de Oro City, 9000",
-        applicant_nationality: "Filipino",
-        applicant_contact: "+63 912 345 6789",
-        applicant_email: "juan.delacruz@ustp.edu.ph",
-        abstract: "An innovative system for monitoring agricultural conditions using IoT sensors and ML algorithms. The system provides real-time data on soil moisture, temperature, humidity, and crop health, enabling farmers to make data-driven decisions for improved yield and resource management.",
-        detailed_description: "The invention comprises a network of wireless sensors deployed across agricultural fields...",
-        field_of_technology: "Agricultural Technology",
-        background_of_invention: "Traditional farming methods often rely on manual monitoring and experience-based decision making...",
-        summary_of_invention: "The present invention provides an integrated agricultural monitoring system...",
-        co_inventors: [
-          { 
-            name: "Dr. Maria Santos", 
-            address: "USTP Cagayan de Oro", 
-            nationality: "Filipino", 
-            contribution: "Hardware design and sensor integration" 
-          },
-          { 
-            name: "Engr. Pedro Reyes", 
-            address: "USTP Cagayan de Oro", 
-            nationality: "Filipino", 
-            contribution: "Machine learning algorithm development" 
-          }
-        ],
-        version: 1,
+      // Fetch application details from Supabase
+      const { data: appData, error: appError } = await (supabase as any)
+        .from('ip_applications')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (appError || !appData) {
+        console.error('Error fetching application:', appError);
+        toast({
+          title: "Error",
+          description: "Failed to load application details.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Map database fields to IPApplication type
+      const mappedApplication: IPApplication = {
+        id: appData.id,
+        application_number: appData.application_number,
+        faculty_id: appData.faculty_id,
+        ip_type: appData.ip_type,
+        title: appData.title,
+        status: appData.status,
+        applicant_name: appData.applicant_full_name,
+        applicant_address: appData.applicant_address,
+        applicant_nationality: appData.applicant_nationality,
+        applicant_contact: appData.applicant_phone || '',
+        applicant_email: appData.applicant_email,
+        abstract: appData.abstract || '',
+        detailed_description: appData.detailed_description || '',
+        field_of_technology: appData.field_of_technology || '',
+        background_of_invention: appData.background_of_invention || '',
+        summary_of_invention: appData.summary_of_invention || '',
+        co_inventors: appData.co_inventors || [],
+        version: appData.current_version || 1,
         is_current_version: true,
         previous_version_id: null,
-        ipophl_filing_date: null,
-        ipophl_application_number: null,
+        ipophl_filing_date: appData.ipophl_filing_date,
+        ipophl_application_number: appData.ipophl_application_number,
         ipophl_status: null,
-        created_at: "2026-04-10T08:00:00Z",
-        updated_at: "2026-04-15T14:30:00Z",
-        submitted_at: "2026-04-12T10:00:00Z"
+        created_at: appData.created_at,
+        updated_at: appData.updated_at,
+        submitted_at: appData.submitted_at
       };
 
-      const mockClaims: IPClaim[] = [
-        {
-          id: "claim-1",
-          application_id: id || "app-1",
-          claim_number: 1,
-          claim_type: "independent",
-          parent_claim_number: null,
-          text: "An agricultural monitoring system comprising: a plurality of wireless sensors configured to collect environmental data; a central processing unit configured to receive and process said data; and a machine learning module configured to analyze the processed data and generate predictive insights.",
-          created_at: "2026-04-10T08:00:00Z"
-        },
-        {
-          id: "claim-2",
-          application_id: id || "app-1",
-          claim_number: 2,
-          claim_type: "dependent",
-          parent_claim_number: 1,
-          text: "The system of claim 1, wherein the wireless sensors include soil moisture sensors, temperature sensors, humidity sensors, and image capture devices.",
-          created_at: "2026-04-10T08:00:00Z"
-        }
-      ];
+      // Fetch related data in parallel
+      const [
+        { data: claimsData },
+        { data: attachmentsData },
+        { data: historyData },
+        { data: commentsData }
+      ] = await Promise.all([
+        (supabase as any).from('ip_application_claims').select('*').eq('application_id', id).order('claim_number'),
+        (supabase as any).from('ip_application_attachments').select('*').eq('application_id', id).order('created_at', { ascending: false }),
+        (supabase as any).from('ip_application_status_history').select('*').eq('application_id', id).order('created_at', { ascending: false }),
+        (supabase as any).from('ip_application_comments').select('*').eq('application_id', id).order('created_at', { ascending: false })
+      ]);
 
-      const mockAttachments: IPAttachment[] = [
-        {
-          id: "att-1",
-          application_id: id || "app-1",
-          file_name: "System_Architecture_Diagram.pdf",
-          file_type: "application/pdf",
-          file_size: 2457600,
-          file_url: "/files/System_Architecture_Diagram.pdf",
-          attachment_type: "drawing",
-          description: "Technical drawing showing system architecture",
-          uploaded_at: "2026-04-10T08:30:00Z"
-        },
-        {
-          id: "att-2",
-          application_id: id || "app-1",
-          file_name: "Declaration_Form.pdf",
-          file_type: "application/pdf",
-          file_size: 512000,
-          file_url: "/files/Declaration_Form.pdf",
-          attachment_type: "form",
-          description: "Signed declaration of inventorship",
-          uploaded_at: "2026-04-10T09:00:00Z"
-        }
-      ];
+      // Map claims
+      const mappedClaims: IPClaim[] = (claimsData || []).map((claim: any) => ({
+        id: claim.id,
+        application_id: claim.application_id,
+        claim_number: claim.claim_number,
+        claim_type: claim.claim_type,
+        parent_claim_number: claim.depends_on,
+        text: claim.claim_text,
+        created_at: claim.created_at
+      }));
 
-      const mockStatusHistory: IPApplicationStatusHistory[] = [
-        {
-          id: "hist-1",
-          application_id: id || "app-1",
-          status: "Draft",
-          comments: "Application created",
-          changed_by: "Dr. Juan Dela Cruz",
-          changed_at: "2026-04-10T08:00:00Z"
-        },
-        {
-          id: "hist-2",
-          application_id: id || "app-1",
-          status: "Submitted for Internal Review",
-          comments: "Application submitted for TPCO review",
-          changed_by: "Dr. Juan Dela Cruz",
-          changed_at: "2026-04-12T10:00:00Z"
-        },
-        {
-          id: "hist-3",
-          application_id: id || "app-1",
-          status: "Under Internal Review",
-          comments: "Under review by IP Committee",
-          changed_by: "TPCO Admin",
-          changed_at: "2026-04-13T09:00:00Z"
-        }
-      ];
+      // Map attachments
+      const mappedAttachments: IPAttachment[] = (attachmentsData || []).map((att: any) => ({
+        id: att.id,
+        application_id: att.application_id,
+        file_name: att.file_name,
+        file_type: att.mime_type || 'application/octet-stream',
+        file_size: att.file_size || 0,
+        file_url: att.file_path,
+        attachment_type: att.file_type,
+        description: att.description || '',
+        uploaded_at: att.created_at
+      }));
 
-      const mockComments: IPApplicationComment[] = [
-        {
-          id: "comment-1",
-          application_id: id || "app-1",
-          comment: "Please clarify the data transmission protocol between sensors and the central unit.",
-          commenter_name: "Dr. Ana Lim",
-          commenter_role: "IP Committee Member",
-          is_internal: false,
-          created_at: "2026-04-14T10:30:00Z"
-        }
-      ];
+      // Map status history
+      const mappedHistory: IPApplicationStatusHistory[] = (historyData || []).map((hist: any) => ({
+        id: hist.id,
+        application_id: hist.application_id,
+        status: hist.to_status,
+        comments: hist.change_reason || '',
+        changed_by: 'Admin', // TODO: Get user name from profiles
+        changed_at: hist.created_at
+      }));
 
-      setApplication(mockApplication);
-      setClaims(mockClaims);
-      setAttachments(mockAttachments);
-      setStatusHistory(mockStatusHistory);
-      setComments(mockComments);
+      // Map comments
+      const mappedComments: IPApplicationComment[] = (commentsData || []).map((comment: any) => ({
+        id: comment.id,
+        application_id: comment.application_id,
+        comment: comment.comment,
+        commenter_name: 'Reviewer', // TODO: Get user name from profiles
+        commenter_role: 'IP Committee',
+        is_internal: false,
+        created_at: comment.created_at
+      }));
+
+      setApplication(mappedApplication);
+      setClaims(mappedClaims);
+      setAttachments(mappedAttachments);
+      setStatusHistory(mappedHistory);
+      setComments(mappedComments);
     } catch (error) {
+      console.error('Error loading application details:', error);
       toast({
         title: "Error",
         description: "Failed to load application details.",

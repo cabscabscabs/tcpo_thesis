@@ -4,6 +4,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   StepIndicator,
   ApplicantInfoStep,
@@ -126,21 +127,58 @@ export default function FacultyApplicationForm() {
     setIsSaving(true);
     try {
       const formData = methods.getValues();
-      
-      // TODO: Replace with actual API call
-      // await fetch('/api/faculty/ip-applications', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ ...formData, status: 'Draft' })
-      // });
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Get current user session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to save a draft.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Insert draft application into Supabase
+      const { error } = await (supabase as any)
+        .from('ip_applications')
+        .insert([{
+          faculty_id: session.user.id,
+          ip_type: formData.ip_type || 'Patent',
+          status: 'Draft',
+          applicant_full_name: formData.applicant_name,
+          applicant_address: formData.applicant_address,
+          applicant_nationality: formData.applicant_nationality,
+          applicant_email: formData.applicant_email,
+          applicant_phone: formData.applicant_contact,
+          title: formData.title || 'Untitled Draft',
+          abstract: formData.abstract,
+          field_of_technology: formData.field_of_technology,
+          background_of_invention: formData.background_of_invention,
+          summary_of_invention: formData.summary_of_invention,
+          detailed_description: formData.detailed_description,
+          co_inventors: formData.co_inventors || [],
+          declaration_confirmed: formData.declaration_ownership && formData.declaration_accuracy && formData.declaration_ustp,
+        }]);
+
+      if (error) {
+        console.error('Error saving draft:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save draft. " + error.message,
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: "Draft Saved",
         description: "Your application has been saved as a draft.",
       });
+
+      navigate("/faculty");
     } catch (error) {
+      console.error('Error saving draft:', error);
       toast({
         title: "Error",
         description: "Failed to save draft. Please try again.",
@@ -154,14 +192,50 @@ export default function FacultyApplicationForm() {
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/faculty/ip-applications', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ ...data, status: 'Submitted for Internal Review' })
-      // });
+      // Get current user session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to submit an application.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Insert submitted application into Supabase
+      const { error } = await (supabase as any)
+        .from('ip_applications')
+        .insert([{
+          faculty_id: session.user.id,
+          ip_type: data.ip_type,
+          status: 'Submitted for Internal Review',
+          applicant_full_name: data.applicant_name,
+          applicant_address: data.applicant_address,
+          applicant_nationality: data.applicant_nationality,
+          applicant_email: data.applicant_email,
+          applicant_phone: data.applicant_contact,
+          title: data.title,
+          abstract: data.abstract,
+          field_of_technology: data.field_of_technology,
+          background_of_invention: data.background_of_invention,
+          summary_of_invention: data.summary_of_invention,
+          detailed_description: data.detailed_description,
+          co_inventors: data.co_inventors || [],
+          declaration_confirmed: true,
+          declaration_date: new Date().toISOString(),
+          submitted_at: new Date().toISOString(),
+        }]);
+
+      if (error) {
+        console.error('Error submitting application:', error);
+        toast({
+          title: "Error",
+          description: "Failed to submit application. " + error.message,
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: "Application Submitted",
@@ -170,6 +244,7 @@ export default function FacultyApplicationForm() {
 
       navigate("/faculty");
     } catch (error) {
+      console.error('Error submitting application:', error);
       toast({
         title: "Error",
         description: "Failed to submit application. Please try again.",

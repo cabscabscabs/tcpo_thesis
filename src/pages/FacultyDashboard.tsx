@@ -75,107 +75,70 @@ export default function FacultyDashboard() {
   const loadApplications = async () => {
     setIsLoading(true);
     try {
-      // TODO: Replace with actual API call to your backend
-      // const response = await fetch('/api/faculty/ip-applications');
-      // const data = await response.json();
-      
-      // Mock data for now
-      const mockApplications: IPApplication[] = [
-        {
-          id: "app-1",
-          application_number: "IP-2026-00001",
-          faculty_id: facultyId,
-          ip_type: "Patent",
-          title: "Smart Agriculture Monitoring System Using IoT and Machine Learning",
-          status: "Approved for IPOPHL Filing",
-          applicant_name: "Dr. Juan Dela Cruz",
-          applicant_address: "USTP Cagayan de Oro",
-          applicant_nationality: "Filipino",
-          applicant_contact: "09123456789",
-          applicant_email: "juan@ustp.edu.ph",
-          abstract: "An innovative system for monitoring agricultural conditions using IoT sensors and ML algorithms...",
-          detailed_description: "",
-          field_of_technology: "Agricultural Technology",
-          background_of_invention: "",
-          summary_of_invention: "",
-          co_inventors: [
-            { name: "Maria Santos", address: "USTP", nationality: "Filipino", contribution: "Hardware design" }
-          ],
-          version: 1,
-          is_current_version: true,
-          previous_version_id: null,
-          ipophl_filing_date: null,
-          ipophl_application_number: null,
-          ipophl_status: null,
-          created_at: "2026-04-10T08:00:00Z",
-          updated_at: "2026-04-15T14:30:00Z",
-          submitted_at: "2026-04-12T10:00:00Z"
-        },
-        {
-          id: "app-2",
-          application_number: "IP-2026-00002",
-          faculty_id: facultyId,
-          ip_type: "Utility Model",
-          title: "Portable Water Purification Device",
-          status: "Needs Revision",
-          applicant_name: "Dr. Juan Dela Cruz",
-          applicant_address: "USTP Cagayan de Oro",
-          applicant_nationality: "Filipino",
-          applicant_contact: "09123456789",
-          applicant_email: "juan@ustp.edu.ph",
-          abstract: "A compact water purification device for emergency and outdoor use...",
-          detailed_description: "",
-          field_of_technology: "Environmental Technology",
-          background_of_invention: "",
-          summary_of_invention: "",
-          co_inventors: [],
-          version: 2,
-          is_current_version: true,
-          previous_version_id: "app-2-v1",
-          ipophl_filing_date: null,
-          ipophl_application_number: null,
-          ipophl_status: null,
-          created_at: "2026-04-05T09:00:00Z",
-          updated_at: "2026-04-14T16:45:00Z",
-          submitted_at: "2026-04-08T11:00:00Z"
-        },
-        {
-          id: "app-3",
-          application_number: "IP-2026-00003",
-          faculty_id: facultyId,
-          ip_type: "Copyright",
-          title: "Educational Mobile App for Philippine History",
-          status: "Draft",
-          applicant_name: "Dr. Juan Dela Cruz",
-          applicant_address: "USTP Cagayan de Oro",
-          applicant_nationality: "Filipino",
-          applicant_contact: "09123456789",
-          applicant_email: "juan@ustp.edu.ph",
-          abstract: "Interactive mobile application for learning Philippine history...",
-          detailed_description: "",
-          field_of_technology: "Educational Technology",
-          background_of_invention: "",
-          summary_of_invention: "",
-          co_inventors: [],
-          version: 1,
-          is_current_version: true,
-          previous_version_id: null,
-          ipophl_filing_date: null,
-          ipophl_application_number: null,
-          ipophl_status: null,
-          created_at: "2026-04-15T10:00:00Z",
-          updated_at: "2026-04-15T10:00:00Z",
-          submitted_at: null
-        }
-      ];
-      
-      setApplications(mockApplications);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setApplications([]);
+        return;
+      }
+
+      // Fetch IP applications from Supabase
+      const { data, error } = await (supabase as any)
+        .from('ip_applications')
+        .select('*')
+        .eq('faculty_id', session.user.id)
+        .eq('is_archived', false)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching applications:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load applications from database.",
+          variant: "destructive"
+        });
+        setApplications([]);
+        return;
+      }
+
+      // Map database fields to IPApplication type
+      const mappedApplications: IPApplication[] = (data || []).map((app: any) => ({
+        id: app.id,
+        application_number: app.application_number,
+        faculty_id: app.faculty_id,
+        ip_type: app.ip_type,
+        title: app.title,
+        status: app.status,
+        applicant_name: app.applicant_full_name,
+        applicant_address: app.applicant_address,
+        applicant_nationality: app.applicant_nationality,
+        applicant_contact: app.applicant_phone || '',
+        applicant_email: app.applicant_email,
+        abstract: app.abstract || '',
+        detailed_description: app.detailed_description || '',
+        field_of_technology: app.field_of_technology || '',
+        background_of_invention: app.background_of_invention || '',
+        summary_of_invention: app.summary_of_invention || '',
+        co_inventors: app.co_inventors || [],
+        version: app.current_version || 1,
+        is_current_version: true,
+        previous_version_id: null,
+        ipophl_filing_date: app.ipophl_filing_date,
+        ipophl_application_number: app.ipophl_application_number,
+        ipophl_status: null,
+        created_at: app.created_at,
+        updated_at: app.updated_at,
+        submitted_at: app.submitted_at
+      }));
+
+      setApplications(mappedApplications);
     } catch (error) {
+      console.error('Error loading applications:', error);
       toast({
         title: "Error",
         description: "Failed to load applications. Please try again.",
         variant: "destructive"
       });
+      setApplications([]);
     } finally {
       setIsLoading(false);
     }

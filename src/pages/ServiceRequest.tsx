@@ -9,19 +9,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, 
   ArrowRight,
-  Calendar,
   User,
   Mail,
   Phone,
-  MessageSquare,
   Download,
   Shield,
   Handshake,
   BookOpen,
-  Rocket
+  Rocket,
+  CheckCircle2
 } from "lucide-react";
 import servicesImage from "@/assets/services-bg.jpg";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,18 +30,17 @@ import { supabase } from "@/integrations/supabase/client";
 const ServiceRequest = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const serviceType = searchParams.get('service') || 'ip-protection';
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [submittedRequestId, setSubmittedRequestId] = useState('');
   
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     organization: "",
-    projectDescription: "",
-    timeline: "",
-    budget: "",
     specificNeeds: "",
-    urgency: "",
     preferredContact: ""
   });
 
@@ -125,8 +125,12 @@ const ServiceRequest = () => {
     e.preventDefault();
     
     // Validate required fields
-    if (!formData.name || !formData.email || !formData.projectDescription) {
-      alert('Please fill in all required fields (Name, Email, Project Description).');
+    if (!formData.name || !formData.email) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in Name and Email to continue.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -139,21 +143,11 @@ const ServiceRequest = () => {
       organization: formData.organization,
       service: currentService.id,
       serviceTitle: currentService.title,
-      preferredDate: '', // Main services don't have specific dates
-      participants: '1', // Default for main services
-      specificNeeds: `Project: ${formData.projectDescription}
-
-Specific Needs: ${formData.specificNeeds}
-
-Timeline: ${formData.timeline}
-
-Budget: ${formData.budget}
-
-Urgency: ${formData.urgency}
+      preferredDate: '',
+      participants: '1',
+      specificNeeds: `Specific Needs: ${formData.specificNeeds}
 
 Preferred Contact: ${formData.preferredContact}`,
-      budget: formData.budget,
-      timeline: formData.timeline,
       status: 'Pending',
       submittedAt: new Date().toISOString()
     };
@@ -171,27 +165,25 @@ Preferred Contact: ${formData.preferredContact}`,
         preferred_date: newRequest.preferredDate,
         participants: newRequest.participants,
         specific_needs: newRequest.specificNeeds,
-        budget: newRequest.budget,
-        timeline: newRequest.timeline,
         status: newRequest.status,
       }]);
     
     if (insertError) {
       console.error('Error submitting service request:', insertError);
-      alert('There was an error submitting your request. Please try again.');
+      toast({
+        title: "Submission failed",
+        description: "There was an error submitting your request. Please try again.",
+        variant: "destructive",
+      });
       return;
     }
     
     // Trigger storage event to notify admin panel
     window.dispatchEvent(new Event('storage'));
     
-    // Show success message
-    alert(
-      `Thank you for your service request!\n\n` +
-      `Service: ${currentService.title}\n` +
-      `We will contact you at ${formData.email} within 24 hours to discuss your project requirements.\n\n` +
-      `Request ID: ${newRequest.id}`
-    );
+    // Show success dialog
+    setSubmittedRequestId(String(newRequest.id));
+    setShowSuccessDialog(true);
     
     // Reset form
     setFormData({
@@ -199,11 +191,7 @@ Preferred Contact: ${formData.preferredContact}`,
       email: "",
       phone: "",
       organization: "",
-      projectDescription: "",
-      timeline: "",
-      budget: "",
       specificNeeds: "",
-      urgency: "",
       preferredContact: ""
     });
   };
@@ -380,57 +368,6 @@ Preferred Contact: ${formData.preferredContact}`,
                     </div>
 
                     <div>
-                      <Label htmlFor="projectDescription">Project Description *</Label>
-                      <Textarea
-                        id="projectDescription"
-                        value={formData.projectDescription}
-                        onChange={(e) => setFormData({...formData, projectDescription: e.target.value})}
-                        placeholder="Describe your project, technology, or innovation..."
-                        className="placeholder:text-gray-400"
-                        rows={4}
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="timeline">Project Timeline</Label>
-                        <Select 
-                          value={formData.timeline} 
-                          onValueChange={(value) => setFormData({...formData, timeline: value})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select timeline" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="immediate">Immediate (0-1 month)</SelectItem>
-                            <SelectItem value="short-term">Short-term (1-3 months)</SelectItem>
-                            <SelectItem value="medium-term">Medium-term (3-6 months)</SelectItem>
-                            <SelectItem value="long-term">Long-term (6+ months)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="budget">Budget Range</Label>
-                        <Select 
-                          value={formData.budget} 
-                          onValueChange={(value) => setFormData({...formData, budget: value})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select budget range" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="under-50k">Under ₱50,000</SelectItem>
-                            <SelectItem value="50k-100k">₱50,000 - ₱100,000</SelectItem>
-                            <SelectItem value="100k-500k">₱100,000 - ₱500,000</SelectItem>
-                            <SelectItem value="over-500k">Over ₱500,000</SelectItem>
-                            <SelectItem value="flexible">Flexible/To be discussed</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div>
                       <Label htmlFor="specificNeeds">Specific Needs & Requirements</Label>
                       <Textarea
                         id="specificNeeds"
@@ -442,41 +379,22 @@ Preferred Contact: ${formData.preferredContact}`,
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="urgency">Urgency Level</Label>
-                        <Select 
-                          value={formData.urgency} 
-                          onValueChange={(value) => setFormData({...formData, urgency: value})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select urgency" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="low">Low - No rush</SelectItem>
-                            <SelectItem value="medium">Medium - Standard priority</SelectItem>
-                            <SelectItem value="high">High - Time sensitive</SelectItem>
-                            <SelectItem value="urgent">Urgent - ASAP</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="preferredContact">Preferred Contact Method</Label>
-                        <Select 
-                          value={formData.preferredContact} 
-                          onValueChange={(value) => setFormData({...formData, preferredContact: value})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select contact method" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="email">Email</SelectItem>
-                            <SelectItem value="phone">Phone Call</SelectItem>
-                            <SelectItem value="video">Video Meeting</SelectItem>
-                            <SelectItem value="in-person">In-person Meeting</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div>
+                      <Label htmlFor="preferredContact">Preferred Contact Method</Label>
+                      <Select 
+                        value={formData.preferredContact} 
+                        onValueChange={(value) => setFormData({...formData, preferredContact: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select contact method" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="phone">Phone Call</SelectItem>
+                          <SelectItem value="video">Video Meeting</SelectItem>
+                          <SelectItem value="in-person">In-person Meeting</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <Button type="submit" className="w-full" variant="gold">
@@ -492,6 +410,49 @@ Preferred Contact: ${formData.preferredContact}`,
       </section>
 
       <Footer />
+
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle2 className="h-10 w-10 text-green-600" />
+            </div>
+            <DialogTitle className="text-center text-xl">Request Submitted Successfully!</DialogTitle>
+            <DialogDescription className="text-center">
+              Thank you for your service request. We'll get back to you soon.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 rounded-lg bg-gray-50 p-4">
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Service</span>
+              <span className="text-sm font-medium">{currentService.title}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Email</span>
+              <span className="text-sm font-medium">{formData.email}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Request ID</span>
+              <span className="text-sm font-medium">{submittedRequestId}</span>
+            </div>
+            <div className="pt-2 border-t text-center">
+              <p className="text-sm text-gray-600">Our team will get back to you to discuss your project requirements.</p>
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-center">
+            <Button
+              variant="ustp"
+              onClick={() => {
+                setShowSuccessDialog(false);
+                navigate('/services');
+              }}
+            >
+              Back to Services
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

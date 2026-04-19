@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Download, BookOpen, FileText, Users, Calendar, ExternalLink, Clock, Loader2, CheckCircle, Info } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +54,8 @@ const Resources = () => {
     setSearchParams({ tab: value });
   };
   const [events, setEvents] = useState([]);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
+  const [isLoadingResources, setIsLoadingResources] = useState(true);
   
   // Registration modal state
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
@@ -223,6 +226,8 @@ const Resources = () => {
         }
       } catch (error) {
         console.warn('Failed to load events data:', error);
+      } finally {
+        setIsLoadingEvents(false);
       }
     };
     
@@ -230,31 +235,9 @@ const Resources = () => {
   }, []);
 
   // Load resources from Supabase
-  const [templates, setTemplates] = useState<any[]>([
-    {
-      id: 1,
-      title: "Non-Disclosure Agreement (NDA)",
-      description: "Standard template for protecting confidential information during technology discussions",
-      format: "PDF, DOCX",
-      lastUpdated: "March 2024"
-    },
-    {
-      title: "Memorandum of Understanding (MOU)",
-      description: "Framework for establishing research partnerships and collaboration agreements",
-      format: "PDF, DOCX", 
-      lastUpdated: "February 2024"
-    }
-  ]);
+  const [templates, setTemplates] = useState<any[]>([]);
 
-  const [guidelines, setGuidelines] = useState<any[]>([
-    {
-      id: 1,
-      title: "USTP Research Ethics Guidelines",
-      description: "Comprehensive guide to ethical considerations in research and development",
-      pages: 45,
-      lastUpdated: "March 2024"
-    }
-  ]);
+  const [guidelines, setGuidelines] = useState<any[]>([]);
 
   useEffect(() => {
     const loadResources = async () => {
@@ -293,6 +276,8 @@ const Resources = () => {
         }
       } catch (error) {
         console.warn('Failed to load resources data:', error);
+      } finally {
+        setIsLoadingResources(false);
       }
     };
     
@@ -365,47 +350,72 @@ const Resources = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {templates.map((template, index) => (
-                  <Card key={index} className="hover:shadow-card transition-all duration-300">
-                    <CardHeader>
-                      <div className="flex items-start justify-between mb-2">
-                        <FileText className="text-secondary flex-shrink-0" size={24} />
-                        <span className="text-xs text-gray-500">{template.format}</span>
-                      </div>
-                      <CardTitle className="text-lg font-roboto text-primary">
-                        {template.title}
-                      </CardTitle>
-                      <CardDescription>
-                        {template.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2 mb-4">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Updated:</span>
-                          <span className="font-medium">{template.lastUpdated}</span>
+                {isLoadingResources ? (
+                  <>{[1, 2, 3].map((i) => (
+                    <Card key={i} className="hover:shadow-card transition-all duration-300">
+                      <CardHeader>
+                        <div className="flex items-start justify-between mb-2">
+                          <Skeleton className="h-6 w-6 rounded" />
+                          <Skeleton className="h-4 w-14 rounded" />
                         </div>
-                      </div>
-                      <Button 
-                        variant="gold-outline" 
-                        size="sm" 
-                        className="w-full"
-                        onClick={() => {
-                          if (template.file_url) {
-                            window.open(template.file_url, '_blank');
-                          } else if (template.url) {
-                            window.open(template.url, '_blank');
-                          } else {
-                            alert('Download not available for this template yet.');
-                          }
-                        }}
-                      >
-                        <Download size={16} className="mr-2" />
-                        Download
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <Skeleton className="h-5 w-3/4 mb-2 rounded" />
+                        <Skeleton className="h-4 w-full rounded" />
+                        <Skeleton className="h-4 w-2/3 rounded" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 mb-4">
+                          <div className="flex justify-between">
+                            <Skeleton className="h-4 w-16 rounded" />
+                            <Skeleton className="h-4 w-20 rounded" />
+                          </div>
+                        </div>
+                        <Skeleton className="h-9 w-full rounded" />
+                      </CardContent>
+                    </Card>
+                  ))}</>
+                ) : (
+                  templates.map((template, index) => (
+                    <Card key={index} className="hover:shadow-card transition-all duration-300">
+                      <CardHeader>
+                        <div className="flex items-start justify-between mb-2">
+                          <FileText className="text-secondary flex-shrink-0" size={24} />
+                          <span className="text-xs text-gray-500">{template.format}</span>
+                        </div>
+                        <CardTitle className="text-lg font-roboto text-primary">
+                          {template.title}
+                        </CardTitle>
+                        <CardDescription>
+                          {template.description}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 mb-4">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Updated:</span>
+                            <span className="font-medium">{template.lastUpdated}</span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="gold-outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => {
+                            if (template.file_url) {
+                              window.open(template.file_url, '_blank');
+                            } else if (template.url) {
+                              window.open(template.url, '_blank');
+                            } else {
+                              toast({ title: 'Notice', description: 'Download not available for this template yet.' });
+                            }
+                          }}
+                        >
+                          <Download size={16} className="mr-2" />
+                          Download
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
             </TabsContent>
             
@@ -422,47 +432,72 @@ const Resources = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {guidelines.map((guide, index) => (
-                  <Card key={index} className="hover:shadow-card transition-all duration-300">
-                    <CardHeader>
-                      <div className="flex items-start justify-between mb-2">
-                        <BookOpen className="text-secondary flex-shrink-0" size={24} />
-                        {guide.pages && <span className="text-xs text-gray-500">{guide.pages} pages</span>}
-                      </div>
-                      <CardTitle className="text-lg font-roboto text-primary">
-                        {guide.title}
-                      </CardTitle>
-                      <CardDescription>
-                        {guide.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2 mb-4">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Updated:</span>
-                          <span className="font-medium">{guide.lastUpdated}</span>
+                {isLoadingResources ? (
+                  <>{[1, 2, 3].map((i) => (
+                    <Card key={i} className="hover:shadow-card transition-all duration-300">
+                      <CardHeader>
+                        <div className="flex items-start justify-between mb-2">
+                          <Skeleton className="h-6 w-6 rounded" />
+                          <Skeleton className="h-4 w-14 rounded" />
                         </div>
-                      </div>
-                      <Button 
-                        variant="gold-outline" 
-                        size="sm" 
-                        className="w-full"
-                        onClick={() => {
-                          if (guide.file_url) {
-                            window.open(guide.file_url, '_blank');
-                          } else if (guide.url) {
-                            window.open(guide.url, '_blank');
-                          } else {
-                            alert('Download not available for this guide yet.');
-                          }
-                        }}
-                      >
-                        <Download size={16} className="mr-2" />
-                        Download Guide
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <Skeleton className="h-5 w-3/4 mb-2 rounded" />
+                        <Skeleton className="h-4 w-full rounded" />
+                        <Skeleton className="h-4 w-2/3 rounded" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 mb-4">
+                          <div className="flex justify-between">
+                            <Skeleton className="h-4 w-16 rounded" />
+                            <Skeleton className="h-4 w-20 rounded" />
+                          </div>
+                        </div>
+                        <Skeleton className="h-9 w-full rounded" />
+                      </CardContent>
+                    </Card>
+                  ))}</>
+                ) : (
+                  guidelines.map((guide, index) => (
+                    <Card key={index} className="hover:shadow-card transition-all duration-300">
+                      <CardHeader>
+                        <div className="flex items-start justify-between mb-2">
+                          <BookOpen className="text-secondary flex-shrink-0" size={24} />
+                          {guide.pages && <span className="text-xs text-gray-500">{guide.pages} pages</span>}
+                        </div>
+                        <CardTitle className="text-lg font-roboto text-primary">
+                          {guide.title}
+                        </CardTitle>
+                        <CardDescription>
+                          {guide.description}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 mb-4">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Updated:</span>
+                            <span className="font-medium">{guide.lastUpdated}</span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="gold-outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => {
+                            if (guide.file_url) {
+                              window.open(guide.file_url, '_blank');
+                            } else if (guide.url) {
+                              window.open(guide.url, '_blank');
+                            } else {
+                              toast({ title: 'Notice', description: 'Download not available for this guide yet.' });
+                            }
+                          }}
+                        >
+                          <Download size={16} className="mr-2" />
+                          Download Guide
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
             </TabsContent>
           </Tabs>
@@ -482,7 +517,33 @@ const Resources = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {upcomingEvents.length > 0 ? (
+            {isLoadingEvents ? (
+              <>{[1, 2, 3].map((i) => (
+                <Card key={i} className="hover:shadow-card transition-all duration-300">
+                  <CardHeader className="bg-secondary/10">
+                    <div className="flex items-center mb-2">
+                      <Skeleton className="h-5 w-5 rounded mr-2" />
+                      <Skeleton className="h-4 w-28 rounded" />
+                    </div>
+                    <Skeleton className="h-6 w-3/4 rounded" />
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-2 mb-4">
+                      {[1, 2, 3, 4].map((row) => (
+                        <div key={row} className="flex justify-between">
+                          <Skeleton className="h-4 w-20 rounded" />
+                          <Skeleton className="h-4 w-24 rounded" />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <Skeleton className="h-9 flex-1 rounded" />
+                      <Skeleton className="h-9 flex-1 rounded" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}</>
+            ) : upcomingEvents.length > 0 ? (
               upcomingEvents.map((event, index) => (
                 <Card key={index} className="hover:shadow-card transition-all duration-300">
                   <CardHeader className="bg-secondary/10">

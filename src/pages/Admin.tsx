@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2, Search, Filter, X, Bell, Check, BellOff, FileUp, FileDown, EyeIcon } from "lucide-react";
@@ -20,6 +21,7 @@ import { PatentAnalyticsCard } from "@/components/admin/PatentAnalyticsCard";
 
 const Admin = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -44,6 +46,10 @@ const Admin = () => {
   const [patentCurrentPage, setPatentCurrentPage] = useState(1);
   const patentsPerPage = 5;
 
+  // Patent detail modal state
+  const [selectedPatentForDetail, setSelectedPatentForDetail] = useState<any>(null);
+  const [showPatentDetailModal, setShowPatentDetailModal] = useState(false);
+
   // Patent form state for "Add New Patent" section
   const [patentForm, setPatentForm] = useState({
     title: '',
@@ -55,6 +61,11 @@ const Admin = () => {
     status: 'Pending',
     year: new Date().getFullYear().toString()
   });
+
+  // Patent file upload state
+  const [patentFile, setPatentFile] = useState<File | null>(null);
+  const [patentFileName, setPatentFileName] = useState('');
+  const [uploadingPatent, setUploadingPatent] = useState(false);
 
   // Patent form state for modal editing (separate from add form)
   const [patentEditForm, setPatentEditForm] = useState({
@@ -73,6 +84,8 @@ const Admin = () => {
   const [draftNews, setDraftNews] = useState<any[]>([]);
   const [archivedNews, setArchivedNews] = useState<any[]>([]);
   const [newsTab, setNewsTab] = useState('published');
+  const [newsSearchTerm, setNewsSearchTerm] = useState('');
+  const [newsCategoryFilter, setNewsCategoryFilter] = useState('all');
 
   // Dashboard statistics
   const [dashboardStats, setDashboardStats] = useState({
@@ -409,7 +422,7 @@ const Admin = () => {
   // Export activities to CSV
   const exportActivitiesToCSV = () => {
     if (allActivities.length === 0) {
-      alert('No activities to export');
+      toast({ title: 'No activities to export', description: 'There are no activities to export.', variant: 'destructive' });
       return;
     }
 
@@ -450,16 +463,25 @@ const Admin = () => {
     date: new Date().toISOString().split('T')[0],
     excerpt: '',
     content: '',
-    image: null as File | null
+    image: null as File | null,
+    contentImages: [] as File[],
+    youtubeUrl: ''
   });
 
   // Modal states
   const [showNewsModal, setShowNewsModal] = useState(false);
   const [editingNews, setEditingNews] = useState<any>(null);
+  const [existingContentImages, setExistingContentImages] = useState<string[]>([]);
+
+  // Delete confirmation dialog state
+  const [showDeleteNewsDialog, setShowDeleteNewsDialog] = useState(false);
+  const [deleteNewsTarget, setDeleteNewsTarget] = useState<{ id: string; title: string } | null>(null);
 
   const [events, setEvents] = useState<any[]>([]);
   const [archivedEvents, setArchivedEvents] = useState<any[]>([]);
   const [eventTab, setEventTab] = useState('active');
+  const [eventSearchTerm, setEventSearchTerm] = useState('');
+  const [eventTypeFilter, setEventTypeFilter] = useState('all');
     
     // Event Registrations state
     const [showRegistrationsModal, setShowRegistrationsModal] = useState(false);
@@ -501,6 +523,7 @@ const Admin = () => {
   const [showResourceModal, setShowResourceModal] = useState(false);
   const [editingResource, setEditingResource] = useState<any>(null);
   const [resourceTab, setResourceTab] = useState('templates');
+  const [resourceSearchTerm, setResourceSearchTerm] = useState('');
   const [resourceForm, setResourceForm] = useState({
     id: null as string | null,
     title: '',
@@ -512,24 +535,14 @@ const Admin = () => {
     file_url: '',
     tags: [] as string[],
     published: true,
-    // Tutorial fields
-    duration: '',
-    modules_count: 0,
-    level: 'Beginner',
-    // Facility fields
-    capacity: '',
-    hourly_rate: '',
-    booking_lead_time: '',
-    equipment: [] as string[]
   });
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
-
-  // Facility Booking Inquiries state
-  const [bookingInquiries, setBookingInquiries] = useState<any[]>([]);
-  const [showInquiryModal, setShowInquiryModal] = useState(false);
-  const [selectedInquiry, setSelectedInquiry] = useState<any>(null);
+  
+  // Resource delete confirmation modal state
+  const [showDeleteResourceModal, setShowDeleteResourceModal] = useState(false);
+  const [resourceToDelete, setResourceToDelete] = useState<{id: string, title: string} | null>(null);
 
   // Services management state
   const [services, setServices] = useState<any[]>([]);
@@ -652,7 +665,6 @@ const Admin = () => {
         loadPatents(),
         loadUsers(),
         loadResources(),
-        loadBookingInquiries(),
       ]);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -758,6 +770,8 @@ const Admin = () => {
           image: article.cover_image_url,
           archived: article.archived || false,
           published: article.published || false,
+          content_images: article.content_images || [],
+          youtube_url: article.youtube_url || '',
         }));
         
         // Separate into three categories
@@ -788,7 +802,7 @@ const Admin = () => {
       // Note: Activity is logged automatically by database trigger
     } catch (error) {
       console.error('Error archiving/restoring news:', error);
-      alert('Failed to update news status');
+      toast({ title: 'Error', description: 'Failed to update news status.', variant: 'destructive' });
     }
   };
 
@@ -889,7 +903,7 @@ const Admin = () => {
       // Note: Activity is logged automatically by database trigger
     } catch (error) {
       console.error('Error archiving/restoring request:', error);
-      alert('Failed to update request status');
+      toast({ title: 'Error', description: 'Failed to update request status.', variant: 'destructive' });
     }
   };
 
@@ -954,7 +968,7 @@ const Admin = () => {
       // Note: Activity is logged automatically by database trigger
     } catch (error) {
       console.error('Error archiving/restoring event:', error);
-      alert('Failed to update event status');
+      toast({ title: 'Error', description: 'Failed to update event status.', variant: 'destructive' });
     }
   };
 
@@ -989,7 +1003,7 @@ const Admin = () => {
         .from('admin_patents')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (data && !error) {
         setPatents(data.map((patent: any) => ({
           id: patent.id,
@@ -1001,6 +1015,8 @@ const Admin = () => {
           abstract: patent.abstract,
           status: patent.status,
           year: patent.year,
+          file_url: patent.file_url,
+          file_name: patent.file_name,
         })));
       }
     } catch (error) {
@@ -1027,13 +1043,6 @@ const Admin = () => {
           file_url: resource.file_url,
           tags: resource.tags || [],
           published: resource.published,
-          duration: resource.duration,
-          modules_count: resource.modules_count,
-          level: resource.level,
-          capacity: resource.capacity,
-          hourly_rate: resource.hourly_rate,
-          booking_lead_time: resource.booking_lead_time,
-          equipment: resource.equipment || [],
           created_at: resource.created_at,
           updated_at: resource.updated_at,
         })));
@@ -1043,34 +1052,6 @@ const Admin = () => {
     }
   };
 
-  const loadBookingInquiries = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('facility_booking_inquiries')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (data && !error) {
-        setBookingInquiries(data.map((inquiry: any) => ({
-          id: inquiry.id,
-          facility_id: inquiry.facility_id,
-          facility_name: inquiry.facility_name,
-          full_name: inquiry.full_name,
-          email: inquiry.email,
-          phone: inquiry.phone,
-          organization: inquiry.organization,
-          preferred_date: inquiry.preferred_date,
-          preferred_time: inquiry.preferred_time,
-          purpose: inquiry.purpose,
-          additional_notes: inquiry.additional_notes,
-          status: inquiry.status,
-          created_at: inquiry.created_at,
-        })));
-      }
-    } catch (error) {
-      console.error('Error loading booking inquiries:', error);
-    }
-  };
 
     const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1243,7 +1224,7 @@ const Admin = () => {
           
           if (error) {
             console.error('Error updating homepage:', error);
-            alert('Error updating homepage content');
+            toast({ title: 'Error', description: 'Error updating homepage content', variant: 'destructive' });
             return;
           }
           
@@ -1255,7 +1236,7 @@ const Admin = () => {
           });
           
           window.dispatchEvent(new Event('storage'));
-          alert('Homepage content and image updated successfully!');
+          toast({ title: 'Success', description: 'Homepage content and image updated successfully!' });
         };
         reader.readAsDataURL(file);
       } else {
@@ -1275,7 +1256,7 @@ const Admin = () => {
         
         if (error) {
           console.error('Error updating homepage:', error);
-          alert('Error updating homepage content');
+          toast({ title: 'Error', description: 'Error updating homepage content', variant: 'destructive' });
           return;
         }
         
@@ -1286,10 +1267,10 @@ const Admin = () => {
         });
         
         window.dispatchEvent(new Event('storage'));
-        alert('Homepage content updated successfully!');
+        toast({ title: 'Success', description: 'Homepage content updated successfully!' });
       }
     } else {
-      alert('Please fill in both title and subtitle fields.');
+      toast({ title: 'Validation Error', description: 'Please fill in both title and subtitle fields.', variant: 'destructive' });
     }
   };
 
@@ -1316,7 +1297,7 @@ const Admin = () => {
     
     if (error) {
       console.error('Error updating statistics:', error);
-      alert('Error updating statistics');
+      toast({ title: 'Error', description: 'Error updating statistics', variant: 'destructive' })
       return;
     }
     
@@ -1329,7 +1310,7 @@ const Admin = () => {
     });
     
     window.dispatchEvent(new Event('storage'));
-    alert('Statistics updated successfully!');
+    toast({ title: 'Success', description: 'Statistics updated successfully!' });
   };
 
   // Activity logging function
@@ -1411,10 +1392,11 @@ const Admin = () => {
   // News Management Functions
   const handlePublishNews = async () => {
     if (!newsForm.title || !newsForm.content || !newsForm.category) {
-      alert('Please fill in all required fields (Title, Content, Category).');
+      toast({ title: 'Validation Error', description: 'Please fill in all required fields (Title, Content, Category).', variant: 'destructive' });
       return;
     }
 
+    try {
     let imageUrl = null;
     
     if (newsForm.image) {
@@ -1427,7 +1409,28 @@ const Admin = () => {
         });
       } catch (error) {
         console.error('Failed to process image:', error);
-        alert('Failed to process image. Article will be saved without image.');
+        toast({ title: 'Warning', description: 'Failed to process image. Article will be saved without image.', variant: 'destructive' });
+      }
+    }
+
+    // Process content images - merge new uploads with existing ones when editing
+    let contentImageUrls: string[] = [...existingContentImages];
+    if (newsForm.contentImages.length > 0) {
+      try {
+        const newImageUrls = await Promise.all(
+          newsForm.contentImages.map(file => {
+            return new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = (e) => resolve(e.target?.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            });
+          })
+        );
+        contentImageUrls = [...contentImageUrls, ...newImageUrls];
+      } catch (error) {
+        console.error('Failed to process content images:', error);
+        toast({ title: 'Warning', description: 'Failed to process some content images.', variant: 'destructive' });
       }
     }
 
@@ -1439,6 +1442,8 @@ const Admin = () => {
       author: newsForm.author,
       date: newsForm.date,
       cover_image_url: imageUrl,
+      content_images: contentImageUrls,
+      youtube_url: newsForm.youtubeUrl || null,
       status: 'Published',
       published: true,
       tags: [newsForm.category, 'USTP', 'News'],
@@ -1451,8 +1456,8 @@ const Admin = () => {
         .eq('id', editingNews.id);
       
       if (error) {
-        console.error('Error updating news:', error);
-        alert('Error updating news article');
+        console.error('Error updating news:', JSON.stringify(error, null, 2));
+        toast({ title: 'Error', description: `Error updating news: ${error.message} (Code: ${error.code})`, variant: 'destructive' })
         return;
       }
       // Note: Activity is logged automatically by database trigger
@@ -1463,8 +1468,8 @@ const Admin = () => {
         .insert([newsData]);
       
       if (error) {
-        console.error('Error creating news:', error);
-        alert('Error creating news article');
+        console.error('Error creating news:', JSON.stringify(error, null, 2));
+        toast({ title: 'Error', description: `Error creating news: ${error.message} (Code: ${error.code})`, variant: 'destructive' })
         return;
       }
       // Note: Activity is logged automatically by database trigger
@@ -1483,21 +1488,29 @@ const Admin = () => {
       date: new Date().toISOString().split('T')[0],
       excerpt: '',
       content: '',
-      image: null
+      image: null,
+      contentImages: [],
+      youtubeUrl: ''
     });
+    setExistingContentImages([]);
     
     setShowNewsModal(false);
     setEditingNews(null);
     
-    alert(`News article ${editingNews ? 'updated' : 'published'} successfully!`);
+    toast({ title: 'Success', description: `News article ${editingNews ? 'updated' : 'published'} successfully!` })
+    } catch (error: any) {
+      console.error('Unexpected error in handlePublishNews:', error);
+      toast({ title: 'Error', description: `Unexpected error: ${error?.message || 'Unknown error'}`, variant: 'destructive' });
+    }
   };
 
   const handleSaveDraft = async () => {
     if (!newsForm.title || !newsForm.content) {
-      alert('Please fill in Title and Content to save as draft.');
+      toast({ title: 'Notice', description: 'Please fill in Title and Content to save as draft.' })
       return;
     }
 
+    try {
     let imageUrl = null;
     
     if (newsForm.image) {
@@ -1510,7 +1523,28 @@ const Admin = () => {
         });
       } catch (error) {
         console.error('Failed to process image:', error);
-        alert('Failed to process image. Article will be saved without image.');
+        toast({ title: 'Warning', description: 'Failed to process image. Article will be saved without image.', variant: 'destructive' });
+      }
+    }
+
+    // Process content images - merge new uploads with existing ones when editing
+    let contentImageUrls: string[] = [...existingContentImages];
+    if (newsForm.contentImages.length > 0) {
+      try {
+        const newImageUrls = await Promise.all(
+          newsForm.contentImages.map(file => {
+            return new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = (e) => resolve(e.target?.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            });
+          })
+        );
+        contentImageUrls = [...contentImageUrls, ...newImageUrls];
+      } catch (error) {
+        console.error('Failed to process content images:', error);
+        toast({ title: 'Warning', description: 'Failed to process some content images.', variant: 'destructive' });
       }
     }
 
@@ -1522,6 +1556,8 @@ const Admin = () => {
       author: newsForm.author,
       date: newsForm.date,
       cover_image_url: imageUrl,
+      content_images: contentImageUrls,
+      youtube_url: newsForm.youtubeUrl || null,
       status: 'Draft',
       published: false,
       tags: [newsForm.category || 'News', 'USTP', 'Draft'],
@@ -1534,8 +1570,8 @@ const Admin = () => {
         .eq('id', editingNews.id);
       
       if (error) {
-        console.error('Error updating draft:', error);
-        alert('Error saving draft');
+        console.error('Error updating draft:', JSON.stringify(error, null, 2));
+        toast({ title: 'Error', description: `Error saving draft: ${error.message} (Code: ${error.code})`, variant: 'destructive' });
         return;
       }
       // Note: Activity is logged automatically by database trigger
@@ -1545,8 +1581,8 @@ const Admin = () => {
         .insert([newsData]);
       
       if (error) {
-        console.error('Error saving draft:', error);
-        alert('Error saving draft');
+        console.error('Error saving draft:', JSON.stringify(error, null, 2));
+        toast({ title: 'Error', description: `Error saving draft: ${error.message} (Code: ${error.code})`, variant: 'destructive' });
         return;
       }
       // Note: Activity is logged automatically by database trigger
@@ -1561,13 +1597,20 @@ const Admin = () => {
       date: new Date().toISOString().split('T')[0],
       excerpt: '',
       content: '',
-      image: null
+      image: null,
+      contentImages: [],
+      youtubeUrl: ''
     });
+    setExistingContentImages([]);
     
     setShowNewsModal(false);
     setEditingNews(null);
-    
-    alert('News article saved as draft successfully!');
+      
+    toast({ title: 'Success', description: 'News article saved as draft successfully!' });
+    } catch (error: any) {
+      console.error('Unexpected error in handleSaveDraft:', error);
+      toast({ title: 'Error', description: `Unexpected error: ${error?.message || 'Unknown error'}`, variant: 'destructive' });
+    }
   };
 
   const handleEditNews = (article: any) => {
@@ -1579,8 +1622,12 @@ const Admin = () => {
       date: article.date,
       excerpt: article.excerpt,
       content: article.content,
-      image: null
+      image: null,
+      contentImages: [],
+      youtubeUrl: article.youtube_url || ''
     });
+    // Store existing content images for display
+    setExistingContentImages(article.content_images || []);
     setShowNewsModal(true);
   };
 
@@ -1594,7 +1641,9 @@ const Admin = () => {
       date: new Date().toISOString().split('T')[0],
       excerpt: article.excerpt,
       content: article.content,
-      image: null
+      image: null,
+      contentImages: [],
+      youtubeUrl: article.youtube_url || ''
     });
     
     // Scroll to the form
@@ -1603,58 +1652,60 @@ const Admin = () => {
       formElement.scrollIntoView({ behavior: 'smooth' });
     }
     
-    alert(`📋 Article duplicated! You can now edit the copy of "${article.title}" and save it as a new article.`);
+    toast({ title: 'Info', description: `Article duplicated! You can now edit the copy of "${article.title}" and save it as a new article.` });
   };
 
-  const handleDeleteNews = async (articleId: string, title: string) => {
+  const handleDeleteNews = (articleId: string, title: string) => {
+    setDeleteNewsTarget({ id: articleId, title });
+    setShowDeleteNewsDialog(true);
+  };
+
+  const confirmDeleteNews = async () => {
+    if (!deleteNewsTarget) return;
+    const articleId = deleteNewsTarget.id;
+    const title = deleteNewsTarget.title;
     const article = news.find(a => a.id === articleId);
-    const confirmMessage = `Are you sure you want to delete "${title}"?
-
-This action cannot be undone.
-
-Article Details:
-- Status: ${article?.status}
-- Category: ${article?.category}
-- Date: ${article?.date}`;
+    const wasPublished = article?.status === 'Published';
     
-    if (confirm(confirmMessage)) {
-      const wasPublished = article?.status === 'Published';
-      
-      const { error } = await supabase
-        .from('admin_news')
-        .delete()
-        .eq('id', articleId);
-      
-      if (error) {
-        console.error('Error deleting news:', error);
-        alert('Error deleting news article');
-        return;
-      }
-      
-      loadNews();
-      // Note: Activity is logged automatically by database trigger
-      
-      if (wasPublished) {
-        await updateDashboardStats({
-          publishedNews: Math.max(0, dashboardStats.publishedNews - 1)
-        });
-      }
-      
-      alert(`Article "${title}" has been deleted successfully!`);
-      
-      if (editingNews && editingNews.id === articleId) {
-        setEditingNews(null);
-        setNewsForm({
-          title: '',
-          category: '',
-          author: '',
-          date: new Date().toISOString().split('T')[0],
-          excerpt: '',
-          content: '',
-          image: null
-        });
-      }
+    const { error } = await supabase
+      .from('admin_news')
+      .delete()
+      .eq('id', articleId);
+    
+    if (error) {
+      console.error('Error deleting news:', error);
+      toast({ title: 'Error', description: `Error deleting news article: ${error.message}`, variant: 'destructive' })
+      return;
     }
+    
+    loadNews();
+    // Note: Activity is logged automatically by database trigger
+    
+    if (wasPublished) {
+      await updateDashboardStats({
+        publishedNews: Math.max(0, dashboardStats.publishedNews - 1)
+      });
+    }
+    
+    toast({ title: 'Success', description: `Article "${title}" has been deleted successfully!` })
+    
+    if (editingNews && editingNews.id === articleId) {
+      setEditingNews(null);
+      setNewsForm({
+        title: '',
+        category: '',
+        author: '',
+        date: new Date().toISOString().split('T')[0],
+        excerpt: '',
+        content: '',
+        image: null,
+        contentImages: [],
+        youtubeUrl: ''
+      });
+    }
+
+    setShowDeleteNewsDialog(false);
+    setDeleteNewsTarget(null);
   };
   // Featured Technologies Management Functions
   const handleAddTechnology = () => {
@@ -1691,7 +1742,7 @@ Article Details:
 
   const handleSaveTechnology = async () => {
     if (!techForm.title || !techForm.description || !techForm.field) {
-      alert('Please fill in all required fields (Title, Description, Field).');
+      toast({ title: 'Validation Error', description: 'Please fill in all required fields (Title, Description, Field).', variant: 'destructive' });
       return;
     }
 
@@ -1716,7 +1767,7 @@ Article Details:
       
       if (error) {
         console.error('Error updating technology:', error);
-        alert('Error updating technology');
+        toast({ title: 'Error', description: 'Error updating technology', variant: 'destructive' })
         return;
       }
       // Note: Activity is logged automatically by database trigger
@@ -1727,7 +1778,7 @@ Article Details:
       
       if (error) {
         console.error('Error creating technology:', error);
-        alert('Error creating technology');
+        toast({ title: 'Error', description: 'Error creating technology', variant: 'destructive' })
         return;
       }
       // Note: Activity is logged automatically by database trigger
@@ -1736,7 +1787,7 @@ Article Details:
     loadTechnologies();
     window.dispatchEvent(new Event('storage'));
     setShowTechModal(false);
-    alert(`Technology ${editingTech ? 'updated' : 'added'} successfully!`);
+    toast({ title: 'Success', description: `Technology ${editingTech ? 'updated' : 'added'} successfully!` })
   };
 
   const handleDeleteTechnology = async (techId: string, title: string) => {
@@ -1748,61 +1799,102 @@ Article Details:
       
       if (error) {
         console.error('Error deleting technology:', error);
-        alert('Error deleting technology');
+        toast({ title: 'Error', description: 'Error deleting technology', variant: 'destructive' })
         return;
       }
       
       loadTechnologies();
       window.dispatchEvent(new Event('storage'));
       // Note: Activity is logged automatically by database trigger
-      alert('Technology deleted successfully!');
+      toast({ title: 'Success', description: 'Technology deleted successfully!' })
     }
   };
 
   // Handle saving a new patent
   const handleSavePatent = async () => {
     if (!patentForm.title || !patentForm.field) {
-      alert('Please fill in all required fields (Title, Field).');
+      toast({ title: 'Validation Error', description: 'Please fill in all required fields (Title, Field).', variant: 'destructive' });
       return;
     }
 
-    const patentData = {
-      title: patentForm.title,
-      patent_number: patentForm.patentId,
-      inventors: patentForm.inventors,
-      field: patentForm.field,
-      description: patentForm.description,
-      abstract: patentForm.abstract,
-      status: patentForm.status || 'Pending',
-      year: patentForm.year || new Date().getFullYear().toString(),
-      published: true,
-    };
+    setUploadingPatent(true);
+    let fileUrl = null;
+    let fileName = null;
 
-    const { error } = await supabase
-      .from('admin_patents')
-      .insert([patentData]);
-    
-    if (error) {
-      console.error('Error creating patent:', error);
-      alert('Error creating patent');
-      return;
+    try {
+      // Upload file to Supabase Storage if a file is selected
+      if (patentFile) {
+        const fileExt = patentFile.name.split('.').pop();
+        const filePath = `patents/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('patent-files')
+          .upload(filePath, patentFile);
+
+        if (uploadError) {
+          console.error('Error uploading file:', uploadError);
+          toast({ title: 'Error', description: 'Failed to upload file: ' + uploadError.message, variant: 'destructive' });
+          setUploadingPatent(false);
+          return;
+        }
+
+        // Get the public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('patent-files')
+          .getPublicUrl(filePath);
+
+        fileUrl = publicUrl;
+        fileName = patentFile.name;
+      }
+
+      const patentData = {
+        title: patentForm.title,
+        patent_number: patentForm.patentId,
+        inventors: patentForm.inventors,
+        field: patentForm.field,
+        description: patentForm.description,
+        abstract: patentForm.abstract,
+        status: patentForm.status || 'Pending',
+        year: patentForm.year || new Date().getFullYear().toString(),
+        published: true,
+        file_url: fileUrl,
+        file_name: fileName,
+      };
+
+      const { error } = await supabase
+        .from('admin_patents')
+        .insert([patentData]);
+
+      if (error) {
+        console.error('Error creating patent:', error);
+        toast({ title: 'Error', description: 'Error creating patent: ' + error.message, variant: 'destructive' });
+        return;
+      }
+
+      loadPatents();
+      window.dispatchEvent(new Event('storage'));
+
+      // Reset form and file states
+      setPatentForm({
+        title: '',
+        patentId: '',
+        inventors: '',
+        field: '',
+        description: '',
+        abstract: '',
+        status: 'Pending',
+        year: new Date().getFullYear().toString()
+      });
+      setPatentFile(null);
+      setPatentFileName('');
+
+      toast({ title: 'Success', description: 'Patent saved successfully!' });
+    } catch (error) {
+      console.error('Error saving patent:', error);
+      toast({ title: 'Error', description: 'Failed to save patent. Please try again.', variant: 'destructive' });
+    } finally {
+      setUploadingPatent(false);
     }
-
-    loadPatents();
-    window.dispatchEvent(new Event('storage'));
-    
-    setPatentForm({
-      title: '',
-      patentId: '',
-      inventors: '',
-      field: '',
-      description: '',
-      abstract: '',
-      status: 'Pending',
-      year: new Date().getFullYear().toString()
-    });
-    
-    alert('Patent saved successfully!');
   };
 
   // Handle editing a patent
@@ -1824,7 +1916,7 @@ Article Details:
   // Handle updating a patent
   const handleUpdatePatent = async () => {
     if (!patentEditForm.title || !patentEditForm.field) {
-      alert('Please fill in all required fields (Title, Field).');
+      toast({ title: 'Validation Error', description: 'Please fill in all required fields (Title, Field).', variant: 'destructive' });
       return;
     }
 
@@ -1846,7 +1938,7 @@ Article Details:
     
     if (error) {
       console.error('Error updating patent:', error);
-      alert('Error updating patent');
+      toast({ title: 'Error', description: 'Error updating patent', variant: 'destructive' })
       return;
     }
 
@@ -1887,7 +1979,7 @@ Article Details:
       year: new Date().getFullYear().toString()
     });
     
-    alert('Patent updated successfully!');
+    toast({ title: 'Success', description: 'Patent updated successfully!' })
   };
 
   // Handle deleting a patent
@@ -1900,14 +1992,14 @@ Article Details:
       
       if (error) {
         console.error('Error deleting patent:', error);
-        alert('Error deleting patent');
+        toast({ title: 'Error', description: 'Error deleting patent', variant: 'destructive' })
         return;
       }
       
       loadPatents();
       window.dispatchEvent(new Event('storage'));
       // Note: Activity is logged automatically by database trigger
-      alert(`Patent "${title}" has been deleted successfully!`);
+      toast({ title: 'Success', description: `Patent "${title}" has been deleted successfully!` })
     }
   };
 
@@ -1938,7 +2030,7 @@ Article Details:
     });
 
     if (filteredPatents.length === 0) {
-      alert('No patents to download based on current filters.');
+      toast({ title: 'Validation Error', description: 'No patents to download based on current filters.', variant: 'destructive' })
       return;
     }
 
@@ -1999,7 +2091,7 @@ Article Details:
       const lines = text.split('\n').filter(line => line.trim());
       
       if (lines.length < 2) {
-        alert('CSV file is empty or invalid.');
+        toast({ title: 'Validation Error', description: 'CSV file is empty or invalid.', variant: 'destructive' })
         return;
       }
 
@@ -2011,7 +2103,7 @@ Article Details:
       const missingFields = requiredFields.filter(field => !headers.includes(field));
       
       if (missingFields.length > 0) {
-        alert(`Missing required fields: ${missingFields.join(', ')}`);
+        toast({ title: 'Validation Error', description: `Missing required fields: ${missingFields.join(', ')}`, variant: 'destructive' });
         return;
       }
 
@@ -2062,13 +2154,13 @@ Article Details:
       loadPatents();
       
       if (errorCount > 0) {
-        alert(`Upload complete: ${successCount} patents added, ${errorCount} failed.`);
+        toast({ title: 'Success', description: `Upload complete: ${successCount} patents added, ${errorCount} failed.` })
       } else {
-        alert(`Successfully uploaded ${successCount} patents!`);
+        toast({ title: 'Success', description: `Successfully uploaded ${successCount} patents!` })
       }
     } catch (error) {
       console.error('Error parsing CSV:', error);
-      alert('Error parsing CSV file. Please check the format.');
+      toast({ title: 'Error', description: 'Error parsing CSV file. Please check the format.', variant: 'destructive' })
     } finally {
       setIsUploading(false);
       // Reset file input
@@ -2112,7 +2204,7 @@ Article Details:
 
   const handleSaveService = async () => {
     if (!serviceForm.name.trim()) {
-      alert('Please enter a service name');
+      toast({ title: 'Validation Error', description: 'Please enter a service name', variant: 'destructive' })
       return;
     }
 
@@ -2140,7 +2232,7 @@ Article Details:
         
         if (error) throw error;
         // Note: Activity is logged automatically by database trigger
-        alert('Service updated successfully!');
+        toast({ title: 'Success', description: 'Service updated successfully!' })
       } else {
         const { error } = await supabase
           .from('services')
@@ -2148,7 +2240,7 @@ Article Details:
         
         if (error) throw error;
         // Note: Activity is logged automatically by database trigger
-        alert('Service created successfully!');
+        toast({ title: 'Success', description: 'Service created successfully!' })
       }
       
       loadServices();
@@ -2168,7 +2260,7 @@ Article Details:
       });
     } catch (error) {
       console.error('Error saving service:', error);
-      alert('Error saving service. Please try again.');
+      toast({ title: 'Error', description: 'Error saving service. Please try again.', variant: 'destructive' })
     }
   };
 
@@ -2184,10 +2276,10 @@ Article Details:
         
         loadServices();
         // Note: Activity is logged automatically by database trigger
-        alert(`Service "${serviceName}" has been deleted successfully!`);
+        toast({ title: 'Success', description: `Service "${serviceName}" has been deleted successfully!` })
       } catch (error) {
         console.error('Error deleting service:', error);
-        alert('Error deleting service');
+        toast({ title: 'Error', description: 'Error deleting service', variant: 'destructive' })
       }
     }
   };
@@ -2195,7 +2287,7 @@ Article Details:
   // Event Management Functions
   const handleCreateEvent = async () => {
     if (!eventForm.title || !eventForm.date) {
-      alert('Please fill in all required fields (Event Title, Event Date).');
+      toast({ title: 'Validation Error', description: 'Please fill in all required fields (Event Title, Event Date).', variant: 'destructive' });
       return;
     }
 
@@ -2211,7 +2303,7 @@ Article Details:
         });
       } catch (error) {
         console.error('Failed to process image:', error);
-        alert('Failed to process image. Event will be saved without image.');
+        toast({ title: 'Warning', description: 'Failed to process image. Event will be saved without image.', variant: 'destructive' })
       }
     }
 
@@ -2237,7 +2329,7 @@ Article Details:
       
       if (error) {
         console.error('Error updating event:', error);
-        alert('Error updating event');
+        toast({ title: 'Error', description: 'Error updating event', variant: 'destructive' })
         return;
       }
       // Note: Activity is logged automatically by database trigger
@@ -2248,7 +2340,7 @@ Article Details:
       
       if (error) {
         console.error('Error creating event:', error);
-        alert('Error creating event');
+        toast({ title: 'Error', description: 'Error creating event', variant: 'destructive' })
         return;
       }
       // Note: Activity is logged automatically by database trigger
@@ -2272,7 +2364,7 @@ Article Details:
     setEditingEvent(null);
     setShowEventModal(false);
     
-    alert(`Event ${editingEvent ? 'updated' : 'created'} successfully!`);
+    toast({ title: 'Success', description: `Event ${editingEvent ? 'updated' : 'created'} successfully!` })
   };
 
   const handleEditEvent = (event: any) => {
@@ -2301,14 +2393,14 @@ Article Details:
       
       if (error) {
         console.error('Error deleting event:', error);
-        alert('Error deleting event');
+        toast({ title: 'Error', description: 'Error deleting event', variant: 'destructive' })
         return;
       }
       
       loadEvents();
       window.dispatchEvent(new Event('storage'));
       // Note: Activity is logged automatically by database trigger
-      alert(`Event "${title}" has been deleted successfully!`);
+      toast({ title: 'Success', description: `Event "${title}" has been deleted successfully!` })
     }
   };
 
@@ -2354,7 +2446,7 @@ Article Details:
       
       if (error) {
         console.error('Error updating registration status:', error);
-        alert('Error updating registration status');
+        toast({ title: 'Error', description: 'Error updating registration status', variant: 'destructive' })
       } else {
         // Refresh registrations
         if (selectedEventForRegistrations) {
@@ -2363,14 +2455,14 @@ Article Details:
       }
     } catch (err) {
       console.error('Unexpected error updating registration:', err);
-      alert('Error updating registration status');
+      toast({ title: 'Error', description: 'Error updating registration status', variant: 'destructive' })
     }
   };
 
   // Export registrations to CSV
   const handleExportRegistrations = () => {
     if (eventRegistrations.length === 0) {
-      alert('No registrations to export');
+      toast({ title: 'Validation Error', description: 'No registrations to export', variant: 'destructive' })
       return;
     }
     
@@ -2433,12 +2525,12 @@ Article Details:
 
   const handleAddUser = async () => {
     if (!userForm.full_name || !userForm.email) {
-      alert('Please fill in Full Name and Email.');
+      toast({ title: 'Notice', description: 'Please fill in Full Name and Email.' })
       return;
     }
 
     if (!editingUser && !userForm.password) {
-      alert('Please enter a temporary password for the new user.');
+      toast({ title: 'Validation Error', description: 'Please enter a temporary password for the new user.', variant: 'destructive' })
       return;
     }
 
@@ -2460,7 +2552,7 @@ Article Details:
         
         if (error) {
           console.error('Error updating user:', error);
-          alert('Error updating user: ' + error.message);
+          toast({ title: 'Error', description: `Error updating user: ${error.message}`, variant: 'destructive' })
           return;
         }
         
@@ -2488,7 +2580,7 @@ Article Details:
         }
         
         logActivity('user', 'updated', userForm.full_name);
-        alert(`User "${userForm.full_name}" has been updated successfully!`);
+        toast({ title: 'Success', description: `User "${userForm.full_name}" has been updated successfully!` })
       } else {
         // Create new user with Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -2504,7 +2596,7 @@ Article Details:
 
         if (authError) {
           console.error('Error creating auth user:', authError);
-          alert('Error creating user account: ' + authError.message);
+          toast({ title: 'Error', description: `Error creating user account: ${authError.message}`, variant: 'destructive' })
           return;
         }
 
@@ -2548,7 +2640,7 @@ Article Details:
           }
         }
         logActivity('user', 'created', userForm.full_name);
-        alert(`User "${userForm.full_name}" has been created successfully!\nThey can log in with email: ${userForm.email}`);
+        toast({ title: 'Success', description: `User "${userForm.full_name}" has been created successfully!\nThey can log in with email: ${userForm.email}` })
       }
 
       loadUsers();
@@ -2566,7 +2658,7 @@ Article Details:
       });
     } catch (error: any) {
       console.error('Error saving user:', error);
-      alert('Error saving user: ' + error.message);
+      toast({ title: 'Error', description: `Error saving user: ${error.message}`, variant: 'destructive' })
     }
   };
 
@@ -2584,16 +2676,16 @@ Article Details:
       
       if (error) {
         console.error('Error deleting user:', error);
-        alert('Error deleting user: ' + error.message);
+        toast({ title: 'Error', description: `Error deleting user: ${error.message}`, variant: 'destructive' })
         return;
       }
 
       logActivity('user', 'deleted', userName);
       loadUsers();
-      alert(`User "${userName}" has been deleted.`);
+      toast({ title: 'Success', description: `User "${userName}" has been deleted.` })
     } catch (error: any) {
       console.error('Error deleting user:', error);
-      alert('Error deleting user: ' + error.message);
+      toast({ title: 'Error', description: `Error deleting user: ${error.message}`, variant: 'destructive' })
     }
   };
 
@@ -2612,13 +2704,6 @@ Article Details:
         file_url: resource.file_url || '',
         tags: resource.tags || [],
         published: resource.published,
-        duration: resource.duration || '',
-        modules_count: resource.modules_count || 0,
-        level: resource.level || 'Beginner',
-        capacity: resource.capacity || '',
-        hourly_rate: resource.hourly_rate || '',
-        booking_lead_time: resource.booking_lead_time || '',
-        equipment: resource.equipment || []
       });
       setUploadedFileName(resource.file_url ? resource.file_url.split('/').pop() || '' : '');
     } else {
@@ -2627,20 +2712,13 @@ Article Details:
         id: null,
         title: '',
         slug: '',
-        type: resourceTab === 'templates' ? 'download' : resourceTab === 'tutorials' ? 'video' : resourceTab === 'facilities' ? 'download' : 'guide',
-        category: resourceTab === 'templates' ? 'Templates' : resourceTab === 'tutorials' ? 'IP 101 Tutorials' : resourceTab === 'facilities' ? 'SSF Booking' : 'Guidelines',
+        type: resourceTab === 'templates' ? 'download' : 'guide',
+        category: resourceTab === 'templates' ? 'Templates' : 'Guidelines',
         content: '',
         url: '',
         file_url: '',
         tags: [],
         published: true,
-        duration: '',
-        modules_count: 0,
-        level: 'Beginner',
-        capacity: '',
-        hourly_rate: '',
-        booking_lead_time: '',
-        equipment: []
       });
       setUploadedFileName('');
     }
@@ -2657,7 +2735,7 @@ Article Details:
 
   const handleSaveResource = async () => {
     if (!resourceForm.title.trim()) {
-      alert('Please enter a resource title.');
+      toast({ title: 'Validation Error', description: 'Please enter a resource title.', variant: 'destructive' })
       return;
     }
 
@@ -2679,7 +2757,7 @@ Article Details:
 
         if (uploadError) {
           console.error('Error uploading file:', uploadError);
-          alert('Error uploading file: ' + uploadError.message);
+          toast({ title: 'Error', description: `Error uploading file: ${uploadError.message}`, variant: 'destructive' })
           setUploading(false);
           return;
         }
@@ -2704,20 +2782,6 @@ Article Details:
         published: resourceForm.published,
       };
 
-      // Add tutorial-specific fields
-      if (resourceForm.category === 'IP 101 Tutorials') {
-        resourceData.duration = resourceForm.duration;
-        resourceData.modules_count = resourceForm.modules_count;
-        resourceData.level = resourceForm.level;
-      }
-
-      // Add facility-specific fields
-      if (resourceForm.category === 'SSF Booking') {
-        resourceData.capacity = resourceForm.capacity;
-        resourceData.hourly_rate = resourceForm.hourly_rate;
-        resourceData.booking_lead_time = resourceForm.booking_lead_time;
-        resourceData.equipment = resourceForm.equipment;
-      }
 
       let error;
       if (editingResource) {
@@ -2736,7 +2800,7 @@ Article Details:
 
       if (error) {
         console.error('Error saving resource:', error);
-        alert('Error saving resource: ' + error.message);
+        toast({ title: 'Error', description: `Error saving resource: ${error.message}`, variant: 'destructive' })
         return;
       }
 
@@ -2745,19 +2809,24 @@ Article Details:
       setShowResourceModal(false);
       setUploadFile(null);
       setUploadedFileName('');
-      alert(`Resource "${resourceForm.title}" has been ${editingResource ? 'updated' : 'added'}.`);
+      toast({ title: 'Success', description: `Resource "${resourceForm.title}" has been ${editingResource ? 'updated' : 'added'}.` })
     } catch (error: any) {
       console.error('Error saving resource:', error);
-      alert('Error saving resource: ' + error.message);
+      toast({ title: 'Error', description: `Error saving resource: ${error.message}`, variant: 'destructive' })
     } finally {
       setUploading(false);
     }
   };
 
-  const handleDeleteResource = async (resourceId: string, resourceTitle: string) => {
-    if (!confirm(`Are you sure you want to delete "${resourceTitle}"?`)) {
-      return;
-    }
+  const handleDeleteResource = (resourceId: string, resourceTitle: string) => {
+    setResourceToDelete({ id: resourceId, title: resourceTitle });
+    setShowDeleteResourceModal(true);
+  };
+  
+  const confirmDeleteResource = async () => {
+    if (!resourceToDelete) return;
+    
+    const { id: resourceId, title: resourceTitle } = resourceToDelete;
 
     try {
       const { error } = await supabase
@@ -2767,16 +2836,19 @@ Article Details:
       
       if (error) {
         console.error('Error deleting resource:', error);
-        alert('Error deleting resource: ' + error.message);
+        toast({ title: 'Error', description: `Error deleting resource: ${error.message}`, variant: 'destructive' });
         return;
       }
 
       logActivity('resource', 'deleted', resourceTitle);
       loadResources();
-      alert(`Resource "${resourceTitle}" has been deleted.`);
+      toast({ title: 'Success', description: `Resource "${resourceTitle}" has been deleted.` });
     } catch (error: any) {
       console.error('Error deleting resource:', error);
-      alert('Error deleting resource: ' + error.message);
+      toast({ title: 'Error', description: `Error deleting resource: ${error.message}`, variant: 'destructive' });
+    } finally {
+      setShowDeleteResourceModal(false);
+      setResourceToDelete(null);
     }
   };
 
@@ -2789,7 +2861,7 @@ Article Details:
       
       if (error) {
         console.error('Error updating resource:', error);
-        alert('Error updating resource: ' + error.message);
+        toast({ title: 'Error', description: `Error updating resource: ${error.message}`, variant: 'destructive' })
         return;
       }
 
@@ -2797,40 +2869,72 @@ Article Details:
       loadResources();
     } catch (error: any) {
       console.error('Error updating resource:', error);
-      alert('Error updating resource: ' + error.message);
+      toast({ title: 'Error', description: `Error updating resource: ${error.message}`, variant: 'destructive' })
     }
   };
 
-  // Booking Inquiry Handlers
-  const handleViewInquiry = (inquiry: any) => {
-    setSelectedInquiry(inquiry);
-    setShowInquiryModal(true);
-  };
-
-  const handleUpdateInquiryStatus = async (inquiryId: string, newStatus: string) => {
-    try {
-      const { error } = await supabase
-        .from('facility_booking_inquiries')
-        .update({ status: newStatus })
-        .eq('id', inquiryId);
-      
-      if (error) {
-        console.error('Error updating inquiry:', error);
-        alert('Error updating inquiry: ' + error.message);
-        return;
-      }
-
-      loadBookingInquiries();
-      alert(`Inquiry status updated to "${newStatus}".`);
-    } catch (error: any) {
-      console.error('Error updating inquiry:', error);
-      alert('Error updating inquiry: ' + error.message);
-    }
-  };
 
   const getFilteredResources = (category: string) => {
     return resources.filter(r => r.category === category);
   };
+
+  // Filtered news lists based on search and category filter
+  const applyNewsFilters = (articles: any[]) => {
+    return articles.filter(article => {
+      const matchesSearch = !newsSearchTerm || 
+        article.title?.toLowerCase().includes(newsSearchTerm.toLowerCase()) ||
+        article.excerpt?.toLowerCase().includes(newsSearchTerm.toLowerCase()) ||
+        article.author?.toLowerCase().includes(newsSearchTerm.toLowerCase());
+      const matchesCategory = newsCategoryFilter === 'all' || article.category === newsCategoryFilter;
+      return matchesSearch && matchesCategory;
+    });
+  };
+  const filteredNews = applyNewsFilters(news);
+  const filteredDraftNews = applyNewsFilters(draftNews);
+  const filteredArchivedNews = applyNewsFilters(archivedNews);
+
+  // Filtered event lists based on search and type filter
+  const applyEventFilters = (eventList: any[]) => {
+    return eventList.filter(event => {
+      const matchesSearch = !eventSearchTerm ||
+        event.title?.toLowerCase().includes(eventSearchTerm.toLowerCase()) ||
+        event.location?.toLowerCase().includes(eventSearchTerm.toLowerCase()) ||
+        event.description?.toLowerCase().includes(eventSearchTerm.toLowerCase());
+      const matchesType = eventTypeFilter === 'all' || event.type === eventTypeFilter;
+      return matchesSearch && matchesType;
+    });
+  };
+  const filteredEvents = applyEventFilters(events);
+  const filteredArchivedEvents = applyEventFilters(archivedEvents);
+
+  // Filtered service request lists based on search and status filter
+  const applyServiceRequestFilters = (requests: any[]) => {
+    return requests.filter(request => {
+      const searchLower = serviceRequestSearch.toLowerCase();
+      const matchesSearch = !serviceRequestSearch ||
+        request.name?.toLowerCase().includes(searchLower) ||
+        request.serviceTitle?.toLowerCase().includes(searchLower) ||
+        request.organization?.toLowerCase().includes(searchLower) ||
+        request.email?.toLowerCase().includes(searchLower);
+      const matchesStatus = serviceRequestStatusFilter === 'all' || request.status === serviceRequestStatusFilter;
+      return matchesSearch && matchesStatus;
+    }).sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+  };
+  const filteredActiveRequests = applyServiceRequestFilters(serviceRequests);
+  const filteredArchivedRequests = applyServiceRequestFilters(archivedRequests);
+
+  // Filtered resource lists based on search
+  const applyResourceFilters = (category: string) => {
+    return resources.filter(r => {
+      const matchesCategory = r.category === category;
+      const matchesSearch = !resourceSearchTerm ||
+        r.title?.toLowerCase().includes(resourceSearchTerm.toLowerCase()) ||
+        r.content?.toLowerCase().includes(resourceSearchTerm.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  };
+  const filteredTemplates = applyResourceFilters('Templates');
+  const filteredGuidelines = applyResourceFilters('Guidelines');
 
   const handleResetPassword = async (email: string) => {
     try {
@@ -2840,14 +2944,14 @@ Article Details:
 
       if (error) {
         console.error('Error sending reset email:', error);
-        alert('Error sending password reset email: ' + error.message);
+        toast({ title: 'Error', description: `Error sending password reset email: ${error.message}`, variant: 'destructive' })
         return;
       }
 
-      alert(`Password reset email has been sent to ${email}`);
+      toast({ title: 'Success', description: `Password reset email has been sent to ${email}` })
     } catch (error: any) {
       console.error('Error resetting password:', error);
-      alert('Error sending password reset email');
+      toast({ title: 'Error', description: 'Error sending password reset email', variant: 'destructive' })
     }
   };
 
@@ -3421,14 +3525,52 @@ Article Details:
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="news-content">Article Content *</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="news-content">Article Content *</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.multiple = true;
+                        input.onchange = async (e) => {
+                          const files = Array.from((e.target as HTMLInputElement).files || []);
+                          if (files.length === 0) return;
+                          const startIndex = existingContentImages.length + newsForm.contentImages.length;
+                          const newFiles = [...newsForm.contentImages, ...files];
+                          let markers = '';
+                          files.forEach((_, i) => {
+                            markers += `\n[IMAGE:${startIndex + i}]\n`;
+                          });
+                          const textarea = document.getElementById('news-content') as HTMLTextAreaElement;
+                          if (textarea) {
+                            const pos = textarea.selectionStart;
+                            const content = newsForm.content;
+                            const newContent = content.slice(0, pos) + markers + content.slice(pos);
+                            setNewsForm({...newsForm, content: newContent, contentImages: newFiles});
+                          } else {
+                            setNewsForm({...newsForm, content: newsForm.content + markers, contentImages: newFiles});
+                          }
+                        };
+                        input.click();
+                      }}
+                    >
+                      <Upload className="h-4 w-4 mr-1" /> Insert Image
+                    </Button>
+                  </div>
                   <Textarea 
                     id="news-content" 
-                    placeholder="Full article content" 
+                    placeholder="Full article content. Use 'Insert Image' to add images inline." 
                     rows={8} 
                     value={newsForm.content}
                     onChange={(e) => setNewsForm({...newsForm, content: e.target.value})}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Use the "Insert Image" button to add images directly into the article. They appear as [IMAGE:N] markers.
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="news-image">Featured Image</Label>
@@ -3439,6 +3581,22 @@ Article Details:
                     onChange={(e) => setNewsForm({...newsForm, image: e.target.files?.[0] || null})}
                   />
                 </div>
+                
+                {/* YouTube URL */}
+                <div className="space-y-2">
+                  <Label htmlFor="news-youtube-url">YouTube Video URL</Label>
+                  <Input 
+                    id="news-youtube-url" 
+                    type="url" 
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={newsForm.youtubeUrl}
+                    onChange={(e) => setNewsForm({...newsForm, youtubeUrl: e.target.value})}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Add a YouTube video URL to embed it in the article.
+                  </p>
+                </div>
+                
                 <div className="flex gap-2">
                   <Button variant="ustp" onClick={handlePublishNews}>
                     {editingNews ? 'Update Article' : 'Publish Article'}
@@ -3459,9 +3617,11 @@ Article Details:
                             date: new Date().toISOString().split('T')[0],
                             excerpt: '',
                             content: '',
-                            image: null
+                            image: null,
+                            contentImages: [],
+                            youtubeUrl: ''
                           });
-                          alert('ℹ️ Editing cancelled. Form has been reset to create a new article.');
+                          toast({ title: 'Info', description: 'Editing cancelled. Form has been reset to create a new article.' })
                         }
                       }}
                       className="text-gray-600 hover:text-gray-800"
@@ -3474,260 +3634,211 @@ Article Details:
             </Card>
 
             {/* News Tabs */}
-            <Tabs value={newsTab} onValueChange={setNewsTab}>
-              <TabsList className="grid text-[white] w-full grid-cols-3">
-                <TabsTrigger value="published">
-                  Published ({news.length})
-                </TabsTrigger>
-                <TabsTrigger value="drafts">
-                  Drafts ({draftNews.length})
-                </TabsTrigger>
-                <TabsTrigger value="archived">
-                  Archived ({archivedNews.length})
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Published News */}
-              <TabsContent value="published" className="space-y-4 mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Published Articles</CardTitle>
-                    <CardDescription>Live articles visible to the public</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {news.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>No published articles.</p>
-                        <p className="text-sm mt-2">Publish a draft or create a new article.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {news.map((article) => (
-                          <div key={article.id} className={`flex items-center justify-between p-4 border rounded-lg transition-all duration-200 ${
-                            editingNews && editingNews.id === article.id 
-                              ? 'bg-blue-50 border-blue-300 dark:bg-blue-950 dark:border-blue-700' 
-                              : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                          }`}>
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-lg mb-1">{article.title}</h3>
-                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{article.excerpt}</p>
-                              <div className="flex flex-wrap gap-2 items-center">
-                                <Badge className="bg-green-600">
-                                  🚀 Published
-                                </Badge>
-                                <Badge variant="outline">{article.category}</Badge>
-                                <span className="text-sm text-muted-foreground">📅 {article.date}</span>
-                                {article.author && (
-                                  <span className="text-sm text-muted-foreground">✍️ by {article.author}</span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex gap-2 ml-4">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleEditNews(article)}
-                                title={`Edit "${article.title}"`}
-                                className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
-                              >
-                                <Edit className="h-4 w-4 mr-1" />
-                                Edit
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleDuplicateNews(article)}
-                                title={`Duplicate "${article.title}"`}
-                                className="hover:bg-green-50 hover:border-green-300 hover:text-green-700"
-                              >
-                                <Plus className="h-4 w-4 mr-1" />
-                                Copy
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleArchiveNews(article.id, true)}
-                                title="Archive article"
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Archive
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleDeleteNews(article.id, article.title)}
-                                className="text-red-600 hover:text-red-700 hover:border-red-300 hover:bg-red-50"
-                                title={`Delete "${article.title}"`}
-                              >
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                Delete
-                              </Button>
-                              {editingNews && editingNews.id === article.id && (
-                                <Badge variant="outline" className="text-blue-600 border-blue-300">
-                                  Currently Editing
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <CardTitle>Articles</CardTitle>
+                    <CardDescription>
+                      {newsTab === 'published' ? `${filteredNews.length} published` : newsTab === 'drafts' ? `${filteredDraftNews.length} draft${filteredDraftNews.length !== 1 ? 's' : ''}` : `${filteredArchivedNews.length} archived`}
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search articles..."
+                        value={newsSearchTerm}
+                        onChange={(e) => setNewsSearchTerm(e.target.value)}
+                        className="pl-8 w-[200px]"
+                      />
+                    </div>
+                    <Select value={newsCategoryFilter} onValueChange={setNewsCategoryFilter}>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        <SelectItem value="Events">Events</SelectItem>
+                        <SelectItem value="Partnerships">Partnerships</SelectItem>
+                        <SelectItem value="Education">Education</SelectItem>
+                        <SelectItem value="Innovation">Innovation</SelectItem>
+                        <SelectItem value="Announcements">Announcements</SelectItem>
+                        <SelectItem value="Patent">Patent</SelectItem>
+                        <SelectItem value="Research">Research</SelectItem>
+                        <SelectItem value="Licensing">Licensing</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {newsSearchTerm && (
+                      <Button variant="ghost" size="sm" onClick={() => { setNewsSearchTerm(''); setNewsCategoryFilter('all'); }}>
+                        <X className="h-4 w-4" />
+                      </Button>
                     )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <Tabs value={newsTab} onValueChange={setNewsTab}>
+                  <TabsList className="grid text-white w-full grid-cols-3 mb-3">
+                    <TabsTrigger value="published">
+                      Published ({filteredNews.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="drafts">
+                      Drafts ({filteredDraftNews.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="archived">
+                      Archived ({filteredArchivedNews.length})
+                    </TabsTrigger>
+                  </TabsList>
 
-              {/* Drafts */}
-              <TabsContent value="drafts" className="space-y-4 mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Draft Articles</CardTitle>
-                    <CardDescription>Unpublished articles still in progress</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {draftNews.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>No draft articles.</p>
-                        <p className="text-sm mt-2">Save an article as draft to continue editing later.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {draftNews.map((article) => (
-                          <div key={article.id} className={`flex items-center justify-between p-4 border rounded-lg transition-all duration-200 ${
-                            editingNews && editingNews.id === article.id 
-                              ? 'bg-blue-50 border-blue-300 dark:bg-blue-950 dark:border-blue-700' 
-                              : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                          }`}>
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-lg mb-1">{article.title}</h3>
-                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{article.excerpt}</p>
-                              <div className="flex flex-wrap gap-2 items-center">
-                                <Badge className="bg-yellow-600">
-                                  📋 Draft
-                                </Badge>
-                                <Badge variant="outline">{article.category}</Badge>
-                                <span className="text-sm text-muted-foreground">📅 {article.date}</span>
-                                {article.author && (
-                                  <span className="text-sm text-muted-foreground">✍️ by {article.author}</span>
-                                )}
+                  {/* Published News */}
+                  <TabsContent value="published" className="mt-0">
+                    <div className="max-h-[500px] overflow-y-auto pr-1">
+                      {filteredNews.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>{newsSearchTerm || newsCategoryFilter !== 'all' ? 'No articles match your filters.' : 'No published articles.'}</p>
+                          {!newsSearchTerm && newsCategoryFilter === 'all' && (
+                            <p className="text-sm mt-2">Publish a draft or create a new article.</p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {filteredNews.map((article) => (
+                            <div key={article.id} className={`flex items-center justify-between p-3 border rounded-lg transition-all duration-200 ${
+                              editingNews && editingNews.id === article.id 
+                                ? 'bg-blue-50 border-blue-300 dark:bg-blue-950 dark:border-blue-700' 
+                                : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                            }`}>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold mb-1 truncate">{article.title}</h3>
+                                <p className="text-sm text-muted-foreground mb-1 line-clamp-1">{article.excerpt}</p>
+                                <div className="flex flex-wrap gap-1.5 items-center">
+                                  <Badge className="bg-green-600 text-xs">Published</Badge>
+                                  <Badge variant="outline" className="text-xs">{article.category}</Badge>
+                                  <span className="text-xs text-muted-foreground">{article.date}</span>
+                                  {article.author && (
+                                    <span className="text-xs text-muted-foreground">by {article.author}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex gap-1 ml-3 flex-shrink-0">
+                                <Button variant="outline" size="sm" onClick={() => handleEditNews(article)} title={`Edit "${article.title}"`} className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700">
+                                  <Edit className="h-4 w-4 mr-1" />Edit
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleDuplicateNews(article)} title={`Duplicate "${article.title}"`} className="hover:bg-green-50 hover:border-green-300 hover:text-green-700">
+                                  <Plus className="h-4 w-4 mr-1" />Copy
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleArchiveNews(article.id, true)} title="Archive article">
+                                  <CheckCircle className="h-4 w-4 mr-1" />Archive
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleDeleteNews(article.id, article.title)} className="text-red-600 hover:text-red-700 hover:border-red-300 hover:bg-red-50" title={`Delete "${article.title}"`}>
+                                  <Trash2 className="h-4 w-4 mr-1" />Delete
+                                </Button>
                               </div>
                             </div>
-                            <div className="flex gap-2 ml-4">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleEditNews(article)}
-                                title={`Edit "${article.title}"`}
-                                className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
-                              >
-                                <Edit className="h-4 w-4 mr-1" />
-                                Edit
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleDuplicateNews(article)}
-                                title={`Duplicate "${article.title}"`}
-                                className="hover:bg-green-50 hover:border-green-300 hover:text-green-700"
-                              >
-                                <Plus className="h-4 w-4 mr-1" />
-                                Copy
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleArchiveNews(article.id, true)}
-                                title="Archive draft"
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Archive
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleDeleteNews(article.id, article.title)}
-                                className="text-red-600 hover:text-red-700 hover:border-red-300 hover:bg-red-50"
-                                title={`Delete "${article.title}"`}
-                              >
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                Delete
-                              </Button>
-                              {editingNews && editingNews.id === article.id && (
-                                <Badge variant="outline" className="text-blue-600 border-blue-300">
-                                  Currently Editing
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
 
-              {/* Archived News */}
-              <TabsContent value="archived" className="space-y-4 mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Archived Articles</CardTitle>
-                    <CardDescription>Archived or outdated articles</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {archivedNews.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>No archived articles.</p>
-                        <p className="text-sm mt-2">Archived articles will appear here.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {archivedNews.map((article) => (
-                          <div key={article.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold text-lg">{article.title}</h3>
-                                <Badge variant="secondary">Archived</Badge>
+                  {/* Drafts */}
+                  <TabsContent value="drafts" className="mt-0">
+                    <div className="max-h-[500px] overflow-y-auto pr-1">
+                      {filteredDraftNews.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>{newsSearchTerm || newsCategoryFilter !== 'all' ? 'No drafts match your filters.' : 'No draft articles.'}</p>
+                          {!newsSearchTerm && newsCategoryFilter === 'all' && (
+                            <p className="text-sm mt-2">Save an article as draft to continue editing later.</p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {filteredDraftNews.map((article) => (
+                            <div key={article.id} className={`flex items-center justify-between p-3 border rounded-lg transition-all duration-200 ${
+                              editingNews && editingNews.id === article.id 
+                                ? 'bg-blue-50 border-blue-300 dark:bg-blue-950 dark:border-blue-700' 
+                                : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                            }`}>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold mb-1 truncate">{article.title}</h3>
+                                <p className="text-sm text-muted-foreground mb-1 line-clamp-1">{article.excerpt}</p>
+                                <div className="flex flex-wrap gap-1.5 items-center">
+                                  <Badge className="bg-yellow-600 text-xs">Draft</Badge>
+                                  <Badge variant="outline" className="text-xs">{article.category}</Badge>
+                                  <span className="text-xs text-muted-foreground">{article.date}</span>
+                                  {article.author && (
+                                    <span className="text-xs text-muted-foreground">by {article.author}</span>
+                                  )}
+                                </div>
                               </div>
-                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{article.excerpt}</p>
-                              <div className="flex flex-wrap gap-2 items-center">
-                                <Badge variant="outline" className="text-gray-600">
-                                  {article.status === 'Published' ? '🚀 Published' : '📋 Draft'}
-                                </Badge>
-                                <Badge variant="outline">{article.category}</Badge>
-                                <span className="text-sm text-muted-foreground">📅 {article.date}</span>
-                                {article.author && (
-                                  <span className="text-sm text-muted-foreground">✍️ by {article.author}</span>
-                                )}
+                              <div className="flex gap-1 ml-3 flex-shrink-0">
+                                <Button variant="outline" size="sm" onClick={() => handleEditNews(article)} title={`Edit "${article.title}"`} className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700">
+                                  <Edit className="h-4 w-4 mr-1" />Edit
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleDuplicateNews(article)} title={`Duplicate "${article.title}"`} className="hover:bg-green-50 hover:border-green-300 hover:text-green-700">
+                                  <Plus className="h-4 w-4 mr-1" />Copy
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleArchiveNews(article.id, true)} title="Archive draft">
+                                  <CheckCircle className="h-4 w-4 mr-1" />Archive
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleDeleteNews(article.id, article.title)} className="text-red-600 hover:text-red-700 hover:border-red-300 hover:bg-red-50" title={`Delete "${article.title}"`}>
+                                  <Trash2 className="h-4 w-4 mr-1" />Delete
+                                </Button>
                               </div>
                             </div>
-                            <div className="flex gap-2 ml-4">
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleArchiveNews(article.id, false)}
-                                title="Restore article"
-                              >
-                                <Clock className="h-4 w-4 mr-1" />
-                                Restore
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleDeleteNews(article.id, article.title)}
-                                className="text-red-600 hover:text-red-700 hover:border-red-300 hover:bg-red-50"
-                                title={`Delete "${article.title}" permanently`}
-                              >
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                Delete
-                              </Button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  {/* Archived News */}
+                  <TabsContent value="archived" className="mt-0">
+                    <div className="max-h-[500px] overflow-y-auto pr-1">
+                      {filteredArchivedNews.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>{newsSearchTerm || newsCategoryFilter !== 'all' ? 'No archived articles match your filters.' : 'No archived articles.'}</p>
+                          {!newsSearchTerm && newsCategoryFilter === 'all' && (
+                            <p className="text-sm mt-2">Archived articles will appear here.</p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {filteredArchivedNews.map((article) => (
+                            <div key={article.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-semibold truncate">{article.title}</h3>
+                                  <Badge variant="secondary" className="text-xs flex-shrink-0">Archived</Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-1 line-clamp-1">{article.excerpt}</p>
+                                <div className="flex flex-wrap gap-1.5 items-center">
+                                  <Badge variant="outline" className="text-xs text-gray-600">{article.status === 'Published' ? 'Published' : 'Draft'}</Badge>
+                                  <Badge variant="outline" className="text-xs">{article.category}</Badge>
+                                  <span className="text-xs text-muted-foreground">{article.date}</span>
+                                  {article.author && (
+                                    <span className="text-xs text-muted-foreground">by {article.author}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex gap-1 ml-3 flex-shrink-0">
+                                <Button variant="outline" size="sm" onClick={() => handleArchiveNews(article.id, false)} title="Restore article">
+                                  <Clock className="h-4 w-4 mr-1" />Restore
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleDeleteNews(article.id, article.title)} className="text-red-600 hover:text-red-700 hover:border-red-300 hover:bg-red-50" title={`Delete "${article.title}" permanently`}>
+                                  <Trash2 className="h-4 w-4 mr-1" />Delete
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="events" className="space-y-6">
@@ -3834,193 +3945,179 @@ Article Details:
             </Card>
 
             {/* Events Tabs */}
-            <Tabs value={eventTab} onValueChange={setEventTab}>
-              <TabsList className="grid text-[white] w-full grid-cols-2">
-                <TabsTrigger value="active">
-                  Active Events ({events.length})
-                </TabsTrigger>
-                <TabsTrigger value="archived">
-                  Past/Archived Events ({archivedEvents.length})
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Active Events */}
-              <TabsContent value="active" className="space-y-4 mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Upcoming Events</CardTitle>
-                    <CardDescription>Active events that are scheduled for today or future dates</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {events.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>No active events.</p>
-                        <p className="text-sm mt-2">Create a new event or restore one from the archived section.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {events.map((event) => (
-                          <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold text-lg">{event.title}</h3>
-                                <Badge variant={event.status === "Upcoming" ? "default" : event.status === "Planning" ? "secondary" : "outline"}>
-                                  {event.status}
-                                </Badge>
-                              </div>
-                              <div className="flex flex-wrap gap-2 mt-1 text-sm text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" />
-                                  {event.date}
-                                </span>
-                                {event.time && (
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="h-3 w-3" />
-                                    {event.time}
-                                  </span>
-                                )}
-                                <span className="flex items-center gap-1">
-                                  <Users className="h-3 w-3" />
-                                  {event.attendees || 0} attendees
-                                </span>
-                                {event.location && (
-                                  <span className="flex items-center gap-1">
-                                    <Building className="h-3 w-3" />
-                                    {event.location}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex gap-2 ml-4">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleEditEvent(event)}
-                                title="Edit event"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleViewRegistrations(event)}
-                                title="View registrations"
-                              >
-                                <Users className="h-4 w-4 mr-1" />
-                                Registrations
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleArchiveEvent(event.id, true)}
-                                title="Archive event"
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleDeleteEvent(event.id, event.title)}
-                                className="text-red-600 hover:text-red-700"
-                                title="Delete event"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <CardTitle>Events</CardTitle>
+                    <CardDescription>
+                      {eventTab === 'active' ? `${filteredEvents.length} active event${filteredEvents.length !== 1 ? 's' : ''}` : `${filteredArchivedEvents.length} archived`}
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search events..."
+                        value={eventSearchTerm}
+                        onChange={(e) => setEventSearchTerm(e.target.value)}
+                        className="pl-8 w-[200px]"
+                      />
+                    </div>
+                    <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="workshop">Workshop</SelectItem>
+                        <SelectItem value="seminar">Seminar</SelectItem>
+                        <SelectItem value="conference">Conference</SelectItem>
+                        <SelectItem value="networking">Networking</SelectItem>
+                        <SelectItem value="showcase">Showcase</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {eventSearchTerm && (
+                      <Button variant="ghost" size="sm" onClick={() => { setEventSearchTerm(''); setEventTypeFilter('all'); }}>
+                        <X className="h-4 w-4" />
+                      </Button>
                     )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <Tabs value={eventTab} onValueChange={setEventTab}>
+                  <TabsList className="grid text-white w-full grid-cols-2 mb-3">
+                    <TabsTrigger value="active">
+                      Active Events ({filteredEvents.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="archived">
+                      Past/Archived Events ({filteredArchivedEvents.length})
+                    </TabsTrigger>
+                  </TabsList>
 
-              {/* Archived/Past Events */}
-              <TabsContent value="archived" className="space-y-4 mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Past/Archived Events</CardTitle>
-                    <CardDescription>Completed, cancelled, or past events</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {archivedEvents.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>No archived events.</p>
-                        <p className="text-sm mt-2">Past and archived events will appear here.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {archivedEvents.map((event) => (
-                          <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold text-lg">{event.title}</h3>
-                                <Badge 
-                                  variant="outline" 
-                                  className={event.status === 'Completed' ? 'text-green-600 border-green-600' : 
-                                            event.status === 'Cancelled' ? 'text-red-600 border-red-600' : 
-                                            'text-gray-600 border-gray-600'}
-                                >
-                                  {event.status}
-                                </Badge>
-                                {event.archived && (
-                                  <Badge variant="secondary">Archived</Badge>
-                                )}
-                              </div>
-                              <div className="flex flex-wrap gap-2 mt-1 text-sm text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" />
-                                  {event.date}
-                                </span>
-                                {event.time && (
+                  {/* Active Events */}
+                  <TabsContent value="active" className="mt-0">
+                    <div className="max-h-[500px] overflow-y-auto pr-1">
+                      {filteredEvents.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>{eventSearchTerm || eventTypeFilter !== 'all' ? 'No events match your filters.' : 'No active events.'}</p>
+                          {!eventSearchTerm && eventTypeFilter === 'all' && (
+                            <p className="text-sm mt-2">Create a new event or restore one from the archived section.</p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {filteredEvents.map((event) => (
+                            <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-semibold truncate">{event.title}</h3>
+                                  <Badge variant={event.status === "Upcoming" ? "default" : event.status === "Planning" ? "secondary" : "outline"} className="text-xs flex-shrink-0">
+                                    {event.status}
+                                  </Badge>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5 text-xs text-muted-foreground">
                                   <span className="flex items-center gap-1">
-                                    <Clock className="h-3 w-3" />
-                                    {event.time}
+                                    <Calendar className="h-3 w-3" />{event.date}
                                   </span>
-                                )}
-                                <span className="flex items-center gap-1">
-                                  <Users className="h-3 w-3" />
-                                  {event.attendees || 0} attendees
-                                </span>
+                                  {event.time && (
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="h-3 w-3" />{event.time}
+                                    </span>
+                                  )}
+                                  <span className="flex items-center gap-1">
+                                    <Users className="h-3 w-3" />{event.attendees || 0} attendees
+                                  </span>
+                                  {event.location && (
+                                    <span className="flex items-center gap-1">
+                                      <Building className="h-3 w-3" />{event.location}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex gap-1 ml-3 flex-shrink-0">
+                                <Button variant="outline" size="sm" onClick={() => handleEditEvent(event)} title="Edit event">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleViewRegistrations(event)} title="View registrations">
+                                  <Users className="h-4 w-4 mr-1" />Regs
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleArchiveEvent(event.id, true)} title="Archive event">
+                                  <CheckCircle className="h-4 w-4" />
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleDeleteEvent(event.id, event.title)} className="text-red-600 hover:text-red-700" title="Delete event">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               </div>
                             </div>
-                            <div className="flex gap-2 ml-4">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleViewRegistrations(event)}
-                                title="View registrations"
-                              >
-                                <Users className="h-4 w-4 mr-1" />
-                                Registrations
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleArchiveEvent(event.id, false)}
-                                title="Restore to active events"
-                              >
-                                <Clock className="h-4 w-4 mr-1" />
-                                Restore
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleDeleteEvent(event.id, event.title)}
-                                className="text-red-600 hover:text-red-700"
-                                title="Delete event permanently"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  {/* Archived/Past Events */}
+                  <TabsContent value="archived" className="mt-0">
+                    <div className="max-h-[500px] overflow-y-auto pr-1">
+                      {filteredArchivedEvents.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>{eventSearchTerm || eventTypeFilter !== 'all' ? 'No archived events match your filters.' : 'No archived events.'}</p>
+                          {!eventSearchTerm && eventTypeFilter === 'all' && (
+                            <p className="text-sm mt-2">Past and archived events will appear here.</p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {filteredArchivedEvents.map((event) => (
+                            <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-semibold truncate">{event.title}</h3>
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-xs flex-shrink-0 ${event.status === 'Completed' ? 'text-green-600 border-green-600' : event.status === 'Cancelled' ? 'text-red-600 border-red-600' : 'text-gray-600 border-gray-600'}`}
+                                  >
+                                    {event.status}
+                                  </Badge>
+                                  {event.archived && (
+                                    <Badge variant="secondary" className="text-xs flex-shrink-0">Archived</Badge>
+                                  )}
+                                </div>
+                                <div className="flex flex-wrap gap-1.5 text-xs text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />{event.date}
+                                  </span>
+                                  {event.time && (
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="h-3 w-3" />{event.time}
+                                    </span>
+                                  )}
+                                  <span className="flex items-center gap-1">
+                                    <Users className="h-3 w-3" />{event.attendees || 0} attendees
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex gap-1 ml-3 flex-shrink-0">
+                                <Button variant="outline" size="sm" onClick={() => handleViewRegistrations(event)} title="View registrations">
+                                  <Users className="h-4 w-4 mr-1" />Regs
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleArchiveEvent(event.id, false)} title="Restore to active events">
+                                  <Clock className="h-4 w-4 mr-1" />Restore
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleDeleteEvent(event.id, event.title)} className="text-red-600 hover:text-red-700" title="Delete event permanently">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="patents" className="space-y-6" id="patents-section">
@@ -4130,6 +4227,7 @@ Article Details:
                 </div>
               </CardHeader>
               <CardContent>
+                <div className="max-h-[500px] overflow-y-auto pr-1">
                 <div className="space-y-4">
                   {(() => {
                     // Filter patents
@@ -4176,7 +4274,14 @@ Article Details:
                         {/* Patent List */}
                         <div className="space-y-4">
                           {paginatedPatents.map((patent) => (
-                            <div key={patent.id} className="flex items-center justify-between p-4 border rounded-lg">
+                            <div
+                              key={patent.id}
+                              className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                              onClick={() => {
+                                setSelectedPatentForDetail(patent);
+                                setShowPatentDetailModal(true);
+                              }}
+                            >
                               <div>
                                 <h3 className="font-semibold">{patent.title}</h3>
                                 <div className="flex gap-2 mt-2">
@@ -4186,18 +4291,24 @@ Article Details:
                                   <Badge variant="outline">{patent.field}</Badge>
                                 </div>
                               </div>
-                              <div className="flex gap-2">
-                                <Button 
-                                  variant="outline" 
+                              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                                <Button
+                                  variant="outline"
                                   size="sm"
-                                  onClick={() => handleEditPatent(patent)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditPatent(patent);
+                                  }}
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button 
-                                  variant="outline" 
+                                <Button
+                                  variant="outline"
                                   size="sm"
-                                  onClick={() => handleDeletePatent(patent.id, patent.title)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeletePatent(patent.id, patent.title);
+                                  }}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -4250,6 +4361,7 @@ Article Details:
                       </>
                     );
                   })()}
+                </div>
                 </div>
               </CardContent>
             </Card>
@@ -4309,6 +4421,7 @@ Article Details:
                         <SelectItem value="energy">Energy Technology</SelectItem>
                         <SelectItem value="medical">Medical Technology</SelectItem>
                         <SelectItem value="chemical">Chemical Engineering</SelectItem>
+                        <SelectItem value="software">Software</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -4322,10 +4435,10 @@ Article Details:
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Available">Available</SelectItem>
+                        <SelectItem value="Filed">Filed</SelectItem>
+                        <SelectItem value="Registered">Registered</SelectItem>
+                        <SelectItem value="Commercialized">Commercialized</SelectItem>
                         <SelectItem value="Licensed">Licensed</SelectItem>
-                        <SelectItem value="Pending">Pending</SelectItem>
-                        <SelectItem value="Under Review">Under Review</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -4362,9 +4475,67 @@ Article Details:
                     onChange={(e) => setPatentForm({...patentForm, abstract: e.target.value})}
                   />
                 </div>
-                <Button variant="ustp" onClick={handleSavePatent}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Save Patent
+
+                {/* File Upload Section */}
+                <div className="space-y-2">
+                  <Label htmlFor="patent-file">Attach PDF File</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative flex-1">
+                      <input
+                        type="file"
+                        id="patent-file"
+                        accept=".pdf"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setPatentFile(file);
+                            setPatentFileName(file.name);
+                          }
+                        }}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <div className="flex items-center gap-2 px-3 py-2 border rounded-md bg-white hover:bg-gray-50 transition-colors">
+                        <FileUp className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm text-gray-600 truncate">
+                          {patentFileName || 'Choose PDF file...'}
+                        </span>
+                      </div>
+                    </div>
+                    {patentFile && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setPatentFile(null);
+                          setPatentFileName('');
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Upload a PDF file containing the patent document (optional)
+                  </p>
+                </div>
+
+                <Button 
+                  variant="ustp" 
+                  onClick={handleSavePatent}
+                  disabled={uploadingPatent}
+                >
+                  {uploadingPatent ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Save Patent
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -4446,809 +4617,344 @@ Article Details:
             </Card>
 
             {/* Service Requests Tabs */}
-            <Tabs value={serviceRequestTab} onValueChange={setServiceRequestTab}>
-              <TabsList className="grid text-[white] w-full grid-cols-2">
-                <TabsTrigger value="active">
-                  Active Requests ({serviceRequests.length})
-                </TabsTrigger>
-                <TabsTrigger value="logs">
-                  Service Request Logs ({archivedRequests.length})
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Active Service Requests */}
-              <TabsContent value="active" className="space-y-4 mt-4">
-                <Card>
-                  <CardHeader>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div>
-                        <CardTitle>Additional Service Requests</CardTitle>
-                        <CardDescription>
-                          Active requests submitted through the Additional Services page
-                        </CardDescription>
-                      </div>
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <CardTitle>Service Requests</CardTitle>
+                    <CardDescription>
+                      {serviceRequestTab === 'active' ? `${filteredActiveRequests.length} active request${filteredActiveRequests.length !== 1 ? 's' : ''}` : `${filteredArchivedRequests.length} archived`}
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search requests..."
+                        value={serviceRequestSearch}
+                        onChange={(e) => setServiceRequestSearch(e.target.value)}
+                        className="pl-8 w-[200px]"
+                      />
                     </div>
-                    
-                    {/* Search and Filter Controls */}
-                    <div className="flex flex-col sm:flex-row gap-3 mt-4">
-                      <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                        <Input
-                          placeholder="Search by name, service, or organization..."
-                          value={serviceRequestSearch}
-                          onChange={(e) => setServiceRequestSearch(e.target.value)}
-                          className="pl-10"
-                        />
-                      </div>
-                      <Select value={serviceRequestStatusFilter} onValueChange={(value: string) => setServiceRequestStatusFilter(value)}>
-                        <SelectTrigger className="w-full sm:w-[180px]">
-                          <Filter className="h-4 w-4 mr-2" />
-                          <SelectValue placeholder="Filter by status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Statuses</SelectItem>
-                          <SelectItem value="Pending">Pending</SelectItem>
-                          <SelectItem value="In Progress">In Progress</SelectItem>
-                          <SelectItem value="Completed">Completed</SelectItem>
-                          <SelectItem value="Cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {(serviceRequestSearch || serviceRequestStatusFilter !== 'all') && (
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          onClick={() => {
-                            setServiceRequestSearch('');
-                            setServiceRequestStatusFilter('all');
-                          }}
-                          title="Clear filters"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {(() => {
-                      // Filter service requests
-                      let filteredRequests = serviceRequests.filter((request) => {
-                        // Search filter
-                        const searchLower = serviceRequestSearch.toLowerCase();
-                        const matchesSearch = 
-                          request.name?.toLowerCase().includes(searchLower) ||
-                          request.serviceTitle?.toLowerCase().includes(searchLower) ||
-                          request.organization?.toLowerCase().includes(searchLower) ||
-                          request.email?.toLowerCase().includes(searchLower);
-                        
-                        // Status filter
-                        const matchesStatus = 
-                          serviceRequestStatusFilter === 'all' || 
-                          request.status === serviceRequestStatusFilter;
-                        
-                        return matchesSearch && matchesStatus;
-                      });
+                    <Select value={serviceRequestStatusFilter} onValueChange={(value: string) => setServiceRequestStatusFilter(value)}>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="In Progress">In Progress</SelectItem>
+                        <SelectItem value="Completed">Completed</SelectItem>
+                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {(serviceRequestSearch || serviceRequestStatusFilter !== 'all') && (
+                      <Button variant="ghost" size="sm" onClick={() => { setServiceRequestSearch(''); setServiceRequestStatusFilter('all'); }}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <Tabs value={serviceRequestTab} onValueChange={setServiceRequestTab}>
+                  <TabsList className="grid text-white w-full grid-cols-2 mb-3">
+                    <TabsTrigger value="active">
+                      Active Requests ({filteredActiveRequests.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="logs">
+                      Service Request Logs ({filteredArchivedRequests.length})
+                    </TabsTrigger>
+                  </TabsList>
 
-                      // Sort by newest first by default
-                      filteredRequests = [...filteredRequests].sort((a, b) => {
-                        return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
-                      });
-
-                      if (filteredRequests.length === 0) {
-                        return (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <p>No service requests match your search.</p>
-                            {serviceRequestSearch && (
-                              <Button 
-                                variant="outline" 
-                                className="mt-4"
-                                onClick={() => setServiceRequestSearch('')}
-                              >
-                                Clear Search
-                              </Button>
-                            )}
-                          </div>
-                        ) as any;
-                      }
-
-                      return (
+                  {/* Active Service Requests */}
+                  <TabsContent value="active" className="mt-0">
+                    <div className="max-h-[500px] overflow-y-auto pr-1">
+                      {filteredActiveRequests.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>{serviceRequestSearch || serviceRequestStatusFilter !== 'all' ? 'No requests match your filters.' : 'No active service requests.'}</p>
+                          {!serviceRequestSearch && serviceRequestStatusFilter === 'all' && (
+                            <p className="text-sm mt-2">Requests submitted through the Additional Services page will appear here.</p>
+                          )}
+                        </div>
+                      ) : (
                         <div className="space-y-3">
-                          <div className="text-sm text-gray-500 mb-2">
-                            Showing {filteredRequests.length} of {serviceRequests.length} requests
+                          <div className="text-xs text-gray-500 mb-1">
+                            Showing {filteredActiveRequests.length} of {serviceRequests.length} requests
                           </div>
-                          {filteredRequests.map((request) => (
-                          <div key={request.id} className="border rounded-lg p-3 hover:bg-gray-50 transition-colors">
-                            <div className="flex items-center justify-between gap-4">
-                              {/* Compact Info */}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h3 className="font-semibold truncate">{request.name}</h3>
-                                  <Badge 
-                                    variant={request.status === 'Pending' ? 'secondary' : 
-                                            request.status === 'In Progress' ? 'default' : 'outline'}
-                                    className="text-xs shrink-0"
-                                  >
-                                    {request.status}
-                                  </Badge>
+                          {filteredActiveRequests.map((request) => (
+                            <div key={request.id} className="border rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="font-semibold truncate">{request.name}</h3>
+                                    <Badge
+                                      variant={request.status === 'Pending' ? 'secondary' :
+                                              request.status === 'In Progress' ? 'default' : 'outline'}
+                                      className="text-xs shrink-0"
+                                    >
+                                      {request.status}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-sm text-gray-600 truncate">
+                                    <span className="font-medium">Service:</span> {request.serviceTitle}
+                                  </p>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {request.organization} • {new Date(request.submittedAt).toLocaleDateString()}
+                                  </p>
                                 </div>
-                                <p className="text-sm text-gray-600 truncate">
-                                  <span className="font-medium">Service:</span> {request.serviceTitle}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  {request.organization} • {new Date(request.submittedAt).toLocaleDateString()}
-                                </p>
-                              </div>
-                              
-                              {/* Action Buttons */}
-                              <div className="flex items-center gap-2 shrink-0">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => {
-                                    setViewingServiceRequest(request);
-                                    setShowServiceRequestModal(true);
-                                  }}
-                                >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  View
-                                </Button>
-                                
-                                <Select 
-                                  value={request.status} 
-                                  onValueChange={async (value) => {
-                                    const updatedRequests = serviceRequests.map(req => 
-                                      req.id === request.id ? { ...req, status: value } : req
-                                    );
-                                    setServiceRequests(updatedRequests);
-                                    await supabase
-                                      .from('admin_service_requests')
-                                      .update({ status: value })
-                                      .eq('id', String(request.id));
-                                    logActivity('service', 'updated status', request.serviceTitle);
-                                    if (value === 'Completed' || value === 'Done') {
-                                      if (confirm('Mark this request as complete and move to logs?')) {
-                                        await handleArchiveRequest(request.id, true);
-                                      }
-                                    }
-                                  }}
-                                >
-                                  <SelectTrigger className="w-28 h-8 text-xs">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="Pending">Pending</SelectItem>
-                                    <SelectItem value="In Progress">In Progress</SelectItem>
-                                    <SelectItem value="Completed">Completed</SelectItem>
-                                    <SelectItem value="Done">Done</SelectItem>
-                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                
-                                <Button 
-                                  variant="outline" 
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  onClick={() => handleArchiveRequest(request.id, true)}
-                                  title="Archive"
-                                >
-                                  <CheckCircle className="h-4 w-4" />
-                                </Button>
-                                
-                                <Button 
-                                  variant="outline" 
-                                  size="icon"
-                                  className="h-8 w-8 text-red-600 hover:text-red-700"
-                                  onClick={async () => {
-                                    if (confirm('Are you sure you want to delete this service request?')) {
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <Button variant="outline" size="sm" onClick={() => { setViewingServiceRequest(request); setShowServiceRequestModal(true); }}>
+                                    <Eye className="h-4 w-4 mr-1" />View
+                                  </Button>
+                                  <Select
+                                    value={request.status}
+                                    onValueChange={async (value) => {
+                                      const updatedRequests = serviceRequests.map(req =>
+                                        req.id === request.id ? { ...req, status: value } : req
+                                      );
+                                      setServiceRequests(updatedRequests);
                                       await supabase
                                         .from('admin_service_requests')
-                                        .delete()
+                                        .update({ status: value })
                                         .eq('id', String(request.id));
+                                      logActivity('service', 'updated status', request.serviceTitle);
+                                      if (value === 'Completed' || value === 'Done') {
+                                        if (confirm('Mark this request as complete and move to logs?')) {
+                                          await handleArchiveRequest(request.id, true);
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    <SelectTrigger className="w-28 h-8 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Pending">Pending</SelectItem>
+                                      <SelectItem value="In Progress">In Progress</SelectItem>
+                                      <SelectItem value="Completed">Completed</SelectItem>
+                                      <SelectItem value="Done">Done</SelectItem>
+                                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleArchiveRequest(request.id, true)} title="Archive">
+                                    <CheckCircle className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="outline" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700" onClick={async () => {
+                                    if (confirm('Are you sure you want to delete this service request?')) {
+                                      await supabase.from('admin_service_requests').delete().eq('id', String(request.id));
                                       loadServiceRequests();
                                       logActivity('service', 'deleted request', request.serviceTitle);
                                     }
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                  }}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
                         </div>
-                      );
-                    })()}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                      )}
+                    </div>
+                  </TabsContent>
 
-              {/* Service Request Logs */}
-              <TabsContent value="logs" className="space-y-4 mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Service Request Logs</CardTitle>
-                    <CardDescription>
-                      Archived and completed service requests
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {archivedRequests.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>No archived requests.</p>
-                        <p className="text-sm mt-2">Completed and archived requests will appear here.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {archivedRequests.map((request) => (
-                          <div key={request.id} className="border rounded-lg p-4 bg-gray-50">
-                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h3 className="font-semibold text-lg">{request.name}</h3>
-                                  <Badge variant="outline" className="text-green-600 border-green-600">
-                                    {request.status}
-                                  </Badge>
-                                  {request.archived && (
-                                    <Badge variant="secondary">Archived</Badge>
-                                  )}
+                  {/* Service Request Logs */}
+                  <TabsContent value="logs" className="mt-0">
+                    <div className="max-h-[500px] overflow-y-auto pr-1">
+                      {filteredArchivedRequests.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>{serviceRequestSearch || serviceRequestStatusFilter !== 'all' ? 'No archived requests match your filters.' : 'No archived requests.'}</p>
+                          {!serviceRequestSearch && serviceRequestStatusFilter === 'all' && (
+                            <p className="text-sm mt-2">Completed and archived requests will appear here.</p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {filteredArchivedRequests.map((request) => (
+                            <div key={request.id} className="border rounded-lg p-3 bg-gray-50">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="font-semibold truncate">{request.name}</h3>
+                                    <Badge variant="outline" className="text-xs text-green-600 border-green-600 shrink-0">
+                                      {request.status}
+                                    </Badge>
+                                    {request.archived && (
+                                      <Badge variant="secondary" className="text-xs shrink-0">Archived</Badge>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                                    <span><span className="font-medium text-gray-600">Service:</span> {request.serviceTitle}</span>
+                                    <span><span className="font-medium text-gray-600">Org:</span> {request.organization}</span>
+                                    <span><span className="font-medium text-gray-600">Email:</span> {request.email}</span>
+                                  </div>
+                                  <p className="text-xs text-gray-400 mt-1">
+                                    Submitted: {new Date(request.submittedAt).toLocaleString()}
+                                  </p>
                                 </div>
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                  <div>
-                                    <span className="font-medium text-gray-600">Service:</span>
-                                    <p>{request.serviceTitle}</p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium text-gray-600">Organization:</span>
-                                    <p>{request.organization}</p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium text-gray-600">Email:</span>
-                                    <p>{request.email}</p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium text-gray-600">Phone:</span>
-                                    <p>{request.phone}</p>
-                                  </div>
-                                </div>
-                                
-                                <div className="mt-2 text-xs text-gray-500">
-                                  Submitted: {new Date(request.submittedAt).toLocaleString()}
-                                </div>
-                              </div>
-                              
-                              <div className="flex flex-col gap-2">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => handleArchiveRequest(request.id, false)}
-                                  title="Restore to active requests"
-                                >
-                                  <Clock className="h-4 w-4 mr-1" />
-                                  Restore
-                                </Button>
-                                
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={async () => {
+                                <div className="flex gap-1 shrink-0">
+                                  <Button variant="outline" size="sm" onClick={() => handleArchiveRequest(request.id, false)} title="Restore to active requests">
+                                    <Clock className="h-4 w-4 mr-1" />Restore
+                                  </Button>
+                                  <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700" onClick={async () => {
                                     if (confirm('Permanently delete this archived request?')) {
-                                      await supabase
-                                        .from('admin_service_requests')
-                                        .delete()
-                                        .eq('id', String(request.id));
+                                      await supabase.from('admin_service_requests').delete().eq('id', String(request.id));
                                       loadServiceRequests();
                                       logActivity('service', 'deleted archived request', request.serviceTitle);
                                     }
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                  }}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="resources" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">Resource Management</h2>
+              <Button variant="ustp" onClick={() => handleOpenResourceModal()}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Resource
+              </Button>
             </div>
 
-            {/* Resource Statistics */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-primary">{getFilteredResources('Templates').length}</div>
-                  <div className="text-sm text-muted-foreground">Templates</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-secondary">{getFilteredResources('IP 101 Tutorials').length}</div>
-                  <div className="text-sm text-muted-foreground">Tutorials</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-green-600">{getFilteredResources('SSF Booking').length}</div>
-                  <div className="text-sm text-muted-foreground">Facilities</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-purple-600">{getFilteredResources('Guidelines').length}</div>
-                  <div className="text-sm text-muted-foreground">Guidelines</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-orange-600">{bookingInquiries.filter(i => i.status === 'pending').length}</div>
-                  <div className="text-sm text-muted-foreground">Pending Bookings</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Nested Tabs for Resource Categories */}
-            <Tabs value={resourceTab} onValueChange={setResourceTab}>
-              <TabsList className="grid w-full grid-cols-5 text-white">
-                <TabsTrigger value="templates">Templates</TabsTrigger>
-                <TabsTrigger value="tutorials">IP 101 Tutorials</TabsTrigger>
-                <TabsTrigger value="facilities">SSF Facilities</TabsTrigger>
-                <TabsTrigger value="guidelines">Guidelines</TabsTrigger>
-                <TabsTrigger value="inquiries">Booking Inquiries</TabsTrigger>
-              </TabsList>
-
-              {/* Templates Tab */}
-              <TabsContent value="templates" className="space-y-4 mt-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Legal Templates & Documents</h3>
-                  <Button variant="ustp" onClick={() => handleOpenResourceModal()}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Template
-                  </Button>
-                </div>
-                
-                <Card>
-                  <CardContent className="p-0">
-                    {getFilteredResources('Templates').length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground">
-                        <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                        <p>No templates yet. Click "Add Template" to create one.</p>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b bg-gray-50">
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Title</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Description</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Type</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {getFilteredResources('Templates').map((resource) => (
-                              <tr key={resource.id} className="border-b hover:bg-gray-50">
-                                <td className="p-3 font-medium">{resource.title}</td>
-                                <td className="p-3 text-sm text-gray-600 max-w-xs truncate">{resource.content}</td>
-                                <td className="p-3">
-                                  <Badge variant="outline">{resource.type}</Badge>
-                                </td>
-                                <td className="p-3">
-                                  <Badge 
-                                    variant={resource.published ? 'default' : 'secondary'}
-                                    className={resource.published ? 'bg-green-500' : ''}
-                                  >
-                                    {resource.published ? 'Published' : 'Draft'}
-                                  </Badge>
-                                </td>
-                                <td className="p-3">
-                                  <div className="flex items-center gap-1">
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleToggleResourcePublish(resource.id, resource.published, resource.title)}
-                                      title={resource.published ? 'Unpublish' : 'Publish'}
-                                    >
-                                      {resource.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleOpenResourceModal(resource)}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleDeleteResource(resource.id, resource.title)}
-                                    >
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <CardTitle>Resources</CardTitle>
+                    <CardDescription>
+                      {resourceTab === 'templates' ? `${filteredTemplates.length} template${filteredTemplates.length !== 1 ? 's' : ''}` : `${filteredGuidelines.length} guideline${filteredGuidelines.length !== 1 ? 's' : ''}`}
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search resources..."
+                        value={resourceSearchTerm}
+                        onChange={(e) => setResourceSearchTerm(e.target.value)}
+                        className="pl-8 w-[200px]"
+                      />
+                    </div>
+                    {resourceSearchTerm && (
+                      <Button variant="ghost" size="sm" onClick={() => setResourceSearchTerm('')}>
+                        <X className="h-4 w-4" />
+                      </Button>
                     )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* IP 101 Tutorials Tab */}
-              <TabsContent value="tutorials" className="space-y-4 mt-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">IP 101 Learning Modules</h3>
-                  <Button variant="ustp" onClick={() => handleOpenResourceModal()}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Tutorial
-                  </Button>
-                </div>
-                
-                <Card>
-                  <CardContent className="p-0">
-                    {getFilteredResources('IP 101 Tutorials').length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground">
-                        <Video className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                        <p>No tutorials yet. Click "Add Tutorial" to create one.</p>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b bg-gray-50">
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Title</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Description</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Duration</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Level</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {getFilteredResources('IP 101 Tutorials').map((resource) => (
-                              <tr key={resource.id} className="border-b hover:bg-gray-50">
-                                <td className="p-3 font-medium">{resource.title}</td>
-                                <td className="p-3 text-sm text-gray-600 max-w-xs truncate">{resource.content}</td>
-                                <td className="p-3 text-sm">{resource.duration || '-'}</td>
-                                <td className="p-3">
-                                  <Badge variant="outline">{resource.level || 'Beginner'}</Badge>
-                                </td>
-                                <td className="p-3">
-                                  <Badge 
-                                    variant={resource.published ? 'default' : 'secondary'}
-                                    className={resource.published ? 'bg-green-500' : ''}
-                                  >
-                                    {resource.published ? 'Published' : 'Draft'}
-                                  </Badge>
-                                </td>
-                                <td className="p-3">
-                                  <div className="flex items-center gap-1">
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleToggleResourcePublish(resource.id, resource.published, resource.title)}
-                                    >
-                                      {resource.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleOpenResourceModal(resource)}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleDeleteResource(resource.id, resource.title)}
-                                    >
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* SSF Facilities Tab */}
-              <TabsContent value="facilities" className="space-y-4 mt-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Shared Service Facilities</h3>
-                  <Button variant="ustp" onClick={() => handleOpenResourceModal()}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Facility
-                  </Button>
-                </div>
-                
-                <Card>
-                  <CardContent className="p-0">
-                    {getFilteredResources('SSF Booking').length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground">
-                        <Building className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                        <p>No facilities yet. Click "Add Facility" to create one.</p>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b bg-gray-50">
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Facility Name</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Capacity</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Hourly Rate</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Lead Time</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {getFilteredResources('SSF Booking').map((resource) => (
-                              <tr key={resource.id} className="border-b hover:bg-gray-50">
-                                <td className="p-3">
-                                  <div className="font-medium">{resource.title}</div>
-                                  <div className="text-xs text-gray-500 max-w-xs truncate">{resource.content}</div>
-                                </td>
-                                <td className="p-3 text-sm">{resource.capacity || '-'}</td>
-                                <td className="p-3 text-sm text-secondary font-medium">
-                                  {resource.hourly_rate ? `₱${resource.hourly_rate}` : '-'}
-                                </td>
-                                <td className="p-3 text-sm">{resource.booking_lead_time || '-'}</td>
-                                <td className="p-3">
-                                  <Badge 
-                                    variant={resource.published ? 'default' : 'secondary'}
-                                    className={resource.published ? 'bg-green-500' : ''}
-                                  >
-                                    {resource.published ? 'Available' : 'Unavailable'}
-                                  </Badge>
-                                </td>
-                                <td className="p-3">
-                                  <div className="flex items-center gap-1">
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleToggleResourcePublish(resource.id, resource.published, resource.title)}
-                                    >
-                                      {resource.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleOpenResourceModal(resource)}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleDeleteResource(resource.id, resource.title)}
-                                    >
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Guidelines Tab */}
-              <TabsContent value="guidelines" className="space-y-4 mt-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Research Guidelines & Best Practices</h3>
-                  <Button variant="ustp" onClick={() => handleOpenResourceModal()}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Guideline
-                  </Button>
-                </div>
-                
-                <Card>
-                  <CardContent className="p-0">
-                    {getFilteredResources('Guidelines').length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground">
-                        <BookOpen className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                        <p>No guidelines yet. Click "Add Guideline" to create one.</p>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b bg-gray-50">
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Title</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Description</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Type</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {getFilteredResources('Guidelines').map((resource) => (
-                              <tr key={resource.id} className="border-b hover:bg-gray-50">
-                                <td className="p-3 font-medium">{resource.title}</td>
-                                <td className="p-3 text-sm text-gray-600 max-w-xs truncate">{resource.content}</td>
-                                <td className="p-3">
-                                  <Badge variant="outline">{resource.type}</Badge>
-                                </td>
-                                <td className="p-3">
-                                  <Badge 
-                                    variant={resource.published ? 'default' : 'secondary'}
-                                    className={resource.published ? 'bg-green-500' : ''}
-                                  >
-                                    {resource.published ? 'Published' : 'Draft'}
-                                  </Badge>
-                                </td>
-                                <td className="p-3">
-                                  <div className="flex items-center gap-1">
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleToggleResourcePublish(resource.id, resource.published, resource.title)}
-                                    >
-                                      {resource.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleOpenResourceModal(resource)}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleDeleteResource(resource.id, resource.title)}
-                                    >
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Booking Inquiries Tab */}
-              <TabsContent value="inquiries" className="space-y-4 mt-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Facility Booking Inquiries</h3>
-                  <div className="text-sm text-muted-foreground">
-                    {bookingInquiries.filter(i => i.status === 'pending').length} pending inquiries
                   </div>
                 </div>
-                
-                <Card>
-                  <CardContent className="p-0">
-                    {bookingInquiries.length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground">
-                        <Calendar className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                        <p>No booking inquiries yet.</p>
-                        <p className="text-sm mt-2">Inquiries will appear here when users submit booking requests from the Facility Booking page.</p>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b bg-gray-50">
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Facility</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Contact</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Preferred Date</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Submitted</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
-                              <th className="text-left p-3 text-sm font-semibold text-gray-700">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {bookingInquiries.map((inquiry) => (
-                              <tr key={inquiry.id} className="border-b hover:bg-gray-50">
-                                <td className="p-3">
-                                  <div className="font-medium">{inquiry.facility_name}</div>
-                                  <div className="text-xs text-gray-500">{inquiry.organization || 'No organization'}</div>
-                                </td>
-                                <td className="p-3">
-                                  <div className="text-sm">{inquiry.full_name}</div>
-                                  <div className="text-xs text-gray-500">{inquiry.email}</div>
-                                  {inquiry.phone && <div className="text-xs text-gray-500">{inquiry.phone}</div>}
-                                </td>
-                                <td className="p-3 text-sm">
-                                  {inquiry.preferred_date 
-                                    ? new Date(inquiry.preferred_date).toLocaleDateString() 
-                                    : 'Not specified'}
-                                  {inquiry.preferred_time && (
-                                    <div className="text-xs text-gray-500">{inquiry.preferred_time}</div>
-                                  )}
-                                </td>
-                                <td className="p-3 text-sm text-gray-500">
-                                  {formatDate(inquiry.created_at)}
-                                </td>
-                                <td className="p-3">
-                                  <Badge 
-                                    variant={
-                                      inquiry.status === 'pending' ? 'secondary' :
-                                      inquiry.status === 'contacted' ? 'default' :
-                                      inquiry.status === 'confirmed' ? 'default' : 'destructive'
-                                    }
-                                    className={
-                                      inquiry.status === 'confirmed' ? 'bg-green-500' :
-                                      inquiry.status === 'contacted' ? 'bg-blue-500' : ''
-                                    }
+              </CardHeader>
+              <CardContent className="pt-0">
+                <Tabs value={resourceTab} onValueChange={setResourceTab}>
+                  <TabsList className="grid w-full grid-cols-2 text-white mb-3">
+                    <TabsTrigger value="templates">Templates ({filteredTemplates.length})</TabsTrigger>
+                    <TabsTrigger value="guidelines">Guidelines ({filteredGuidelines.length})</TabsTrigger>
+                  </TabsList>
+
+                  {/* Templates Tab */}
+                  <TabsContent value="templates" className="mt-0">
+                    <div className="max-h-[500px] overflow-y-auto pr-1">
+                      {filteredTemplates.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                          <p>{resourceSearchTerm ? 'No templates match your search.' : 'No templates yet.'}</p>
+                          {!resourceSearchTerm && (
+                            <p className="text-sm mt-2">Click "Add Resource" to create one.</p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {filteredTemplates.map((resource) => (
+                            <div key={resource.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-semibold truncate">{resource.title}</h3>
+                                  <Badge variant="outline" className="text-xs shrink-0">{resource.type}</Badge>
+                                  <Badge
+                                    variant={resource.published ? 'default' : 'secondary'}
+                                    className={`text-xs shrink-0 ${resource.published ? 'bg-green-500' : ''}`}
                                   >
-                                    {inquiry.status.charAt(0).toUpperCase() + inquiry.status.slice(1)}
+                                    {resource.published ? 'Published' : 'Draft'}
                                   </Badge>
-                                </td>
-                                <td className="p-3">
-                                  <div className="flex items-center gap-1">
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleViewInquiry(inquiry)}
-                                      title="View Details"
-                                    >
-                                      <Eye className="h-4 w-4" />
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleUpdateInquiryStatus(inquiry.id, 'contacted')}
-                                      disabled={inquiry.status !== 'pending'}
-                                      title="Mark as Contacted"
-                                    >
-                                      <Mail className="h-4 w-4" />
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleUpdateInquiryStatus(inquiry.id, 'confirmed')}
-                                      disabled={inquiry.status === 'confirmed' || inquiry.status === 'cancelled'}
-                                      title="Confirm Booking"
-                                    >
-                                      <CheckCircle className="h-4 w-4 text-green-600" />
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => handleUpdateInquiryStatus(inquiry.id, 'cancelled')}
-                                      disabled={inquiry.status === 'cancelled'}
-                                      title="Cancel"
-                                    >
-                                      <XCircle className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                                </div>
+                                <p className="text-sm text-gray-600 truncate">{resource.content}</p>
+                              </div>
+                              <div className="flex items-center gap-1 ml-3 shrink-0">
+                                <Button variant="ghost" size="sm" onClick={() => handleToggleResourcePublish(resource.id, resource.published, resource.title)} title={resource.published ? 'Unpublish' : 'Publish'}>
+                                  {resource.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleOpenResourceModal(resource)} title="Edit">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleDeleteResource(resource.id, resource.title)} title="Delete">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  {/* Guidelines Tab */}
+                  <TabsContent value="guidelines" className="mt-0">
+                    <div className="max-h-[500px] overflow-y-auto pr-1">
+                      {filteredGuidelines.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <BookOpen className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                          <p>{resourceSearchTerm ? 'No guidelines match your search.' : 'No guidelines yet.'}</p>
+                          {!resourceSearchTerm && (
+                            <p className="text-sm mt-2">Click "Add Resource" to create one.</p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {filteredGuidelines.map((resource) => (
+                            <div key={resource.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-semibold truncate">{resource.title}</h3>
+                                  <Badge variant="outline" className="text-xs shrink-0">{resource.type}</Badge>
+                                  <Badge
+                                    variant={resource.published ? 'default' : 'secondary'}
+                                    className={`text-xs shrink-0 ${resource.published ? 'bg-green-500' : ''}`}
+                                  >
+                                    {resource.published ? 'Published' : 'Draft'}
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-gray-600 truncate">{resource.content}</p>
+                              </div>
+                              <div className="flex items-center gap-1 ml-3 shrink-0">
+                                <Button variant="ghost" size="sm" onClick={() => handleToggleResourcePublish(resource.id, resource.published, resource.title)} title={resource.published ? 'Unpublish' : 'Publish'}>
+                                  {resource.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleOpenResourceModal(resource)} title="Edit">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleDeleteResource(resource.id, resource.title)} title="Delete">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {currentUserRole === 'admin' && (
@@ -5377,9 +5083,51 @@ Article Details:
         </Tabs>
       </main>
 
+      {/* Delete News Confirmation Dialog */}
+      <Dialog open={showDeleteNewsDialog} onOpenChange={setShowDeleteNewsDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Article</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{deleteNewsTarget?.title}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {deleteNewsTarget && (() => {
+            const article = news.find(a => a.id === deleteNewsTarget.id);
+            return (
+              <div className="bg-white rounded-lg p-3 space-y-1 text-sm border">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status:</span>
+                  <Badge className={article?.status === 'Published' ? 'bg-green-600' : 'bg-yellow-600'}>{article?.status}</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Category:</span>
+                  <span>{article?.category}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Date:</span>
+                  <span>{article?.date}</span>
+                </div>
+              </div>
+            );
+          })()}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => {
+              setShowDeleteNewsDialog(false);
+              setDeleteNewsTarget(null);
+            }}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteNews}>
+              <Trash2 className="h-4 w-4 mr-1" /> Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* News Edit Modal */}
       <Dialog open={showNewsModal} onOpenChange={setShowNewsModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>
               {editingNews ? 'Edit News Article' : 'Create News Article'}
@@ -5389,7 +5137,7 @@ Article Details:
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 pr-1">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="modal-news-title">Article Title *</Label>
@@ -5448,14 +5196,52 @@ Article Details:
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="modal-news-content">Article Content *</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="modal-news-content">Article Content *</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.multiple = true;
+                    input.onchange = async (e) => {
+                      const files = Array.from((e.target as HTMLInputElement).files || []);
+                      if (files.length === 0) return;
+                      const startIndex = existingContentImages.length + newsForm.contentImages.length;
+                      const newFiles = [...newsForm.contentImages, ...files];
+                      let markers = '';
+                      files.forEach((_, i) => {
+                        markers += `\n[IMAGE:${startIndex + i}]\n`;
+                      });
+                      const textarea = document.getElementById('modal-news-content') as HTMLTextAreaElement;
+                      if (textarea) {
+                        const pos = textarea.selectionStart;
+                        const content = newsForm.content;
+                        const newContent = content.slice(0, pos) + markers + content.slice(pos);
+                        setNewsForm({...newsForm, content: newContent, contentImages: newFiles});
+                      } else {
+                        setNewsForm({...newsForm, content: newsForm.content + markers, contentImages: newFiles});
+                      }
+                    };
+                    input.click();
+                  }}
+                >
+                  <Upload className="h-4 w-4 mr-1" /> Insert Image
+                </Button>
+              </div>
               <Textarea 
                 id="modal-news-content" 
                 value={newsForm.content}
                 onChange={(e) => setNewsForm({...newsForm, content: e.target.value})}
-                placeholder="Full article content" 
+                placeholder="Full article content. Use 'Insert Image' to add images inline." 
                 rows={6}
               />
+              <p className="text-xs text-muted-foreground">
+                Use "Insert Image" to add images inline. They appear as [IMAGE:N] markers in the text.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="modal-news-image">Featured Image</Label>
@@ -5466,10 +5252,25 @@ Article Details:
                 onChange={(e) => setNewsForm({...newsForm, image: e.target.files?.[0] || null})}
               />
             </div>
+            
+            {/* YouTube URL in Modal */}
+            <div className="space-y-2">
+              <Label htmlFor="modal-news-youtube-url">YouTube Video URL</Label>
+              <Input 
+                id="modal-news-youtube-url" 
+                type="url" 
+                placeholder="https://www.youtube.com/watch?v=..."
+                value={newsForm.youtubeUrl}
+                onChange={(e) => setNewsForm({...newsForm, youtubeUrl: e.target.value})}
+              />
+            </div>
           </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewsModal(false)}>
+          <DialogFooter className="flex-shrink-0 border-t pt-4 mt-2">
+            <Button variant="outline" onClick={() => {
+              setShowNewsModal(false);
+              setExistingContentImages([]);
+            }}>
               Cancel
             </Button>
             <Button variant="ustp" onClick={() => {
@@ -6379,8 +6180,6 @@ Article Details:
                   onValueChange={(value) => {
                     const typeMap: Record<string, string> = {
                       'Templates': 'download',
-                      'IP 101 Tutorials': 'video',
-                      'SSF Booking': 'download',
                       'Guidelines': 'guide'
                     };
                     setResourceForm({
@@ -6395,8 +6194,6 @@ Article Details:
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Templates">Templates</SelectItem>
-                    <SelectItem value="IP 101 Tutorials">IP 101 Tutorials</SelectItem>
-                    <SelectItem value="SSF Booking">SSF Booking</SelectItem>
                     <SelectItem value="Guidelines">Guidelines</SelectItem>
                   </SelectContent>
                 </Select>
@@ -6475,7 +6272,7 @@ Article Details:
                       ];
                       if (!allowedTypes.includes(file.type) && 
                           !file.name.match(/\.(pdf|docx|xlsx|txt)$/i)) {
-                        alert('Please upload a PDF, DOCX, XLSX, or TXT file.');
+                        toast({ title: 'Validation Error', description: 'Please upload a PDF, DOCX, XLSX, or TXT file.', variant: 'destructive' })
                         return;
                       }
                       setUploadFile(file);
@@ -6507,90 +6304,7 @@ Article Details:
               </p>
             </div>
 
-            {/* Tutorial-specific fields */}
-            {resourceForm.category === 'IP 101 Tutorials' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-                <div className="space-y-2">
-                  <Label htmlFor="resource-duration">Duration</Label>
-                  <Input 
-                    id="resource-duration" 
-                    value={resourceForm.duration}
-                    onChange={(e) => setResourceForm({...resourceForm, duration: e.target.value})}
-                    placeholder="e.g., 45 minutes"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="resource-modules">Number of Modules</Label>
-                  <Input 
-                    id="resource-modules" 
-                    type="number"
-                    value={resourceForm.modules_count}
-                    onChange={(e) => setResourceForm({...resourceForm, modules_count: parseInt(e.target.value) || 0})}
-                    placeholder="e.g., 6"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="resource-level">Level</Label>
-                  <Select 
-                    value={resourceForm.level} 
-                    onValueChange={(value) => setResourceForm({...resourceForm, level: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Beginner">Beginner</SelectItem>
-                      <SelectItem value="Intermediate">Intermediate</SelectItem>
-                      <SelectItem value="Advanced">Advanced</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
 
-            {/* Facility-specific fields */}
-            {resourceForm.category === 'SSF Booking' && (
-              <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="resource-capacity">Capacity</Label>
-                    <Input 
-                      id="resource-capacity" 
-                      value={resourceForm.capacity}
-                      onChange={(e) => setResourceForm({...resourceForm, capacity: e.target.value})}
-                      placeholder="e.g., 10 researchers"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="resource-rate">Hourly Rate (₱)</Label>
-                    <Input 
-                      id="resource-rate" 
-                      value={resourceForm.hourly_rate}
-                      onChange={(e) => setResourceForm({...resourceForm, hourly_rate: e.target.value})}
-                      placeholder="e.g., 500"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="resource-lead">Booking Lead Time</Label>
-                    <Input 
-                      id="resource-lead" 
-                      value={resourceForm.booking_lead_time}
-                      onChange={(e) => setResourceForm({...resourceForm, booking_lead_time: e.target.value})}
-                      placeholder="e.g., 48 hours"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="resource-equipment">Equipment (comma-separated)</Label>
-                  <Input 
-                    id="resource-equipment" 
-                    value={resourceForm.equipment.join(', ')}
-                    onChange={(e) => setResourceForm({...resourceForm, equipment: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
-                    placeholder="e.g., SEM-EDS, XRD, FTIR"
-                  />
-                </div>
-              </div>
-            )}
 
             <div className="flex items-center space-x-2">
               <input
@@ -6627,119 +6341,27 @@ Article Details:
         </DialogContent>
       </Dialog>
 
-      {/* Booking Inquiry Modal */}
-      <Dialog open={showInquiryModal} onOpenChange={setShowInquiryModal}>
-        <DialogContent className="max-w-lg">
+      {/* Delete Resource Confirmation Modal */}
+      <Dialog open={showDeleteResourceModal} onOpenChange={setShowDeleteResourceModal}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Booking Inquiry Details</DialogTitle>
+            <DialogTitle className="text-destructive">Delete Resource</DialogTitle>
             <DialogDescription>
-              View and manage this booking inquiry.
+              Are you sure you want to delete "{resourceToDelete?.title}"?
+              <br /><br />
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          
-          {selectedInquiry && (
-            <div className="space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-semibold text-primary mb-2">{selectedInquiry.facility_name}</h4>
-                <Badge 
-                  variant={
-                    selectedInquiry.status === 'pending' ? 'secondary' :
-                    selectedInquiry.status === 'contacted' ? 'default' :
-                    selectedInquiry.status === 'confirmed' ? 'default' : 'destructive'
-                  }
-                  className={
-                    selectedInquiry.status === 'confirmed' ? 'bg-green-500' :
-                    selectedInquiry.status === 'contacted' ? 'bg-blue-500' : ''
-                  }
-                >
-                  {selectedInquiry.status.charAt(0).toUpperCase() + selectedInquiry.status.slice(1)}
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-sm text-gray-500">Contact Name</span>
-                  <p className="font-medium">{selectedInquiry.full_name}</p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Organization</span>
-                  <p className="font-medium">{selectedInquiry.organization || 'Not specified'}</p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Email</span>
-                  <p className="font-medium">{selectedInquiry.email}</p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Phone</span>
-                  <p className="font-medium">{selectedInquiry.phone || 'Not provided'}</p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Preferred Date</span>
-                  <p className="font-medium">
-                    {selectedInquiry.preferred_date 
-                      ? new Date(selectedInquiry.preferred_date).toLocaleDateString() 
-                      : 'Not specified'}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Preferred Time</span>
-                  <p className="font-medium">{selectedInquiry.preferred_time || 'Not specified'}</p>
-                </div>
-              </div>
-
-              {selectedInquiry.purpose && (
-                <div>
-                  <span className="text-sm text-gray-500">Purpose</span>
-                  <p className="text-sm bg-gray-50 p-3 rounded mt-1">{selectedInquiry.purpose}</p>
-                </div>
-              )}
-
-              {selectedInquiry.additional_notes && (
-                <div>
-                  <span className="text-sm text-gray-500">Additional Notes</span>
-                  <p className="text-sm bg-gray-50 p-3 rounded mt-1">{selectedInquiry.additional_notes}</p>
-                </div>
-              )}
-
-              <div className="text-sm text-gray-500">
-                Submitted: {formatDate(selectedInquiry.created_at)}
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="flex-col gap-2 sm:flex-row">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowInquiryModal(false);
-                setSelectedInquiry(null);
-              }}
-            >
-              Close
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowDeleteResourceModal(false);
+              setResourceToDelete(null);
+            }}>
+              Cancel
             </Button>
-            {selectedInquiry && selectedInquiry.status === 'pending' && (
-              <Button 
-                variant="ustp" 
-                onClick={() => {
-                  handleUpdateInquiryStatus(selectedInquiry.id, 'contacted');
-                  setShowInquiryModal(false);
-                }}
-              >
-                Mark as Contacted
-              </Button>
-            )}
-            {selectedInquiry && selectedInquiry.status !== 'confirmed' && selectedInquiry.status !== 'cancelled' && (
-              <Button 
-                variant="default" 
-                className="bg-green-600 hover:bg-green-700"
-                onClick={() => {
-                  handleUpdateInquiryStatus(selectedInquiry.id, 'confirmed');
-                  setShowInquiryModal(false);
-                }}
-              >
-                Confirm Booking
-              </Button>
-            )}
+            <Button variant="destructive" onClick={confirmDeleteResource}>
+              Delete Resource
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -7068,22 +6690,6 @@ Article Details:
                     <p className="font-medium">{viewingServiceRequest.participants} people</p>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-500">Budget Range</span>
-                    <p className="font-medium">
-                      {viewingServiceRequest.budget 
-                        ? `₱${viewingServiceRequest.budget.replace('-', ' - ₱').replace('k', ',000')}`
-                        : 'Not specified'}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-500">Timeline</span>
-                    <p className="font-medium">
-                      {viewingServiceRequest.timeline 
-                        ? viewingServiceRequest.timeline.replace('-', ' ').replace('asap', 'ASAP')
-                        : 'Not specified'}
-                    </p>
-                  </div>
-                  <div>
                     <span className="text-sm text-gray-500">Preferred Date</span>
                     <p className="font-medium">{viewingServiceRequest.preferredDate || 'Not specified'}</p>
                   </div>
@@ -7154,6 +6760,122 @@ Article Details:
                   Reply via Email
                 </Button>
               </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Patent Detail Modal */}
+      <Dialog open={showPatentDetailModal} onOpenChange={setShowPatentDetailModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Patent Details</DialogTitle>
+            <DialogDescription>
+              View detailed information about this patent.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedPatentForDetail && (
+            <div className="space-y-6 py-4">
+              {/* Title Section */}
+              <div className="space-y-2">
+                <Label className="text-sm text-muted-foreground">Title</Label>
+                <h3 className="text-lg font-semibold">{selectedPatentForDetail.title}</h3>
+              </div>
+
+              {/* Patent ID and Status */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Patent ID</Label>
+                  <p className="font-medium">{selectedPatentForDetail.patentId || 'N/A'}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Status</Label>
+                  <div>
+                    <Badge variant={selectedPatentForDetail.status === 'Granted' ? 'default' : 'secondary'}>
+                      {selectedPatentForDetail.status}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Field and Year */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Field</Label>
+                  <p className="font-medium">{selectedPatentForDetail.field || 'N/A'}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Year</Label>
+                  <p className="font-medium">{selectedPatentForDetail.year || 'N/A'}</p>
+                </div>
+              </div>
+
+              {/* Inventors */}
+              <div className="space-y-2">
+                <Label className="text-sm text-muted-foreground">Inventors</Label>
+                <p className="font-medium">{selectedPatentForDetail.inventors || 'N/A'}</p>
+              </div>
+
+              {/* Abstract */}
+              {selectedPatentForDetail.abstract && (
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Abstract</Label>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedPatentForDetail.abstract}</p>
+                </div>
+              )}
+
+              {/* Description */}
+              {selectedPatentForDetail.description && (
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Description</Label>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedPatentForDetail.description}</p>
+                </div>
+              )}
+
+              {/* Attached File */}
+              {selectedPatentForDetail.file_url && (
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Attached File</Label>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 border rounded-lg">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {selectedPatentForDetail.file_name || 'Patent Document.pdf'}
+                      </p>
+                      <p className="text-xs text-gray-500">PDF Document</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        window.open(selectedPatentForDetail.file_url, '_blank');
+                      }}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPatentDetailModal(false)}>
+              Close
+            </Button>
+            {selectedPatentForDetail && (
+              <Button
+                variant="ustp"
+                onClick={() => {
+                  setShowPatentDetailModal(false);
+                  handleEditPatent(selectedPatentForDetail);
+                }}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Patent
+              </Button>
             )}
           </DialogFooter>
         </DialogContent>
