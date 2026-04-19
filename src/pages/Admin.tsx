@@ -7593,7 +7593,7 @@ Article Details:
 
       {/* IP Application Detail Modal */}
       <Dialog open={showIpAppDetailModal} onOpenChange={setShowIpAppDetailModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>IP Application Details</DialogTitle>
             <DialogDescription>
@@ -7628,6 +7628,7 @@ Article Details:
                     <p><span className="font-medium">Email:</span> {selectedIpApp.applicant_email}</p>
                     <p><span className="font-medium">Department:</span> {selectedIpApp.faculty?.department || 'N/A'}</p>
                     <p><span className="font-medium">Nationality:</span> {selectedIpApp.applicant_nationality || 'N/A'}</p>
+                    <p><span className="font-medium">Contact:</span> {selectedIpApp.applicant_contact || 'N/A'}</p>
                   </div>
                 </div>
 
@@ -7641,9 +7642,114 @@ Article Details:
                     <p><span className="font-medium">Type:</span> {selectedIpApp.ip_type}</p>
                     <p><span className="font-medium">Submitted:</span> {selectedIpApp.submitted_at ? formatDate(selectedIpApp.submitted_at) : 'Draft'}</p>
                     <p><span className="font-medium">Application ID:</span> {selectedIpApp.id}</p>
+                    {selectedIpApp.claims_priority && (
+                      <p><span className="font-medium">Priority Claimed:</span> Yes</p>
+                    )}
                   </div>
                 </div>
               </div>
+
+              {/* Inventors Information */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <Users className="h-4 w-4 text-purple-600" />
+                  Inventors Information
+                </h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  {selectedIpApp.co_inventors && selectedIpApp.co_inventors.length > 0 ? (
+                    <div className="space-y-4">
+                      {/* Primary Applicant as First Inventor */}
+                      <div className="p-3 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge variant="default">Primary Inventor</Badge>
+                        </div>
+                        <p className="font-medium">{selectedIpApp.applicant_full_name}</p>
+                        <p className="text-sm text-gray-600">{selectedIpApp.applicant_email}</p>
+                        <p className="text-sm text-gray-600">{selectedIpApp.applicant_nationality}</p>
+                      </div>
+                      
+                      {/* Co-inventors */}
+                      {selectedIpApp.co_inventors.map((inventor: any, index: number) => (
+                        <div key={index} className="p-3 bg-white rounded-lg border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline">Co-Inventor {index + 1}</Badge>
+                          </div>
+                          <p className="font-medium">{inventor.name}</p>
+                          {inventor.email && <p className="text-sm text-gray-600">{inventor.email}</p>}
+                          {inventor.nationality && <p className="text-sm text-gray-600">{inventor.nationality}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-white rounded-lg border border-gray-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="default">Sole Inventor</Badge>
+                      </div>
+                      <p className="font-medium">{selectedIpApp.applicant_full_name}</p>
+                      <p className="text-sm text-gray-600">{selectedIpApp.applicant_email}</p>
+                      <p className="text-sm text-gray-600">{selectedIpApp.applicant_nationality || 'N/A'}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Documents Submitted */}
+              {selectedIpApp.attachments && selectedIpApp.attachments.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-green-600" />
+                    Documents Submitted
+                  </h4>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="grid grid-cols-1 gap-3">
+                      {selectedIpApp.attachments.map((file: any, index: number) => (
+                        <div 
+                          key={index} 
+                          className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-5 w-5 text-blue-500" />
+                            <div>
+                              <p className="font-medium text-sm">{file.file_name}</p>
+                              <p className="text-xs text-gray-500">
+                                {file.document_type ? file.document_type.replace(/_/g, ' ').toUpperCase() : 'Document'} • 
+                                {(file.file_size / (1024 * 1024)).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            {file.file_url && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(file.file_url, '_blank')}
+                              >
+                                <EyeIcon className="h-4 w-4 mr-1" />
+                                View
+                              </Button>
+                            )}
+                            {file.file_url && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const link = document.createElement('a');
+                                  link.href = file.file_url;
+                                  link.download = file.file_name;
+                                  link.click();
+                                }}
+                              >
+                                <Download className="h-4 w-4 mr-1" />
+                                Download
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Abstract */}
               {selectedIpApp.abstract && (
