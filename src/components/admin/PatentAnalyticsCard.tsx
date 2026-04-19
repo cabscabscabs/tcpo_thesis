@@ -357,9 +357,13 @@ function EnhancedFilingTrends({
     const years = Object.keys(counts).sort();
     const values = years.map(year => counts[year]);
     
-    // Calculate cumulative trend line
+    // Calculate cumulative trend line - starts from first year's value
     const cumulative = values.reduce((acc, val, i) => {
-      acc.push((acc[i - 1] || 0) + val);
+      if (i === 0) {
+        acc.push(val);
+      } else {
+        acc.push(acc[i - 1] + val);
+      }
       return acc;
     }, [] as number[]);
 
@@ -568,13 +572,13 @@ function EnhancedFilingTrends({
             })}
 
             {/* Connecting lines */}
-            {(chartType === 'line' || chartType === 'combo') && (
+            {(chartType === 'line' || chartType === 'combo') && years.length > 1 && (
               <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 100">
                 {/* Moving average line */}
                 <polyline
                   fill="none"
                   stroke="#eab308"
-                  strokeWidth="0.5"
+                  strokeWidth="1"
                   points={years.map((_, i) => {
                     const x = ((i + 0.5) / years.length) * 100;
                     const y = 100 - (movingAvg[i] / maxValue) * 100;
@@ -585,7 +589,7 @@ function EnhancedFilingTrends({
                 <polyline
                   fill="none"
                   stroke="#22c55e"
-                  strokeWidth="0.5"
+                  strokeWidth="1"
                   strokeDasharray="2,2"
                   points={years.map((_, i) => {
                     const x = ((i + 0.5) / years.length) * 100;
