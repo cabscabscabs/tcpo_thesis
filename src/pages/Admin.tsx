@@ -7629,6 +7629,7 @@ Article Details:
                     <p><span className="font-medium">Department:</span> {selectedIpApp.faculty?.department || 'N/A'}</p>
                     <p><span className="font-medium">Nationality:</span> {selectedIpApp.applicant_nationality || 'N/A'}</p>
                     <p><span className="font-medium">Contact:</span> {selectedIpApp.applicant_contact || 'N/A'}</p>
+                    <p><span className="font-medium">Address:</span> {selectedIpApp.applicant_address || 'N/A'}</p>
                   </div>
                 </div>
 
@@ -7675,8 +7676,14 @@ Article Details:
                             <Badge variant="outline">Co-Inventor {index + 1}</Badge>
                           </div>
                           <p className="font-medium">{inventor.name}</p>
-                          {inventor.email && <p className="text-sm text-gray-600">{inventor.email}</p>}
-                          {inventor.nationality && <p className="text-sm text-gray-600">{inventor.nationality}</p>}
+                          {inventor.nationality && <p className="text-sm text-gray-600">Nationality: {inventor.nationality}</p>}
+                          {inventor.address && <p className="text-sm text-gray-600">Address: {inventor.address}</p>}
+                          {inventor.contribution && (
+                            <div className="mt-2 pt-2 border-t border-gray-100">
+                              <p className="text-xs text-gray-500 font-medium">Contribution:</p>
+                              <p className="text-sm text-gray-700">{inventor.contribution}</p>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -7687,7 +7694,8 @@ Article Details:
                       </div>
                       <p className="font-medium">{selectedIpApp.applicant_full_name}</p>
                       <p className="text-sm text-gray-600">{selectedIpApp.applicant_email}</p>
-                      <p className="text-sm text-gray-600">{selectedIpApp.applicant_nationality || 'N/A'}</p>
+                      <p className="text-sm text-gray-600">Nationality: {selectedIpApp.applicant_nationality || 'N/A'}</p>
+                      <p className="text-sm text-gray-600">Address: {selectedIpApp.applicant_address || 'N/A'}</p>
                     </div>
                   )}
                 </div>
