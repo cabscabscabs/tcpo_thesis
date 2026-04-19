@@ -1,52 +1,26 @@
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
-  ListOrdered, 
   Upload, 
   FileImage, 
   FileText, 
   X,
-  Plus,
-  AlertCircle,
   FileCheck,
   FileText as FileTextIcon,
   Info
 } from "lucide-react";
-import { IPClaim, IPType, ipTypeConfig } from "@/types/ipApplication";
+import { IPType, ipTypeConfig } from "@/types/ipApplication";
 import { DocumentChecklist } from "./DocumentChecklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function ClaimsAndDrawingsStep() {
   const { register, watch, setValue, formState: { errors } } = useFormContext();
-  const claims = watch("claims") || [];
   const attachments = watch("attachments") || [];
   const ipType = watch("ip_type");
-
-  const addClaim = (type: 'independent' | 'dependent') => {
-    const newClaim: Partial<IPClaim> = {
-      claim_number: claims.length + 1,
-      claim_type: type,
-      parent_claim_number: type === 'dependent' ? 1 : null,
-      text: ""
-    };
-    setValue("claims", [...claims, newClaim]);
-  };
-
-  const removeClaim = (index: number) => {
-    const updated = [...claims];
-    updated.splice(index, 1);
-    // Renumber claims
-    updated.forEach((claim, i) => {
-      claim.claim_number = i + 1;
-    });
-    setValue("claims", updated);
-  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'drawing' | 'document') => {
     const files = event.target.files;
@@ -75,8 +49,6 @@ export function ClaimsAndDrawingsStep() {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-
-  const showClaims = ipType === 'Patent' || ipType === 'Utility Model';
   
   // Conditional fields for document requirements
   const claimsPriority = watch('claimsPriority');
@@ -143,108 +115,6 @@ export function ClaimsAndDrawingsStep() {
       {/* Document Upload Section */}
       {ipType && (
         <>
-          {/* Claims Section */}
-          {showClaims && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ListOrdered className="h-5 w-5 text-blue-600" />
-                  Claims (Optional)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div className="text-sm text-blue-800">
-                      <p className="font-medium">IPOPHL Claim Requirements:</p>
-                      <ul className="list-disc list-inside mt-1 space-y-1">
-                        <li>Independent claims define the invention broadly</li>
-                        <li>Dependent claims add specific limitations</li>
-                        <li>Claims must be clear, concise, and supported by description</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {claims.map((claim: IPClaim, index: number) => (
-                    <div key={index} className="p-4 border rounded-lg bg-gray-50">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <Badge variant={claim.claim_type === 'independent' ? 'default' : 'secondary'}>
-                            Claim {claim.claim_number}
-                      </Badge>
-                      <Badge variant="outline">
-                        {claim.claim_type === 'independent' ? 'Independent' : 'Dependent'}
-                      </Badge>
-                      {claim.claim_type === 'dependent' && (
-                        <span className="text-sm text-gray-500">
-                          refers to Claim {claim.parent_claim_number}
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeClaim(index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                  
-                  {claim.claim_type === 'dependent' && (
-                    <div className="mb-3">
-                      <Label className="text-sm">Refers to Claim</Label>
-                      <select
-                        {...register(`claims.${index}.parent_claim_number`)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                      >
-                        {claims
-                          .filter((c: IPClaim) => c.claim_type === 'independent')
-                          .map((c: IPClaim) => (
-                            <option key={c.claim_number} value={c.claim_number}>
-                              Claim {c.claim_number}
-                            </option>
-                          ))}
-                      </select>
-                    </div>
-                  )}
-                  
-                  <Textarea
-                    {...register(`claims.${index}.text`)}
-                    placeholder={`Enter claim ${claim.claim_number} text...`}
-                    rows={3}
-                  />
-                </div>
-              ))}
-
-              <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => addClaim('independent')}
-                  className="flex-1"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Independent Claim
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => addClaim('dependent')}
-                  className="flex-1"
-                  disabled={!claims.some((c: IPClaim) => c.claim_type === 'independent')}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Dependent Claim
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Filing Options */}
       <Card>
         <CardHeader>
