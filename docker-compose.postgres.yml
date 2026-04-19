@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tcpo-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tcpo_local
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/local-postgres/00-complete-migration.sql:/docker-entrypoint-initdb.d/00-complete-migration.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: tcpo-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@tcpo.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
