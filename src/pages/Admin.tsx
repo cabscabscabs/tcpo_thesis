@@ -374,7 +374,8 @@ const Admin = () => {
   const loadIpApplications = async () => {
     setIpAppLoading(true);
     try {
-      const { data, error } = await supabase
+      // Fetch applications with faculty info
+      const { data: applications, error: appError } = await supabase
         .from('ip_applications')
         .select(`
           *,
@@ -382,8 +383,23 @@ const Admin = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error loading IP applications:', error);
+      if (appError) throw appError;
+
+      // Fetch attachments for all applications
+      const { data: attachments, error: attachError } = await supabase
+        .from('ip_application_attachments')
+        .select('*');
+
+      if (attachError) throw attachError;
+
+      // Merge attachments into applications
+      const data = applications?.map(app => ({
+        ...app,
+        attachments: attachments?.filter(att => att.application_id === app.id) || []
+      }));
+
+      if (!data) {
+        console.error('No data returned');
         // Use mock data for development
         setIpApplications([
           {
