@@ -14,10 +14,13 @@ import {
   X,
   Plus,
   AlertCircle,
-  FileCheck
+  FileCheck,
+  FileText as FileTextIcon,
+  Info
 } from "lucide-react";
-import { IPClaim } from "@/types/ipApplication";
+import { IPClaim, IPType, ipTypeConfig } from "@/types/ipApplication";
 import { DocumentChecklist } from "./DocumentChecklist";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function ClaimsAndDrawingsStep() {
   const { register, watch, setValue, formState: { errors } } = useFormContext();
@@ -82,39 +85,95 @@ export function ClaimsAndDrawingsStep() {
   const isApplicantInventor = watch('isApplicantInventor') !== false; // Default true
   const isOwnerAuthor = watch('isOwnerAuthor') !== false; // Default true
 
+  const ipTypes: IPType[] = ['Patent', 'Utility Model', 'Industrial Design', 'Copyright', 'Trademark'];
+
   return (
     <div className="space-y-6">
-      {/* Claims Section */}
-      {showClaims && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ListOrdered className="h-5 w-5 text-blue-600" />
-              Claims
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium">IPOPHL Claim Requirements:</p>
-                  <ul className="list-disc list-inside mt-1 space-y-1">
-                    <li>Independent claims define the invention broadly</li>
-                    <li>Dependent claims add specific limitations</li>
-                    <li>Claims must be clear, concise, and supported by description</li>
-                  </ul>
+      {/* IP Type Selection - Required for document validation */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileTextIcon className="h-5 w-5 text-blue-600" />
+            IP Type Selection
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert className="bg-blue-50 border-blue-200">
+            <Info className="h-4 w-4 text-blue-600" />
+            <AlertTitle className="text-blue-800">Select IP Type</AlertTitle>
+            <AlertDescription className="text-blue-700">
+              Please select the type of IP application you are submitting. This will determine the required documents.
+            </AlertDescription>
+          </Alert>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {ipTypes.map((type) => {
+              const config = ipTypeConfig[type];
+              const isSelected = ipType === type;
+              
+              return (
+                <div
+                  key={type}
+                  onClick={() => setValue("ip_type", type, { shouldValidate: true })}
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    isSelected 
+                      ? "border-blue-500 bg-blue-50" 
+                      : "border-gray-200 hover:border-blue-300"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                      isSelected ? "border-blue-500" : "border-gray-300"
+                    }`}>
+                      {isSelected && <div className="w-2 h-2 bg-blue-500 rounded-full" />}
+                    </div>
+                    <span className="font-semibold text-gray-900">{config.label}</span>
+                  </div>
+                  <p className="text-sm text-gray-600">{config.description}</p>
                 </div>
-              </div>
-            </div>
+              );
+            })}
+          </div>
+          {errors.ip_type && (
+            <p className="text-sm text-red-500">{errors.ip_type.message as string}</p>
+          )}
+        </CardContent>
+      </Card>
 
-            <div className="space-y-4">
-              {claims.map((claim: IPClaim, index: number) => (
-                <div key={index} className="p-4 border rounded-lg bg-gray-50">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Badge variant={claim.claim_type === 'independent' ? 'default' : 'secondary'}>
-                        Claim {claim.claim_number}
+      {/* Document Upload Section */}
+      {ipType && (
+        <>
+          {/* Claims Section */}
+          {showClaims && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ListOrdered className="h-5 w-5 text-blue-600" />
+                  Claims (Optional)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium">IPOPHL Claim Requirements:</p>
+                      <ul className="list-disc list-inside mt-1 space-y-1">
+                        <li>Independent claims define the invention broadly</li>
+                        <li>Dependent claims add specific limitations</li>
+                        <li>Claims must be clear, concise, and supported by description</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {claims.map((claim: IPClaim, index: number) => (
+                    <div key={index} className="p-4 border rounded-lg bg-gray-50">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Badge variant={claim.claim_type === 'independent' ? 'default' : 'secondary'}>
+                            Claim {claim.claim_number}
                       </Badge>
                       <Badge variant="outline">
                         {claim.claim_type === 'independent' ? 'Independent' : 'Dependent'}
@@ -397,6 +456,8 @@ export function ClaimsAndDrawingsStep() {
           )}
         </CardContent>
       </Card>
+          </>
+      )}
     </div>
   );
 }

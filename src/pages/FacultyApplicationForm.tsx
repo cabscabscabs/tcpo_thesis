@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import {
   StepIndicator,
   ApplicantInfoStep,
-  InventionDetailsStep,
   ClaimsAndDrawingsStep,
   ReviewStep,
 } from "@/components/faculty/application-form";
@@ -17,21 +16,16 @@ import { useDocumentValidation, IPType } from "@/hooks/useDocumentValidation";
 const steps = [
   {
     id: 1,
-    title: "Applicant Info",
+    title: "Applicant Information",
     description: "Personal details and co-inventors",
   },
   {
     id: 2,
-    title: "Invention Details",
-    description: "IP type, title, and description",
+    title: "Document Upload",
+    description: "Upload completed IPOPHL forms",
   },
   {
     id: 3,
-    title: "Claims & Drawings",
-    description: "Claims and attachments",
-  },
-  {
-    id: 4,
     title: "Review & Submit",
     description: "Verify and submit application",
   },
@@ -64,6 +58,12 @@ export default function FacultyApplicationForm() {
       declaration_ownership: false,
       declaration_accuracy: false,
       declaration_ustp: false,
+      // Document validation fields
+      claimsPriority: false,
+      isAgentFiling: false,
+      isSmallEntity: false,
+      isApplicantInventor: true,
+      isOwnerAuthor: true,
     },
     mode: "onChange",
   });
@@ -101,14 +101,7 @@ export default function FacultyApplicationForm() {
           "applicant_email",
         ] as const);
       case 2:
-        return await trigger([
-          "ip_type",
-          "title",
-          "abstract",
-          "field_of_technology",
-        ] as const);
-      case 3:
-        // Validate document uploads
+        // Validate document uploads - IP type is now selected in document upload
         if (!documentsComplete) {
           toast({
             title: "Missing Documents",
@@ -127,7 +120,7 @@ export default function FacultyApplicationForm() {
           return false;
         }
         return true;
-      case 4:
+      case 3:
         return await trigger([
           "declaration_ownership",
           "declaration_accuracy",
@@ -198,8 +191,8 @@ export default function FacultyApplicationForm() {
         description: errors[0] || "Please ensure all required documents are uploaded correctly",
         variant: "destructive",
       });
-      // Go to step 3 to fix document issues
-      setCurrentStep(3);
+      // Go to step 2 to fix document issues
+      setCurrentStep(2);
       return;
     }
     
@@ -236,10 +229,8 @@ export default function FacultyApplicationForm() {
       case 1:
         return <ApplicantInfoStep />;
       case 2:
-        return <InventionDetailsStep />;
-      case 3:
         return <ClaimsAndDrawingsStep />;
-      case 4:
+      case 3:
         return <ReviewStep />;
       default:
         return null;
