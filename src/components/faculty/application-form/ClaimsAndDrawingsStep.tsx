@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Upload, 
-  FileImage, 
   FileText, 
   X,
   FileCheck,
@@ -220,7 +219,7 @@ export function ClaimsAndDrawingsStep() {
       {/* Document Checklist */}
       <DocumentChecklist />
 
-      {/* Legacy Attachments Section - Keep for additional files */}
+      {/* Additional Attachments Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -229,36 +228,6 @@ export function ClaimsAndDrawingsStep() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Drawings Upload */}
-          <div className="space-y-3">
-            <Label>Technical Drawings / Figures</Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-              <FileImage className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-              <p className="text-sm text-gray-600 mb-2">
-                Upload technical drawings, flowcharts, or diagrams
-              </p>
-              <p className="text-xs text-gray-500 mb-4">
-                Supported formats: PDF, PNG, JPG (max 10MB each)
-              </p>
-              <Input
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg"
-                multiple
-                onChange={(e) => handleFileUpload(e, 'drawing')}
-                className="hidden"
-                id="drawings-upload"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => document.getElementById('drawings-upload')?.click()}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Select Drawings
-              </Button>
-            </div>
-          </div>
-
           {/* Documents Upload */}
           <div className="space-y-3">
             <Label>Supporting Documents</Label>
@@ -300,15 +269,11 @@ export function ClaimsAndDrawingsStep() {
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      {file.attachment_type === 'drawing' ? (
-                        <FileImage className="h-5 w-5 text-blue-500" />
-                      ) : (
-                        <FileText className="h-5 w-5 text-green-500" />
-                      )}
+                      <FileText className="h-5 w-5 text-green-500" />
                       <div>
                         <p className="text-sm font-medium text-gray-900">{file.file_name}</p>
                         <p className="text-xs text-gray-500">
-                          {formatFileSize(file.file_size)} • {file.attachment_type}
+                          {formatFileSize(file.file_size)}
                         </p>
                       </div>
                     </div>
