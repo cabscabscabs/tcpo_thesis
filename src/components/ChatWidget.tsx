@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, X, Send, Bot, User, Loader2, AlertCircle, ChevronDown, ChevronUp, FileText } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Loader2, AlertCircle, ChevronDown, ChevronUp, FileText, Maximize2, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Textarea } from '@/components/ui/textarea';
 
 // Types
 interface ChatMessage {
@@ -364,6 +365,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   position = 'bottom-right'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
@@ -388,6 +390,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = useCallback(() => {
@@ -540,11 +543,15 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
     }
   };
 
-  // Handle escape key to close chat
+  // Handle escape key to close chat (collapse first if expanded)
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        setIsOpen(false);
+        if (isExpanded) {
+          setIsExpanded(false);
+        } else {
+          setIsOpen(false);
+        }
       }
     };
 
@@ -552,13 +559,13 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
       document.addEventListener('keydown', handleEscape);
       return () => document.removeEventListener('keydown', handleEscape);
     }
-  }, [isOpen]);
+  }, [isOpen, isExpanded]);
 
-  // Handle click outside to close chat
+  // Handle click outside to close chat (disabled when expanded to prevent accidental closure)
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Element;
-      if (isOpen && !target.closest('.chat-widget')) {
+      if (isOpen && !isExpanded && !target.closest('.chat-widget')) {
         setIsOpen(false);
       }
     };
@@ -567,18 +574,26 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [isOpen]);
+  }, [isOpen, isExpanded]);
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
       setError(null);
+      setIsExpanded(false);
     }
   };
 
   const clearChat = () => {
     setMessages([messages[0]]); // Keep welcome message
     localStorage.removeItem(`chat_history_${sessionId}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
 
   const positionClasses = {
@@ -589,24 +604,31 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   };
 
   return (
-    <div className={cn('fixed z-50 chat-widget', positionClasses[position], className)}>
+    <div className={cn('fixed z-50 chat-widget', isExpanded && 'inset-2 md:inset-4', positionClasses[position], className)}>
              {/* Floating Button */}
-       <Button
-         onClick={toggleChat}
-         className={cn(
-           'h-12 w-12 md:h-14 md:w-14 rounded-full shadow-lg transition-all duration-300 hover:scale-110',
-           'bg-theme-primary-main hover:bg-theme-primary-dark text-white'
-         )}
-         aria-label={isOpen ? "Close chat widget" : "Open chat widget"}
-         title={isOpen ? "Close chat" : "Open chat"}
-       >
-         {isOpen ? <X className="h-5 w-5 md:h-6 md:w-6" /> : <MessageCircle className="h-5 w-5 md:h-6 md:w-6" />}
-       </Button>
+       {!isOpen && (
+         <Button
+           onClick={toggleChat}
+           className={cn(
+             'h-12 w-12 md:h-14 md:w-14 rounded-full shadow-lg transition-all duration-300 hover:scale-110',
+             'bg-theme-primary-main hover:bg-theme-primary-dark text-white'
+           )}
+           aria-label="Open chat widget"
+           title="Open chat"
+         >
+           <MessageCircle className="h-5 w-5 md:h-6 md:w-6" />
+         </Button>
+       )}
 
              {/* Chat Window */}
        {isOpen && (
-         <Card className="absolute bottom-16 right-0 w-[calc(100vw-2rem)] max-w-sm h-[calc(100vh-8rem)] max-h-[500px] shadow-2xl border-0 bg-white dark:bg-gray-900 md:w-96 md:h-[500px] md:bottom-16 md:right-0">
-                     <CardHeader className="pb-3 bg-theme-primary-main text-white rounded-t-lg">
+         <Card className={cn(
+           'shadow-2xl border-0 bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out flex flex-col',
+           isExpanded
+             ? 'absolute inset-0 w-full h-full rounded-lg'
+             : 'absolute bottom-16 right-0 w-[calc(100vw-1rem)] max-w-[360px] h-[calc(100vh-5rem)] max-h-[560px] md:w-[380px] md:h-[560px] md:bottom-16 md:right-0'
+         )}>
+                     <CardHeader className="px-3 py-2.5 md:px-4 md:py-3 bg-theme-primary-main text-white rounded-t-lg space-y-0">
              <div className="flex items-center justify-between">
                <div className="flex items-center space-x-2">
                  <Bot className="h-4 w-4 md:h-5 md:w-5" />
@@ -616,6 +638,16 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                  <Badge variant="secondary" className="text-xs bg-white/20 text-white hidden sm:block">
                    {appName}
                  </Badge>
+                 <Button
+                   variant="ghost"
+                   size="sm"
+                   onClick={() => setIsExpanded(!isExpanded)}
+                   className="h-8 w-8 md:h-6 md:w-6 p-0 text-white hover:bg-white/20"
+                   aria-label={isExpanded ? "Minimize chat" : "Expand chat"}
+                   title={isExpanded ? "Minimize" : "Expand"}
+                 >
+                   {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                 </Button>
                  <Button
                    variant="ghost"
                    size="sm"
@@ -642,20 +674,21 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
              </div>
            </CardHeader>
 
-          <CardContent className="p-0 h-full flex flex-col">
+          <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
                          {/* Messages Area */}
-             <ScrollArea className="flex-1 p-2 md:p-4">
+             <ScrollArea className={cn('flex-1 px-3 pt-3 pb-2 md:px-4 md:pt-3 md:pb-2 min-h-0', isExpanded && 'px-5 pt-5 pb-4 md:px-6 md:pt-6 md:pb-5')}>
                {messages.map((message) => (
                  <div
                    key={message.id}
                    className={cn(
-                     'flex mb-2',
+                     'flex mb-3',
                      message.role === 'user' ? 'justify-end' : 'justify-start'
                    )}
                  >
                    <div
                      className={cn(
-                       'max-w-[85%] md:max-w-[80%] rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-xs md:text-sm',
+                       'max-w-[85%] md:max-w-[80%] rounded-lg px-3 py-2 md:px-3.5 md:py-2 text-xs md:text-sm leading-relaxed',
+                       isExpanded && 'max-w-[70%] px-4 py-3 text-sm',
                        message.role === 'user'
                          ? 'bg-theme-primary-main text-white'
                          : message.isError
@@ -663,13 +696,13 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                          : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
                      )}
                    >
-                     <div className="flex items-center space-x-1 md:space-x-2 mb-1">
+                     <div className="flex items-center space-x-1.5 mb-1">
                        {message.role === 'user' ? (
-                         <User className="h-2.5 w-2.5 md:h-3 md:w-3" />
+                         <User className="h-3 w-3 shrink-0" />
                        ) : (
-                         <Bot className="h-2.5 w-2.5 md:h-3 md:w-3" />
+                         <Bot className="h-3 w-3 shrink-0" />
                        )}
-                       <span className="text-xs opacity-70">
+                       <span className="text-[10px] opacity-60">
                          {message.timestamp.toLocaleTimeString([], { 
                            hour: '2-digit', 
                            minute: '2-digit' 
@@ -687,13 +720,13 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                ))}
               
                              {isLoading && (
-                 <div className="flex justify-start">
-                   <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-xs md:text-sm">
-                     <div className="flex items-center space-x-1 md:space-x-2">
-                       <Bot className="h-2.5 w-2.5 md:h-3 md:w-3" />
-                       <span className="text-xs opacity-70">Typing...</span>
+                 <div className="flex justify-start mb-3">
+                   <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 text-xs md:text-sm">
+                     <div className="flex items-center space-x-1.5">
+                       <Bot className="h-3 w-3 shrink-0" />
+                       <span className="text-[10px] opacity-60">Typing...</span>
                      </div>
-                     <div className="flex space-x-1 mt-1.5 md:mt-2">
+                     <div className="flex space-x-1 mt-1.5">
                        <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-400 rounded-full animate-bounce"></div>
                        <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                        <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
@@ -701,30 +734,30 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                    </div>
                  </div>
                )}
+
+              {/* Suggested Questions — inside ScrollArea so they scroll with messages */}
+              {messages.length === 1 && !isLoading && (
+                <div className="mt-2 pt-3 border-t border-gray-100 dark:border-gray-800">
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-2 font-medium">Suggested questions:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {suggestedQuestions.map((question, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setInputValue(question);
+                          setTimeout(() => handleSendMessage(), 100);
+                        }}
+                        className="text-[11px] px-2.5 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full transition-colors text-left leading-snug"
+                      >
+                        {question}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               <div ref={messagesEndRef} />
             </ScrollArea>
-
-            {/* Suggested Questions */}
-            {messages.length === 1 && !isLoading && (
-              <div className="px-3 py-2 border-t border-gray-100 dark:border-gray-800">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Suggested questions:</p>
-                <div className="flex flex-wrap gap-2">
-                  {suggestedQuestions.map((question, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        setInputValue(question);
-                        setTimeout(() => handleSendMessage(), 100);
-                      }}
-                      className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full transition-colors text-left"
-                    >
-                      {question}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
                          {/* Error Display */}
              {error && (
@@ -737,29 +770,58 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
              )}
 
                          {/* Input Area */}
-             <div className="p-2 md:p-4 border-t border-gray-200 dark:border-gray-700 mr-10">
-               <div className="flex space-x-2">
-                 <Input
-                   ref={inputRef}
-                   value={inputValue}
-                   onChange={(e) => setInputValue(e.target.value)}
-                   onKeyPress={handleKeyPress}
-                   placeholder="Type your message..."
-                   className="flex-1 text-xs md:text-sm h-8 md:h-10"
-                   disabled={isLoading}
-                 />
-                 <Button
-                   onClick={handleSendMessage}
-                   disabled={!inputValue.trim() || isLoading}
-                   className="bg-theme-primary-main hover:bg-theme-primary-dark text-white h-8 w-8 md:h-10 md:w-10 p-0"
-                 >
-                   {isLoading ? (
-                     <Loader2 className="h-3 w-3 md:h-4 md:w-4 animate-spin" />
-                   ) : (
-                     <Send className="h-3 w-3 md:h-4 md:w-4" />
-                   )}
-                 </Button>
-               </div>
+             <div className={cn('px-3 py-2.5 md:px-4 md:py-3 border-t border-gray-200 dark:border-gray-700 shrink-0', isExpanded && 'px-5 py-4 md:px-6 md:py-5')}>
+               {isExpanded ? (
+                 <div className="flex flex-col space-y-2">
+                   <Textarea
+                     ref={textareaRef}
+                     value={inputValue}
+                     onChange={(e) => setInputValue(e.target.value)}
+                     onKeyDown={handleKeyDown}
+                     placeholder="Type your message... (Shift+Enter for new line)"
+                     className="flex-1 text-sm min-h-[60px] max-h-[120px] resize-none"
+                     disabled={isLoading}
+                     rows={2}
+                   />
+                   <div className="flex justify-end">
+                     <Button
+                       onClick={handleSendMessage}
+                       disabled={!inputValue.trim() || isLoading}
+                       className="bg-theme-primary-main hover:bg-theme-primary-dark text-white h-9 w-9 p-0 shrink-0"
+                     >
+                       {isLoading ? (
+                         <Loader2 className="h-4 w-4 animate-spin" />
+                       ) : (
+                         <Send className="h-4 w-4" />
+                       )}
+                     </Button>
+                   </div>
+                 </div>
+               ) : (
+                 <div className="flex items-center space-x-2">
+                   <Input
+                     ref={inputRef}
+                     value={inputValue}
+                     onChange={(e) => setInputValue(e.target.value)}
+                     onKeyPress={handleKeyPress}
+                     placeholder="Type your message..."
+                     className="flex-1 text-xs md:text-sm h-9 md:h-10"
+                     disabled={isLoading}
+                   />
+                   <Button
+                     size="icon"
+                     onClick={handleSendMessage}
+                     disabled={!inputValue.trim() || isLoading}
+                     className="bg-theme-primary-main hover:bg-theme-primary-dark text-white h-9 w-9 md:h-10 md:w-10 shrink-0"
+                   >
+                     {isLoading ? (
+                       <Loader2 className="h-4 w-4 animate-spin" />
+                     ) : (
+                       <Send className="h-4 w-4" />
+                     )}
+                   </Button>
+                 </div>
+               )}
              </div>
           </CardContent>
         </Card>

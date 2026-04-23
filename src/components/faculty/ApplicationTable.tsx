@@ -21,20 +21,34 @@ import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "./StatusBadge";
 import { IPTypeBadge } from "./IPTypeBadge";
 import { IPApplication, IPType, ApplicationStatus } from "@/types/ipApplication";
-import { Search, FileText, Eye, Edit, Calendar, Filter } from "lucide-react";
+import { Search, FileText, Eye, Edit, Calendar, Filter, Archive, ArchiveRestore, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ApplicationTableProps {
   applications: IPApplication[];
   isLoading?: boolean;
   onRefresh?: () => void;
+  onArchive?: (id: string) => Promise<void>;
+  onRestore?: (id: string) => Promise<void>;
+  onDelete?: (id: string) => Promise<void>;
+  activeTab?: string;
 }
 
-export function ApplicationTable({ applications, isLoading = false, onRefresh }: ApplicationTableProps) {
+export function ApplicationTable({ applications, isLoading = false, onRefresh, onArchive, onRestore, onDelete, activeTab = 'all' }: ApplicationTableProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | "all">("all");
   const [typeFilter, setTypeFilter] = useState<IPType | "all">("all");
+  const [confirmDialog, setConfirmDialog] = useState<{open: boolean; type: 'archive' | 'restore' | 'delete'; app: IPApplication | null}>({open: false, type: 'archive', app: null});
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Filter applications
   const filteredApplications = applications.filter((app) => {
@@ -48,6 +62,23 @@ export function ApplicationTable({ applications, isLoading = false, onRefresh }:
 
   const canEdit = (status: ApplicationStatus) => {
     return status === "Draft" || status === "Needs Revision";
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmDialog.app) return;
+    setIsProcessing(true);
+    try {
+      if (confirmDialog.type === 'archive' && onArchive) {
+        await onArchive(confirmDialog.app.id);
+      } else if (confirmDialog.type === 'restore' && onRestore) {
+        await onRestore(confirmDialog.app.id);
+      } else if (confirmDialog.type === 'delete' && onDelete) {
+        await onDelete(confirmDialog.app.id);
+      }
+    } finally {
+      setIsProcessing(false);
+      setConfirmDialog({open: false, type: 'archive', app: null});
+    }
   };
 
   if (isLoading) {
@@ -169,7 +200,7 @@ export function ApplicationTable({ applications, isLoading = false, onRefresh }:
                     {format(new Date(application.updated_at), 'MMM d, yyyy')}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -178,7 +209,7 @@ export function ApplicationTable({ applications, isLoading = false, onRefresh }:
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
-                      {canEdit(application.status) && (
+                      {canEdit(application.status) && !application.is_archived && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -188,6 +219,38 @@ export function ApplicationTable({ applications, isLoading = false, onRefresh }:
                           Edit
                         </Button>
                       )}
+                      {!application.is_archived ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setConfirmDialog({open: true, type: 'archive', app: application})}
+                          className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                          title="Archive"
+                        >
+                          <Archive className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setConfirmDialog({open: true, type: 'restore', app: application})}
+                            className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                            title="Restore"
+                          >
+                            <ArchiveRestore className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setConfirmDialog({open: true, type: 'delete', app: application})}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            title="Delete permanently"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -196,6 +259,39 @@ export function ApplicationTable({ applications, isLoading = false, onRefresh }:
           </TableBody>
         </Table>
       </div>
+
+      {/* Confirm Dialog */}
+      <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog(prev => ({...prev, open}))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {confirmDialog.type === 'archive' && 'Archive Application'}
+              {confirmDialog.type === 'restore' && 'Restore Application'}
+              {confirmDialog.type === 'delete' && 'Delete Application Permanently'}
+            </DialogTitle>
+            <DialogDescription>
+              {confirmDialog.type === 'archive' && `Are you sure you want to archive "${confirmDialog.app?.title || 'this application'}"? It will be moved to the Archived tab and hidden from your active list.`}
+              {confirmDialog.type === 'restore' && `Are you sure you want to restore "${confirmDialog.app?.title || 'this application'}" back to your active applications?`}
+              {confirmDialog.type === 'delete' && `Are you sure you want to permanently delete "${confirmDialog.app?.title || 'this application'}"? This action cannot be undone.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDialog({open: false, type: 'archive', app: null})} disabled={isProcessing}>
+              Cancel
+            </Button>
+            <Button 
+              variant={confirmDialog.type === 'delete' ? 'destructive' : 'default'}
+              onClick={handleConfirmAction}
+              disabled={isProcessing}
+            >
+              {isProcessing ? 'Processing...' : (
+                confirmDialog.type === 'archive' ? 'Archive' :
+                confirmDialog.type === 'restore' ? 'Restore' : 'Delete'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

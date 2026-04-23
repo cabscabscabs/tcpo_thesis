@@ -49,6 +49,7 @@ export interface ExtendedPortfolioItem {
   technology_fields: string[] | null;
   ipc_classes: string[] | null;
   cpc_classes: string[] | null;
+  files: { url: string; name: string }[] | null;
 }
 
 // Define a type for the raw database data from Supabase
@@ -155,6 +156,7 @@ export function transformToExtendedPortfolioItem(data: RawPortfolioItem): Extend
     priority_claims: dbData.priority_claims || null,
     technology_fields: dbData.technology_fields || null,
     ipc_classes: dbData.ipc_classes || null,
-    cpc_classes: dbData.cpc_classes || null
+    cpc_classes: dbData.cpc_classes || null,
+    files: (data as any).files || null
   };
 }

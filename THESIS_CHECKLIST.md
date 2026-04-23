@@ -7,44 +7,45 @@
 - [ ] Add dashboard header for admin
 
 ### IP Portfolio / Patents
-- [ ] Patents granted should be clickable (POV "clickable" buttons)
+- [D] Patents granted should be clickable (POV "clickable" buttons)
 - [ ] Limit access to "under review" documents - admin only (not visible on frontpage)
 - [ ] Licensed section: show Title of technology + who adapted it
-- [ ] Add options: filed, registered, commercialized, licensed (with footnote)
+- [D] Add options: filed, registered, commercialized, licensed (with footnote)
 - [ ] Add license field
-- [ ] Add pie chart for statistics
-- [ ] Generate data/report for patents
+- [D] Add pie chart for statistics
+- [D] Generate data/report for patents
+- [PD] maam nor for email confirmation regarding the data in IP Portfolio
 
 ### Strategic Partners
-- [ ] Logo only for partnerships section
-- [ ] Clicking industry partners should show the list
+- [D] Logo only for partnerships section
+- [D] Clicking industry partners should show the list
 
 ### Resources
-- [ ] Skeleton template for resources loading state
-- [ ] Bulk upload feature (Excel file)
-- [ ] Filter and organize list
-- [ ] Export with checkbox options (select which info to export)
+- [D] Skeleton template for resources loading state
+- [D] Bulk upload feature (Excel file)
+- [D] Filter and organize list
+- [D] Export with checkbox options (select which info to export)
 
 ### Services
-- [ ] Remove services from faculty view (admin only)
-- [ ] Remove timeline, budget, description from services
-- [ ] Create different popup when submitting services
-- [ ] Searchable area for service requests
-- [ ] Pagination for service requests
-- [ ] Sort functionality for service requests
+- [D] Remove services from faculty view (admin only)
+- [D] Remove timeline, budget, description from services
+- [D] Create different popup when submitting services
+- [D] Searchable area for service requests
+- [D] Pagination for service requests
+- [D] Sort functionality for service requests
 
 ### News
-- [ ] Add image and video or YouTube URL support
-- [ ] Embed videos in news
+- [D] Add image and video or YouTube URL support
+- [D] Embed videos in news
 
 ### Notifications
-- [ ] Notification bell beside logout
+- [D] Notification bell beside logout
 - [ ] Email notification after submission
 - [ ] Request direct email implementation
 
 ### Data Management
-- [ ] Generate patent data list (filter, download, generate report)
-- [ ] Export with checkbox options
+- [D] Generate patent data list (filter, download, generate report)
+- [D] Export with checkbox options
 - [ ] Reprogram and direct all
 
 ---
@@ -75,7 +76,7 @@
 
 ### Features
 - [ ] Bot name: "TEEPEE" ("Hi I'm Teepee")
-- [ ] Expandable chat for better AI understanding
+- [x] Expandable chat for better AI understanding
 - [ ] Add Bisaya/Cebuano language support
 - [ ] Separate responses for faculty, admin, and public users
 - [ ] Predefined responses for static About page content
@@ -86,22 +87,22 @@
 ## PUBLIC VIEW (HOME PAGE)
 
 ### Statistics & Charts
-- [ ] Add pie chart
-- [ ] Stats on top: filed, registered, commercialized
+- [D] Add pie chart
+- [D] Stats on top: filed, registered, commercialized
 
 ### Partners & Licensing
-- [ ] Logo only for partnerships
+- [D] Logo only for partnerships
 - [ ] Remove licensing contact us (redirect to contact us page instead)
 
 ### IPOPHL
-- [ ] Add IPOPHL guidelines
+- [CANT ACCESS] Add IPOPHL guidelines
 - [ ] Show title + adopted technology
 
 ---
 
 ## DEPLOYMENT & INFRASTRUCTURE
 
-- [ ] Subdomain setup (ustp-tpco.ddns.net)
+- [D] Subdomain setup (ustp-tpco.ddns.net)
 - [ ] Server deployment
 - [ ] Supabase Auth: Add https://ustp-tpco.ddns.net to Redirect URLs
 

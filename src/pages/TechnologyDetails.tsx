@@ -47,6 +47,27 @@ const TechnologyDetails = () => {
           
           if (adminTech) {
             const tech = adminTech as any;
+            // Also try to find matching patent for files attachment data
+            let patentFiles: { url: string; name: string }[] | null = null;
+            try {
+              const { data: patentData, error: patentError } = await supabase
+                .from('admin_patents' as any)
+                .select('files')
+                .eq('published', true)
+                .neq('status', 'Under Review');
+              if (patentData && !patentError) {
+                const matchingPatent = (patentData as any[]).find((p) => {
+                  const pSlug = p.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                  return pSlug === slug;
+                });
+                if (matchingPatent?.files) {
+                  patentFiles = matchingPatent.files;
+                }
+              }
+            } catch (e) {
+              console.warn('Could not fetch patent files for technology:', e);
+            }
+
             const transformedTech: ExtendedPortfolioItem = {
               id: tech.id,
               title: tech.title,
@@ -91,7 +112,8 @@ const TechnologyDetails = () => {
               priority_claims: null,
               technology_fields: [tech.field],
               ipc_classes: null,
-              cpc_classes: null
+              cpc_classes: null,
+              files: patentFiles || tech.files || null
             };
             
             setTechnology(transformedTech);
@@ -108,7 +130,8 @@ const TechnologyDetails = () => {
         const { data: patentData, error: patentError } = await supabase
           .from('admin_patents' as any)
           .select('*')
-          .eq('published', true);
+          .eq('published', true)
+          .neq('status', 'Under Review');
         
         if (patentData && !patentError) {
           const adminPatent = patentData.find((patent: any) => {
@@ -162,7 +185,8 @@ const TechnologyDetails = () => {
               priority_claims: null,
               technology_fields: [patent.field].filter(Boolean),
               ipc_classes: null,
-              cpc_classes: null
+              cpc_classes: null,
+              files: patent.files || null
             };
             
             setTechnology(transformedPatent);
@@ -344,19 +368,6 @@ const TechnologyDetails = () => {
                   </div>
                 )}
 
-                {technology.technology_fields && technology.technology_fields.length > 0 && (
-                  <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-                    <h2 className="text-2xl font-roboto font-bold text-primary mb-4">Technology Fields</h2>
-                    <div className="flex flex-wrap gap-2">
-                      {technology.technology_fields.map((field, idx) => (
-                        <Badge key={idx} variant="outline">
-                          {field}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {technology.tags && technology.tags.length > 0 && (
                   <div className="bg-white rounded-lg shadow-sm p-6">
                     <h2 className="text-2xl font-roboto font-bold text-primary mb-4">Tags</h2>
@@ -378,7 +389,7 @@ const TechnologyDetails = () => {
                   <p className="text-gray-700 mb-4">
                     {technology.licensing || "Available for licensing through TPCO Technologies"}
                   </p>
-                  <Button className="w-full" variant="gold">
+                  <Button className="w-full" variant="gold" onClick={() => navigate('/contact')}>
                     Contact for Licensing
                     <ExternalLink className="ml-2" size={16} />
                   </Button>
@@ -389,21 +400,28 @@ const TechnologyDetails = () => {
                   <p className="text-gray-700 mb-4">
                     Download detailed technical documentation and specifications.
                   </p>
-                  <Button className="w-full" variant="gold-outline">
-                    <Download className="mr-2" size={16} />
-                    Technical Datasheet
-                  </Button>
+                  {technology.files && technology.files.length > 0 ? (
+                    <div className="space-y-2">
+                      {technology.files.map((file, idx) => (
+                        <Button
+                          key={idx}
+                          className="w-full"
+                          variant="gold-outline"
+                          onClick={() => window.open(file.url, '_blank')}
+                        >
+                          <Download className="mr-2" size={16} />
+                          Technical Datasheet
+                        </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <Button className="w-full" variant="gold-outline" disabled>
+                      <Download className="mr-2" size={16} />
+                      Technical Datasheet
+                    </Button>
+                  )}
                 </div>
 
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h3 className="text-xl font-roboto font-bold text-primary mb-4">Contact</h3>
-                  <p className="text-gray-700 mb-4">
-                    For licensing inquiries or technical questions:
-                  </p>
-                  <p className="text-primary font-medium">
-                    {technology.contact || "ip@tpco.com"}
-                  </p>
-                </div>
               </div>
             </div>
 

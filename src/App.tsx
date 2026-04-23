@@ -56,6 +56,7 @@ const App = () => (
             <Route path="/faculty" element={<FacultyDashboard />} />
             <Route path="/faculty/applications/new" element={<FacultyApplicationForm />} />
             <Route path="/faculty/applications/:id" element={<FacultyApplicationDetail />} />
+            <Route path="/faculty/applications/:id/edit" element={<FacultyApplicationForm />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/chat-demo" element={<ChatDemo />} />
             <Route path="/latest-news" element={<LatestNewsPage />} />

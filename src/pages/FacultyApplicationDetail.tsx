@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { StatusBadge } from "@/components/faculty/StatusBadge";
 import { IPTypeBadge } from "@/components/faculty/IPTypeBadge";
 import { 
@@ -26,7 +27,8 @@ import {
   User,
   Calendar,
   History,
-  AlertCircle
+  AlertCircle,
+  Send
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -40,6 +42,8 @@ export default function FacultyApplicationDetail() {
   const [statusHistory, setStatusHistory] = useState<IPApplicationStatusHistory[]>([]);
   const [comments, setComments] = useState<IPApplicationComment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [newComment, setNewComment] = useState('');
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
   useEffect(() => {
     loadApplicationDetails();
@@ -151,16 +155,33 @@ export default function FacultyApplicationDetail() {
         changed_at: hist.created_at
       }));
 
-      // Map comments
-      const mappedComments: IPApplicationComment[] = (commentsData || []).map((comment: any) => ({
-        id: comment.id,
-        application_id: comment.application_id,
-        comment: comment.comment,
-        commenter_name: 'Reviewer', // TODO: Get user name from profiles
-        commenter_role: 'IP Committee',
-        is_internal: false,
-        created_at: comment.created_at
-      }));
+      // Map comments - determine commenter role
+      const commenterIds: string[] = (commentsData || []).map((c: any) => c.commenter_id).filter(Boolean);
+      const uniqueCommenterIds: string[] = [...new Set(commenterIds)];
+      let commenterProfiles: Record<string, { full_name: string; role: string }> = {};
+      if (uniqueCommenterIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('user_profiles')
+          .select('id, full_name, role')
+          .in('id', uniqueCommenterIds);
+        if (profiles) {
+          commenterProfiles = Object.fromEntries(profiles.map((p: any) => [p.id, p]));
+        }
+      }
+
+      const mappedComments: IPApplicationComment[] = (commentsData || []).map((comment: any) => {
+        const commenter = commenterProfiles[comment.commenter_id];
+        const isFaculty = commenter?.role === 'faculty';
+        return {
+          id: comment.id,
+          application_id: comment.application_id,
+          comment: comment.comment,
+          commenter_name: commenter?.full_name || (isFaculty ? 'Faculty' : 'Reviewer'),
+          commenter_role: isFaculty ? 'Faculty' : 'IP Committee',
+          is_internal: comment.is_internal || false,
+          created_at: comment.created_at
+        };
+      });
 
       setApplication(mappedApplication);
       setClaims(mappedClaims);
@@ -181,6 +202,74 @@ export default function FacultyApplicationDetail() {
 
   const canEdit = (status: string) => {
     return status === "Draft" || status === "Needs Revision";
+  };
+
+  const handleSubmitComment = async () => {
+    if (!newComment.trim() || !id) return;
+    setIsSubmittingComment(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('full_name')
+        .eq('id', session.user.id)
+        .single();
+
+      const { error } = await (supabase as any)
+        .from('ip_application_comments')
+        .insert([{
+          application_id: id,
+          comment: newComment.trim(),
+          commenter_id: session.user.id,
+          is_internal: false
+        }]);
+
+      if (error) {
+        console.error('Error posting comment:', error);
+        toast({ title: "Error", description: "Failed to post comment.", variant: "destructive" });
+        return;
+      }
+
+      // Add to local state optimistically
+      const mappedComment: IPApplicationComment = {
+        id: Date.now().toString(),
+        application_id: id,
+        comment: newComment.trim(),
+        commenter_name: profile?.full_name || 'You',
+        commenter_role: 'Faculty',
+        is_internal: false,
+        created_at: new Date().toISOString()
+      };
+      setComments(prev => [...prev, mappedComment]);
+      setNewComment('');
+      toast({ title: "Comment Posted", description: "Your comment has been added." });
+
+      // Notify admin via activity_logs
+      try {
+        const appTitle = application?.title || 'an application';
+        await supabase.from('activity_logs').insert([{
+          activity_type: 'ip_application',
+          action: 'commented',
+          title: `Faculty commented on: ${appTitle}`,
+          description: `Comment: "${newComment.trim().substring(0, 100)}${newComment.trim().length > 100 ? '...' : ''}"`,
+          application_id: id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }]);
+      } catch (logErr) {
+        console.warn('Could not log comment activity for admin notification:', logErr);
+      }
+    } catch (err) {
+      console.error('Error posting comment:', err);
+      toast({ title: "Error", description: "Failed to post comment.", variant: "destructive" });
+    } finally {
+      setIsSubmittingComment(false);
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -308,7 +397,7 @@ export default function FacultyApplicationDetail() {
 
             {/* Tabs Content */}
             <Tabs defaultValue="details" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="text-[white] grid w-full grid-cols-4">
                 <TabsTrigger value="details">Details</TabsTrigger>
                 <TabsTrigger value="claims">Claims</TabsTrigger>
                 <TabsTrigger value="attachments">Attachments</TabsTrigger>
@@ -525,23 +614,48 @@ export default function FacultyApplicationDetail() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
-                  Reviewer Comments
+                  Comments
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                {/* Comment Input */}
+                <div className="space-y-2">
+                  <Textarea
+                    placeholder="Add a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    rows={3}
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={handleSubmitComment}
+                      disabled={!newComment.trim() || isSubmittingComment}
+                    >
+                      <Send className="h-4 w-4 mr-1" />
+                      {isSubmittingComment ? 'Posting...' : 'Post Comment'}
+                    </Button>
+                  </div>
+                </div>
+
                 {comments.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">No comments yet</p>
                 ) : (
                   <div className="space-y-4">
                     {comments.map((comment) => (
-                      <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
+                      <div key={comment.id} className={`p-3 rounded-lg ${comment.commenter_role === 'Faculty' ? 'bg-blue-50 border border-blue-100' : 'bg-gray-50'}`}>
                         <p className="text-sm text-gray-700">{comment.comment}</p>
                         <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs font-medium text-gray-600">
-                            {comment.commenter_name}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-gray-600">
+                              {comment.commenter_name}
+                            </span>
+                            <Badge variant={comment.commenter_role === 'Faculty' ? 'secondary' : 'outline'} className="text-xs">
+                              {comment.commenter_role}
+                            </Badge>
+                          </div>
                           <span className="text-xs text-gray-400">
-                            {format(new Date(comment.created_at), 'MMM d')}
+                            {format(new Date(comment.created_at), 'MMM d, yyyy HH:mm')}
                           </span>
                         </div>
                       </div>

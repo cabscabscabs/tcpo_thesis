@@ -81,12 +81,11 @@ export default function FacultyDashboard() {
         return;
       }
 
-      // Fetch IP applications from Supabase
+      // Fetch IP applications from Supabase (both active and archived)
       const { data, error } = await (supabase as any)
         .from('ip_applications')
         .select('*')
         .eq('faculty_id', session.user.id)
-        .eq('is_archived', false)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -127,7 +126,8 @@ export default function FacultyDashboard() {
         ipophl_status: null,
         created_at: app.created_at,
         updated_at: app.updated_at,
-        submitted_at: app.submitted_at
+        submitted_at: app.submitted_at,
+        is_archived: app.is_archived || false
       }));
 
       setApplications(mappedApplications);
@@ -149,15 +149,55 @@ export default function FacultyDashboard() {
     navigate('/admin');
   };
 
+  const handleArchive = async (id: string) => {
+    const { error } = await (supabase as any)
+      .from('ip_applications')
+      .update({ is_archived: true })
+      .eq('id', id);
+    if (error) {
+      toast({ title: "Error", description: "Failed to archive application.", variant: "destructive" });
+    } else {
+      toast({ title: "Archived", description: "Application moved to archive." });
+      loadApplications();
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    const { error } = await (supabase as any)
+      .from('ip_applications')
+      .update({ is_archived: false })
+      .eq('id', id);
+    if (error) {
+      toast({ title: "Error", description: "Failed to restore application.", variant: "destructive" });
+    } else {
+      toast({ title: "Restored", description: "Application restored to active list." });
+      loadApplications();
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await (supabase as any)
+      .from('ip_applications')
+      .delete()
+      .eq('id', id);
+    if (error) {
+      toast({ title: "Error", description: "Failed to delete application.", variant: "destructive" });
+    } else {
+      toast({ title: "Deleted", description: "Application permanently deleted." });
+      loadApplications();
+    }
+  };
+
   const filteredApplications = applications.filter(app => {
-    if (activeTab === "all") return true;
-    if (activeTab === "drafts") return app.status === "Draft";
+    if (activeTab === "all") return !app.is_archived;
+    if (activeTab === "drafts") return app.status === "Draft" && !app.is_archived;
     if (activeTab === "pending") return 
-      ['Submitted for Internal Review', 'Under Internal Review', 'Needs Revision'].includes(app.status);
-    if (activeTab === "approved") return app.status === "Approved for IPOPHL Filing";
+      ['Submitted for Internal Review', 'Under Internal Review', 'Needs Revision'].includes(app.status) && !app.is_archived;
+    if (activeTab === "approved") return app.status === "Approved for IPOPHL Filing" && !app.is_archived;
     if (activeTab === "filed") return 
-      ['Filed to IPOPHL', 'Under IPOPHL Examination', 'Published'].includes(app.status);
-    if (activeTab === "completed") return ['Granted', 'Rejected'].includes(app.status);
+      ['Filed to IPOPHL', 'Under IPOPHL Examination', 'Published'].includes(app.status) && !app.is_archived;
+    if (activeTab === "completed") return ['Granted', 'Rejected'].includes(app.status) && !app.is_archived;
+    if (activeTab === "archived") return app.is_archived;
     return true;
   });
 
@@ -243,6 +283,7 @@ export default function FacultyDashboard() {
             <TabsTrigger value="approved" className="data-[state=active]:bg-green-50 data-[state=active]:text-green-700 data-[state=active]:border-green-200">Approved</TabsTrigger>
             <TabsTrigger value="filed" className="data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 data-[state=active]:border-purple-200">Filed to IPOPHL</TabsTrigger>
             <TabsTrigger value="completed" className="data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 data-[state=active]:border-emerald-200">Completed</TabsTrigger>
+            <TabsTrigger value="archived" className="data-[state=active]:bg-gray-100 data-[state=active]:text-gray-700 data-[state=active]:border-gray-300">Archived</TabsTrigger>
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-0">
@@ -254,6 +295,10 @@ export default function FacultyDashboard() {
                 applications={filteredApplications}
                 isLoading={isLoading}
                 onRefresh={loadApplications}
+                onArchive={handleArchive}
+                onRestore={handleRestore}
+                onDelete={handleDelete}
+                activeTab={activeTab}
               />
             </div>
           </TabsContent>

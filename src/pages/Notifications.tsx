@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { 
   Select,
@@ -13,13 +12,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Bell, 
   Check, 
-  Trash2, 
   Filter,
   Search,
   ChevronLeft,
@@ -29,38 +26,40 @@ import {
   CheckCircle,
   Info,
   RefreshCw,
-  Eye
+  Eye,
+  ArrowUpRight
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
-interface Notification {
+interface NotificationItem {
   id: string;
   title: string;
   message: string;
-  type: 'status_change' | 'comment' | 'revision_required' | 'approval' | 'general' | 'system';
+  type: string;
   is_read: boolean;
   created_at: string;
   application_id?: string;
-  application_number?: string;
-  link?: string;
 }
 
 export default function Notifications() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [filteredNotifications, setFilteredNotifications] = useState<NotificationItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [readFilter, setReadFilter] = useState<string>("all");
-  const [selectedNotifications, setSelectedNotifications] = useState<Set<string>>(new Set());
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
-    loadNotifications();
   }, []);
+
+  useEffect(() => {
+    if (userRole) loadNotifications();
+  }, [userRole]);
 
   useEffect(() => {
     filterNotifications();
@@ -72,6 +71,7 @@ export default function Notifications() {
       navigate('/admin');
       return;
     }
+    setUserId(session.user.id);
 
     const { data: profile } = await supabase
       .from('user_profiles')
@@ -87,97 +87,59 @@ export default function Notifications() {
   const loadNotifications = async () => {
     setIsLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/notifications');
-      // const data = await response.json();
+      if (userRole === 'faculty') {
+        // Load from faculty_notifications
+        const { data, error } = await supabase
+          .from('faculty_notifications')
+          .select('*')
+          .eq('faculty_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(50);
 
-      // Mock data for demonstration
-      const mockNotifications: Notification[] = [
-        {
-          id: "1",
-          title: "Application Approved for IPOPHL Filing",
-          message: "Your patent application 'Smart Agriculture Monitoring System' has been approved for IPOPHL filing. Please prepare the required documents for official submission.",
-          type: "approval",
-          is_read: false,
-          created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          application_id: "app-1",
-          application_number: "IP-2026-00001"
-        },
-        {
-          id: "2",
-          title: "Revision Required",
-          message: "Please update the claims section of your utility model application. The independent claims need more specific technical details.",
-          type: "revision_required",
-          is_read: false,
-          created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          application_id: "app-2",
-          application_number: "IP-2026-00002"
-        },
-        {
-          id: "3",
-          title: "Status Update: Under IPOPHL Examination",
-          message: "Your patent application IP-2025-00045 has moved to the substantive examination phase at IPOPHL.",
-          type: "status_change",
-          is_read: true,
-          created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-          application_id: "app-3",
-          application_number: "IP-2025-00045"
-        },
-        {
-          id: "4",
-          title: "New Comment from Reviewer",
-          message: "Dr. Ana Lim has commented on your copyright application. Please review the feedback.",
-          type: "comment",
-          is_read: false,
-          created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-          application_id: "app-4",
-          application_number: "IP-2026-00005"
-        },
-        {
-          id: "5",
-          title: "Welcome to IP Filing System",
-          message: "Start submitting your IP applications through our new faculty portal. Check out the guide for first-time users.",
-          type: "general",
-          is_read: true,
-          created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: "6",
-          title: "System Maintenance Scheduled",
-          message: "The IP Filing System will undergo maintenance on April 20, 2026, from 2:00 AM to 4:00 AM (PHT).",
-          type: "system",
-          is_read: true,
-          created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: "7",
-          title: "Patent Granted!",
-          message: "Congratulations! Your patent application 'Renewable Energy Harvesting Device' has been granted by IPOPHL.",
-          type: "approval",
-          is_read: false,
-          created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-          application_id: "app-5",
-          application_number: "IP-2024-00012"
-        },
-        {
-          id: "8",
-          title: "Formality Examination Complete",
-          message: "The formality examination for your industrial design application has been completed. No issues found.",
-          type: "status_change",
-          is_read: true,
-          created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          application_id: "app-6",
-          application_number: "IP-2026-00008"
+        if (error) throw error;
+
+        const mapped: NotificationItem[] = (data || []).map((n: any) => ({
+          id: n.id,
+          title: n.title || '',
+          message: n.message || '',
+          type: n.notification_type || 'general',
+          is_read: n.is_read ?? false,
+          created_at: n.created_at,
+          application_id: n.application_id
+        }));
+        setNotifications(mapped);
+      } else {
+        // Admin: load from activity_logs
+        const { data, error } = await supabase
+          .from('activity_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (error) throw error;
+
+        const mapped: NotificationItem[] = (data || []).map((n: any) => ({
+          id: n.id,
+          title: n.title || '',
+          message: n.description || '',
+          type: n.activity_type || 'general',
+          is_read: false, // Will be set below
+          created_at: n.created_at,
+          application_id: n.application_id
+        }));
+
+        // Check which admin notifications are read via per-ID localStorage
+        const readIds = getAdminReadIds();
+        for (const n of mapped) {
+          if (readIds.has(n.id)) {
+            n.is_read = true;
+          }
         }
-      ];
-
-      setNotifications(mockNotifications);
+        setNotifications(mapped);
+      }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load notifications.",
-        variant: "destructive"
-      });
+      console.error('Error loading notifications:', error);
+      toast({ title: "Error", description: "Failed to load notifications.", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -186,111 +148,101 @@ export default function Notifications() {
   const filterNotifications = () => {
     let filtered = [...notifications];
 
-    // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(n => 
         n.title.toLowerCase().includes(query) ||
-        n.message.toLowerCase().includes(query) ||
-        n.application_number?.toLowerCase().includes(query)
+        n.message.toLowerCase().includes(query)
       );
     }
 
-    // Type filter
     if (typeFilter !== "all") {
       filtered = filtered.filter(n => n.type === typeFilter);
     }
 
-    // Read status filter
     if (readFilter === "read") {
       filtered = filtered.filter(n => n.is_read);
     } else if (readFilter === "unread") {
       filtered = filtered.filter(n => !n.is_read);
     }
 
-    // Sort by date (newest first)
     filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
     setFilteredNotifications(filtered);
   };
 
+  // Helper: get/set admin read notification IDs in localStorage
+  const getAdminReadIds = (): Set<string> => {
+    try {
+      const stored = localStorage.getItem('admin_read_notification_ids');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  };
+
+  const saveAdminReadIds = (ids: Set<string>) => {
+    localStorage.setItem('admin_read_notification_ids', JSON.stringify([...ids]));
+  };
+
   const markAsRead = async (notificationId: string) => {
+    // Optimistic update
     setNotifications(prev => 
       prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
     );
 
-    // TODO: API call to mark as read
-    // await fetch(`/api/notifications/${notificationId}/read`, { method: 'POST' });
+    // Persist
+    try {
+      if (userRole === 'faculty') {
+        await supabase
+          .from('faculty_notifications')
+          .update({ is_read: true, read_at: new Date().toISOString() })
+          .eq('id', notificationId);
+      } else {
+        // Admin: store individual read IDs in localStorage
+        const readIds = getAdminReadIds();
+        readIds.add(notificationId);
+        saveAdminReadIds(readIds);
+      }
+    } catch (err) {
+      console.error('Error marking as read:', err);
+    }
   };
 
   const markAllAsRead = async () => {
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-    setSelectedNotifications(new Set());
 
-    toast({
-      title: "Success",
-      description: "All notifications marked as read."
-    });
-
-    // TODO: API call to mark all as read
-  };
-
-  const deleteNotification = async (notificationId: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
-    setSelectedNotifications(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(notificationId);
-      return newSet;
-    });
-
-    toast({
-      title: "Deleted",
-      description: "Notification removed."
-    });
-
-    // TODO: API call to delete
-  };
-
-  const deleteSelected = async () => {
-    setNotifications(prev => prev.filter(n => !selectedNotifications.has(n.id)));
-    setSelectedNotifications(new Set());
-
-    toast({
-      title: "Deleted",
-      description: `${selectedNotifications.size} notifications removed.`
-    });
-  };
-
-  const toggleSelection = (notificationId: string) => {
-    setSelectedNotifications(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(notificationId)) {
-        newSet.delete(notificationId);
+    try {
+      if (userRole === 'faculty') {
+        await supabase
+          .from('faculty_notifications')
+          .update({ is_read: true, read_at: new Date().toISOString() })
+          .eq('faculty_id', userId)
+          .eq('is_read', false);
       } else {
-        newSet.add(notificationId);
+        // Admin: add all current notification IDs to read set
+        const readIds = getAdminReadIds();
+        for (const n of notifications) {
+          readIds.add(n.id);
+        }
+        saveAdminReadIds(readIds);
       }
-      return newSet;
-    });
-  };
-
-  const selectAll = () => {
-    if (selectedNotifications.size === filteredNotifications.length) {
-      setSelectedNotifications(new Set());
-    } else {
-      setSelectedNotifications(new Set(filteredNotifications.map(n => n.id)));
+    } catch (err) {
+      console.error('Error marking all as read:', err);
     }
+
+    toast({ title: "Success", description: "All notifications marked as read." });
   };
 
-  const handleNotificationClick = (notification: Notification) => {
+  const handleNotificationClick = (notification: NotificationItem) => {
     markAsRead(notification.id);
     
     if (notification.application_id) {
-      const basePath = userRole === 'faculty' ? '/faculty' : '/admin';
-      navigate(`${basePath}/applications/${notification.application_id}`);
+      if (userRole === 'faculty') {
+        navigate(`/faculty/applications/${notification.application_id}`);
+      }
+      // Admin users will go back to admin — the bell popover handles modal opening
     }
   };
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'status_change':
         return <FileText className="h-5 w-5 text-blue-500" />;
@@ -300,6 +252,8 @@ export default function Notifications() {
         return <AlertCircle className="h-5 w-5 text-orange-500" />;
       case 'approval':
         return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 'ip_application':
+        return <FileText className="h-5 w-5 text-cyan-500" />;
       case 'system':
         return <Info className="h-5 w-5 text-gray-500" />;
       default:
@@ -307,7 +261,7 @@ export default function Notifications() {
     }
   };
 
-  const getNotificationColor = (type: Notification['type']) => {
+  const getNotificationColor = (type: string) => {
     switch (type) {
       case 'status_change':
         return 'bg-blue-50 border-blue-200';
@@ -317,6 +271,8 @@ export default function Notifications() {
         return 'bg-orange-50 border-orange-200';
       case 'approval':
         return 'bg-green-50 border-green-200';
+      case 'ip_application':
+        return 'bg-cyan-50 border-cyan-200';
       case 'system':
         return 'bg-gray-50 border-gray-200';
       default:
@@ -328,7 +284,6 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b sticky top-0 z-30">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -374,7 +329,6 @@ export default function Notifications() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters */}
         <Card className="mb-6">
@@ -392,25 +346,36 @@ export default function Notifications() {
               
               <div className="flex gap-3">
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger className="w-[180px]">
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Filter by type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="status_change">Status Change</SelectItem>
-                    <SelectItem value="comment">Comment</SelectItem>
-                    <SelectItem value="revision_required">Revision Required</SelectItem>
-                    <SelectItem value="approval">Approval</SelectItem>
-                    <SelectItem value="general">General</SelectItem>
-                    <SelectItem value="system">System</SelectItem>
+                    {userRole === 'admin' ? (
+                      <>
+                        <SelectItem value="ip_application">IP Application</SelectItem>
+                        <SelectItem value="news">News</SelectItem>
+                        <SelectItem value="technology">Technology</SelectItem>
+                        <SelectItem value="service">Service</SelectItem>
+                        <SelectItem value="event">Event</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <SelectItem value="status_change">Status Change</SelectItem>
+                        <SelectItem value="comment">Comment</SelectItem>
+                        <SelectItem value="revision_required">Revision Required</SelectItem>
+                        <SelectItem value="approval">Approval</SelectItem>
+                        <SelectItem value="general">General</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
 
                 <Select value={readFilter} onValueChange={setReadFilter}>
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger className="w-[130px]">
                     <Eye className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Filter by status" />
+                    <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
@@ -420,41 +385,12 @@ export default function Notifications() {
                 </Select>
               </div>
             </div>
-
-            {/* Bulk Actions */}
-            {selectedNotifications.size > 0 && (
-              <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                <span className="text-sm text-gray-600">
-                  {selectedNotifications.size} selected
-                </span>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      selectedNotifications.forEach(id => markAsRead(id));
-                    }}
-                  >
-                    <Check className="h-4 w-4 mr-2" />
-                    Mark as read
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={deleteSelected}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
         {/* Notifications List */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-5 w-5" />
               All Notifications
@@ -462,19 +398,14 @@ export default function Notifications() {
                 {filteredNotifications.length}
               </Badge>
             </CardTitle>
-            {filteredNotifications.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={selectedNotifications.size === filteredNotifications.length && filteredNotifications.length > 0}
-                  onCheckedChange={selectAll}
-                />
-                <span className="text-sm text-gray-600">Select all</span>
-              </div>
-            )}
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[600px]">
-              {filteredNotifications.length === 0 ? (
+              {isLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+                </div>
+              ) : filteredNotifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-gray-500">
                   <Bell className="h-16 w-16 mb-4 text-gray-300" />
                   <p className="text-lg font-medium">No notifications found</p>
@@ -489,83 +420,63 @@ export default function Notifications() {
                   {filteredNotifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`relative p-4 border rounded-lg transition-all ${
+                      className={`relative p-4 border rounded-lg transition-all cursor-pointer hover:shadow-sm ${
                         notification.is_read 
                           ? 'bg-white border-gray-200' 
                           : `${getNotificationColor(notification.type)} border-l-4`
                       }`}
+                      onClick={() => handleNotificationClick(notification)}
                     >
                       <div className="flex items-start gap-4">
-                        <Checkbox
-                          checked={selectedNotifications.has(notification.id)}
-                          onCheckedChange={() => toggleSelection(notification.id)}
-                          className="mt-1"
-                        />
-                        
-                        <div 
-                          className={`p-2 rounded-full ${getNotificationColor(notification.type)}`}
-                        >
+                        <div className={`p-2 rounded-full ${getNotificationColor(notification.type)}`}>
                           {getNotificationIcon(notification.type)}
                         </div>
                         
-                        <div 
-                          className="flex-1 cursor-pointer"
-                          onClick={() => handleNotificationClick(notification)}
-                        >
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <h3 className={`font-semibold ${
+                            <div className="min-w-0">
+                              <h3 className={`font-semibold truncate ${
                                 notification.is_read ? 'text-gray-700' : 'text-gray-900'
                               }`}>
                                 {notification.title}
                               </h3>
-                              {notification.application_number && (
-                                <Badge variant="outline" className="mt-1 mb-2">
-                                  {notification.application_number}
-                                </Badge>
-                              )}
                             </div>
-                            <span className="text-xs text-gray-400 whitespace-nowrap">
-                              {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              {notification.application_id && (
+                                <ArrowUpRight className="h-4 w-4 text-gray-400" />
+                              )}
+                              <span className="text-xs text-gray-400 whitespace-nowrap">
+                                {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                              </span>
+                            </div>
                           </div>
                           
-                          <p className={`text-sm mt-1 ${
-                            notification.is_read ? 'text-gray-500' : 'text-gray-700'
-                          }`}>
-                            {notification.message}
-                          </p>
+                          {notification.message && (
+                            <p className={`text-sm mt-1 ${
+                              notification.is_read ? 'text-gray-500' : 'text-gray-700'
+                            }`}>
+                              {notification.message}
+                            </p>
+                          )}
                           
                           <div className="flex items-center justify-between mt-3">
                             <span className="text-xs text-gray-400">
                               {format(new Date(notification.created_at), 'MMM d, yyyy HH:mm')}
                             </span>
                             
-                            <div className="flex items-center gap-2">
-                              {!notification.is_read && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    markAsRead(notification.id);
-                                  }}
-                                >
-                                  <Check className="h-4 w-4 mr-1" />
-                                  Mark read
-                                </Button>
-                              )}
+                            {!notification.is_read && (
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deleteNotification(notification.id);
+                                  markAsRead(notification.id);
                                 }}
                               >
-                                <Trash2 className="h-4 w-4 text-red-500" />
+                                <Check className="h-4 w-4 mr-1" />
+                                Mark read
                               </Button>
-                            </div>
+                            )}
                           </div>
                         </div>
                         

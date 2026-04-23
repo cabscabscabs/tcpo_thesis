@@ -1,9 +1,48 @@
-import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin, ExternalLink } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin, ExternalLink, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Footer = () => {
   const navigate = useNavigate();
+  const [upcomingEvent, setUpcomingEvent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load upcoming events from Supabase
+  useEffect(() => {
+    const loadUpcomingEvent = async () => {
+      try {
+        const currentDate = new Date().toISOString();
+        const { data, error } = await supabase
+          .from('admin_events' as any)
+          .select('*')
+          .eq('published', true)
+          .gte('date', currentDate)
+          .order('date', { ascending: true })
+          .limit(1);
+        
+        if (data && !error && data.length > 0) {
+          setUpcomingEvent(data[0]);
+        }
+      } catch (error) {
+        console.error('Failed to load upcoming event:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUpcomingEvent();
+  }, []);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
 
   const quickLinks = [
     { name: "IP Portfolio", href: "/ip-portfolio" },
@@ -164,20 +203,55 @@ const Footer = () => {
 
         {/* Upcoming Event Banner */}
         <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4 mt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h5 className="font-roboto font-semibold text-secondary mb-1">
-                Upcoming: TPCO-CET Convergence 2025
-              </h5>
-              <p className="text-sm text-white/80">
-                Join us for the premier technology commercialization event in Northern Mindanao
-              </p>
+          {upcomingEvent ? (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Calendar size={14} className="text-secondary" />
+                  <span className="text-xs text-secondary font-medium">
+                    {formatDate(upcomingEvent.date)}
+                  </span>
+                </div>
+                <h5 className="font-roboto font-semibold text-secondary mb-1">
+                  Upcoming: {upcomingEvent.title}
+                </h5>
+                <p className="text-sm text-white/80">
+                  {upcomingEvent.description 
+                    ? upcomingEvent.description.substring(0, 100) + (upcomingEvent.description.length > 100 ? '...' : '')
+                    : 'Join us for this exciting event!'}
+                </p>
+              </div>
+              <Button 
+                variant="gold" 
+                size="sm" 
+                className="group shrink-0" 
+                onClick={() => navigate('/events')}
+              >
+                Learn More
+                <ExternalLink className="ml-2 group-hover:translate-x-1 transition-transform" size={16} />
+              </Button>
             </div>
-            <Button variant="gold" size="sm" className="group" onClick={() => console.log('TPCO-CET Convergence 2025 - Coming Soon!')}>
-              Learn More
-              <ExternalLink className="ml-2 group-hover:translate-x-1 transition-transform" size={16} />
-            </Button>
-          </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h5 className="font-roboto font-semibold text-secondary mb-1">
+                  Workshops & Events
+                </h5>
+                <p className="text-sm text-white/80">
+                  Check out our upcoming workshops and events to enhance your IP knowledge.
+                </p>
+              </div>
+              <Button 
+                variant="gold" 
+                size="sm" 
+                className="group shrink-0" 
+                onClick={() => navigate('/events')}
+              >
+                View Events
+                <ExternalLink className="ml-2 group-hover:translate-x-1 transition-transform" size={16} />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </footer>

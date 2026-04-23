@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2, Search, Filter, X, Bell, Check, BellOff, FileUp, FileDown, EyeIcon } from "lucide-react";
+import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2, Search, Filter, X, Bell, Check, BellOff, FileUp, FileDown, EyeIcon, MessageSquare, AlertCircle, ChevronRight, Send, DollarSign } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -40,7 +40,10 @@ const Admin = () => {
   // Patent bulk upload and download state
   const [showDownloadDialog, setShowDownloadDialog] = useState(false);
   const [selectedPatentFields, setSelectedPatentFields] = useState<string[]>(['title', 'patentId', 'inventors', 'field', 'status', 'year']);
+  const [selectedPatentsForExport, setSelectedPatentsForExport] = useState<string[]>([]);
+  const [patentExportMode, setPatentExportMode] = useState<'all' | 'selected'>('all');
   const [isUploading, setIsUploading] = useState(false);
+  const [csvUploadKey, setCsvUploadKey] = useState(0); // Key to reset file input
   
   // Patent pagination state
   const [patentCurrentPage, setPatentCurrentPage] = useState(1);
@@ -62,9 +65,8 @@ const Admin = () => {
     year: new Date().getFullYear().toString()
   });
 
-  // Patent file upload state
-  const [patentFile, setPatentFile] = useState<File | null>(null);
-  const [patentFileName, setPatentFileName] = useState('');
+  // Patent file upload state (supports multiple files)
+  const [patentFiles, setPatentFiles] = useState<File[]>([]);
   const [uploadingPatent, setUploadingPatent] = useState(false);
 
   // Patent form state for modal editing (separate from add form)
@@ -75,9 +77,20 @@ const Admin = () => {
     field: '',
     description: '',
     abstract: '',
-    status: 'Pending',
-    year: new Date().getFullYear().toString()
+    status: 'Filed',
+    year: new Date().getFullYear().toString(),
+    file_url: '',
+    file_name: '',
+    files: [] as { url: string; name: string }[]
   });
+  
+  // Patent edit modal file management
+  const [patentEditNewFiles, setPatentEditNewFiles] = useState<File[]>([]);
+  const [patentEditFilesToDelete, setPatentEditFilesToDelete] = useState<string[]>([]);
+
+  // Licensed Revenue state
+  const [licensedRevenue, setLicensedRevenue] = useState('');
+  const [savingRevenue, setSavingRevenue] = useState(false);
 
   // News management
   const [news, setNews] = useState<any[]>([]);
@@ -112,6 +125,36 @@ const Admin = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [lastCheckedTime, setLastCheckedTime] = useState<string | null>(null);
+
+  // IP Applications state
+  const [ipApplications, setIpApplications] = useState<any[]>([]);
+  const [ipAppLoading, setIpAppLoading] = useState(false);
+  const [ipAppSearchTerm, setIpAppSearchTerm] = useState('');
+  const [ipAppStatusFilter, setIpAppStatusFilter] = useState('all');
+  const [ipAppTypeFilter, setIpAppTypeFilter] = useState('all');
+  const [selectedIpApp, setSelectedIpApp] = useState<any>(null);
+  const [showIpAppDetailModal, setShowIpAppDetailModal] = useState(false);
+  const [showIpAppReviewModal, setShowIpAppReviewModal] = useState(false);
+  const [ipAppReviewNotes, setIpAppReviewNotes] = useState('');
+  const [ipAppReviewAction, setIpAppReviewAction] = useState<'approve' | 'return' | 'reject' | null>('approve');
+  const [ipAppCurrentPage, setIpAppCurrentPage] = useState(1);
+  const ipAppsPerPage = 10;
+  const [ipAppDetailComments, setIpAppDetailComments] = useState<any[]>([]);
+  const [activeAdminTab, setActiveAdminTab] = useState('dashboard');
+  const [ipAppDetailNewComment, setIpAppDetailNewComment] = useState('');
+  const [isSubmittingDetailComment, setIsSubmittingDetailComment] = useState(false);
+
+  // Helper: navigate to a specific IP application from a notification/activity
+  const navigateToIpApplication = (applicationId: string) => {
+    setActiveAdminTab('ip-applications');
+    // Find the app and open detail modal
+    const app = ipApplications.find((a: any) => a.id === applicationId);
+    if (app) {
+      setSelectedIpApp(app);
+      setShowIpAppDetailModal(true);
+      loadIpAppComments(app.id);
+    }
+  };
   
   // Check session on component mount for auto-login
   useEffect(() => {
@@ -205,6 +248,7 @@ const Admin = () => {
   useEffect(() => {
     loadRecentActivities();
     loadNotifications();
+    loadIpApplications();
   }, []);
 
   // Set up real-time subscription for new notifications
@@ -228,6 +272,7 @@ const Admin = () => {
             action: payload.new.action,
             title: payload.new.title,
             description: payload.new.description,
+            application_id: payload.new.application_id,
             timestamp: payload.new.created_at,
             isRead: false
           };
@@ -266,6 +311,8 @@ const Admin = () => {
           type: activity.activity_type,
           action: activity.action,
           title: activity.title,
+          description: activity.description,
+          application_id: activity.application_id,
           timestamp: activity.created_at
         })) || [];
         setRecentActivity(mappedActivities);
@@ -308,6 +355,7 @@ const Admin = () => {
           action: activity.action,
           title: activity.title,
           description: activity.description,
+          application_id: activity.application_id,
           timestamp: activity.created_at,
           isRead: storedLastChecked ? new Date(activity.created_at) <= new Date(storedLastChecked) : false
         }));
@@ -366,6 +414,504 @@ const Admin = () => {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return formatDate(timestamp);
+  };
+
+  // IP Applications Functions
+  const loadIpApplications = async () => {
+    setIpAppLoading(true);
+    try {
+      // Fetch applications (try with faculty join first, fallback to without)
+      let applications: any[] = [];
+      
+      const { data: appData, error: appError } = await supabase
+        .from('ip_applications')
+        .select(`
+          *,
+          faculty:faculty_id (full_name, email, department)
+        `)
+        .neq('status', 'Draft')
+        .order('created_at', { ascending: false });
+
+      if (appError) {
+        console.warn('Join query failed, trying without faculty join:', appError.message);
+        // Fallback: fetch without join
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('ip_applications')
+          .select('*')
+          .neq('status', 'Draft')
+          .order('created_at', { ascending: false });
+        
+        if (fallbackError) throw fallbackError;
+        
+        // Manually fetch faculty profiles for each application
+        applications = (fallbackData || []).map((app: any) => ({
+          ...app,
+          faculty: null
+        }));
+        
+        // Batch fetch faculty profiles
+        const facultyIds = [...new Set(applications.map((a: any) => a.faculty_id))];
+        if (facultyIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from('user_profiles')
+            .select('id, full_name, email, department')
+            .in('id', facultyIds);
+          
+          if (profiles) {
+            const profileMap = new Map(profiles.map((p: any) => [p.id, p]));
+            applications = applications.map((app: any) => ({
+              ...app,
+              faculty: profileMap.get(app.faculty_id) || { full_name: app.applicant_full_name, email: app.applicant_email, department: null }
+            }));
+          }
+        }
+      } else {
+        applications = (appData || []).map((app: any) => ({
+          ...app,
+          faculty: app.faculty || { full_name: app.applicant_full_name, email: app.applicant_email, department: null }
+        }));
+      }
+
+      // Fetch attachments for all applications
+      let attachmentsMap: Record<string, any[]> = {};
+      try {
+        const { data: attachments } = await supabase
+          .from('ip_application_attachments')
+          .select('*');
+        
+        if (attachments) {
+          for (const att of attachments) {
+            if (!attachmentsMap[att.application_id]) attachmentsMap[att.application_id] = [];
+            attachmentsMap[att.application_id].push(att);
+          }
+        }
+      } catch (attachErr) {
+        console.warn('Could not fetch attachments:', attachErr);
+      }
+
+      // Merge attachments into applications
+      const data = applications.map(app => ({
+        ...app,
+        attachments: attachmentsMap[app.id] || []
+      }));
+
+      // Fetch comment counts per application (especially faculty comments for unread indication)
+      let commentCountsMap: Record<string, { total: number; facultyComments: number }> = {};
+      try {
+        const { data: comments } = await supabase
+          .from('ip_application_comments')
+          .select('application_id, commenter_id');
+        
+        if (comments && comments.length > 0) {
+          // Get faculty commenter IDs
+          const commenterIds: string[] = [...new Set(comments.map((c: any) => c.commenter_id).filter(Boolean))];
+          let facultyIds: Set<string> = new Set();
+          if (commenterIds.length > 0) {
+            const { data: profiles } = await supabase
+              .from('user_profiles')
+              .select('id')
+              .eq('role', 'faculty')
+              .in('id', commenterIds);
+            if (profiles) {
+              facultyIds = new Set(profiles.map((p: any) => p.id));
+            }
+          }
+
+          for (const c of comments) {
+            if (!commentCountsMap[c.application_id]) {
+              commentCountsMap[c.application_id] = { total: 0, facultyComments: 0 };
+            }
+            commentCountsMap[c.application_id].total++;
+            if (facultyIds.has(c.commenter_id)) {
+              commentCountsMap[c.application_id].facultyComments++;
+            }
+          }
+        }
+      } catch (commentErr) {
+        console.warn('Could not fetch comment counts:', commentErr);
+      }
+
+      // Merge comment counts into applications
+      const dataWithComments = data.map(app => ({
+        ...app,
+        _commentCount: commentCountsMap[app.id]?.total || 0,
+        _facultyCommentCount: commentCountsMap[app.id]?.facultyComments || 0
+      }));
+
+      setIpApplications(dataWithComments);
+    } catch (err) {
+      console.error('Error loading IP applications:', err);
+      setIpApplications([]);
+    } finally {
+      setIpAppLoading(false);
+    }
+  };
+
+  // Notification helper functions for IP application status changes
+  const getNotificationTitle = (status: string): string => {
+    switch (status) {
+      case 'Approved for IPOPHL Filing': return 'Application Approved';
+      case 'Needs Revision': return 'Revision Required';
+      case 'Rejected': return 'Application Rejected';
+      case 'Filed to IPOPHL': return 'Application Filed to IPOPHL';
+      case 'Under IPOPHL Examination': return 'Application Under Examination';
+      case 'Granted': return 'IP Granted';
+      default: return 'Application Status Updated';
+    }
+  };
+
+  const getNotificationMessage = (status: string, appTitle: string, notes?: string): string => {
+    let base = '';
+    switch (status) {
+      case 'Approved for IPOPHL Filing':
+        base = `Your IP application "${appTitle}" has been approved for IPOPHL filing. Please prepare the required documents for official submission.`;
+        break;
+      case 'Needs Revision':
+        base = `Your IP application "${appTitle}" requires revision before it can be approved.`;
+        break;
+      case 'Rejected':
+        base = `Your IP application "${appTitle}" has been rejected.`;
+        break;
+      case 'Filed to IPOPHL':
+        base = `Your IP application "${appTitle}" has been filed to IPOPHL.`;
+        break;
+      case 'Under IPOPHL Examination':
+        base = `Your IP application "${appTitle}" is now under IPOPHL examination.`;
+        break;
+      case 'Granted':
+        base = `Congratulations! Your IP application "${appTitle}" has been granted.`;
+        break;
+      default:
+        base = `The status of your IP application "${appTitle}" has been updated to ${status}.`;
+    }
+    if (notes && notes.trim()) {
+      base += ` Reviewer notes: ${notes}`;
+    }
+    return base;
+  };
+
+  const getNotificationType = (status: string): string => {
+    switch (status) {
+      case 'Approved for IPOPHL Filing':
+      case 'Granted':
+        return 'approval';
+      case 'Needs Revision':
+        return 'revision_required';
+      case 'Rejected':
+        return 'rejection';
+      default:
+        return 'status_change';
+    }
+  };
+
+  const handleIpAppStatusUpdate = async (appId: string, newStatus: string, notes?: string) => {
+    try {
+      const adminId = (await supabase.auth.getUser()).data.user?.id;
+      
+      const { error } = await supabase
+        .from('ip_applications')
+        .update({
+          status: newStatus,
+          admin_notes: notes || null,
+          status_updated_at: new Date().toISOString(),
+          status_updated_by: adminId
+        })
+        .eq('id', appId);
+
+      if (error) {
+        console.error('Error updating IP application status:', error);
+        alert('Failed to update status. Please try again.');
+        return false;
+      }
+
+      // Try to insert status history record
+      try {
+        await supabase.from('ip_application_status_history').insert([{
+          application_id: appId,
+          from_status: selectedIpApp?.status || 'Unknown',
+          to_status: newStatus,
+          change_reason: notes || null,
+          changed_by: adminId
+        }]);
+      } catch (histErr) {
+        console.warn('Could not insert status history:', histErr);
+      }
+
+      // Try to insert comment if notes provided
+      if (notes && notes.trim()) {
+        try {
+          await supabase.from('ip_application_comments').insert([{
+            application_id: appId,
+            comment: notes,
+            commenter_id: adminId,
+            is_internal: false
+          }]);
+        } catch (commentErr) {
+          console.warn('Could not insert comment:', commentErr);
+        }
+      }
+
+      // Send notification to the faculty member
+      try {
+        const facultyId = selectedIpApp?.faculty_id;
+        if (facultyId) {
+          const notifTitle = getNotificationTitle(newStatus);
+          const notifMessage = getNotificationMessage(newStatus, selectedIpApp?.title || 'your application', notes);
+          const notifType = getNotificationType(newStatus);
+          
+          await supabase.from('faculty_notifications').insert([{
+            faculty_id: facultyId,
+            application_id: appId,
+            title: notifTitle,
+            message: notifMessage,
+            notification_type: notifType,
+            is_read: false
+          }]);
+        }
+      } catch (notifErr) {
+        console.warn('Could not send faculty notification:', notifErr);
+      }
+
+      // Refresh the list
+      await loadIpApplications();
+      return true;
+    } catch (err) {
+      console.error('Error updating status:', err);
+      alert('An error occurred. Please try again.');
+      return false;
+    }
+  };
+
+  const handleIpAppReview = async () => {
+    if (!selectedIpApp) return;
+
+    // Comment-only mode (for Needs Revision or other statuses)
+    if (!ipAppReviewAction && ipAppReviewNotes.trim()) {
+      try {
+        const adminId = (await supabase.auth.getUser()).data.user?.id;
+        // Try to insert comment
+        try {
+          await supabase.from('ip_application_comments').insert([{
+            application_id: selectedIpApp.id,
+            comment: ipAppReviewNotes,
+            commenter_id: adminId,
+            is_internal: false
+          }]);
+        } catch (commentErr) {
+          console.warn('Could not insert comment:', commentErr);
+        }
+        // Also save as admin_notes
+        await supabase
+          .from('ip_applications')
+          .update({ admin_notes: ipAppReviewNotes })
+          .eq('id', selectedIpApp.id);
+        
+        await loadIpApplications();
+        toast({ title: "Comment Added", description: "Your comment has been saved." });
+      } catch (err) {
+        console.error('Error adding comment:', err);
+        toast({ title: "Error", description: "Failed to add comment.", variant: "destructive" });
+      }
+      setShowIpAppReviewModal(false);
+      setIpAppReviewNotes('');
+      setSelectedIpApp(null);
+      return;
+    }
+
+    // Status change mode
+    const statusMap: Record<string, string> = {
+      'approve': 'Approved for IPOPHL Filing',
+      'return': 'Needs Revision',
+      'reject': 'Rejected'
+    };
+
+    // Validate comment required for revision/rejection
+    if ((ipAppReviewAction === 'return' || ipAppReviewAction === 'reject') && !ipAppReviewNotes.trim()) {
+      toast({ title: "Comment Required", description: "Please provide a comment when flagging for revision or rejecting an application.", variant: "destructive" });
+      return;
+    }
+
+    const success = await handleIpAppStatusUpdate(
+      selectedIpApp.id,
+      statusMap[ipAppReviewAction],
+      ipAppReviewNotes
+    );
+
+    if (success) {
+      const actionLabels: Record<string, string> = {
+        'approve': 'Approved',
+        'return': 'Flagged for Revision',
+        'reject': 'Rejected'
+      };
+      toast({ 
+        title: `Application ${actionLabels[ipAppReviewAction]}`, 
+        description: `The application has been ${actionLabels[ipAppReviewAction].toLowerCase()}.` 
+      });
+      setShowIpAppReviewModal(false);
+      setIpAppReviewNotes('');
+      setSelectedIpApp(null);
+    }
+  };
+
+  const getIpAppStatusBadge = (status: string) => {
+    const statusColors: Record<string, string> = {
+      'Draft': 'bg-gray-500',
+      'Submitted for Internal Review': 'bg-blue-500',
+      'Under Internal Review': 'bg-yellow-500',
+      'Needs Revision': 'bg-orange-500',
+      'Approved for IPOPHL Filing': 'bg-green-500',
+      'Filed to IPOPHL': 'bg-purple-500',
+      'Under IPOPHL Examination': 'bg-indigo-500',
+      'Granted': 'bg-emerald-600',
+      'Rejected': 'bg-red-500'
+    };
+    return statusColors[status] || 'bg-gray-500';
+  };
+
+  const getIpAppStatusDisplay = (status: string) => {
+    const displayMap: Record<string, string> = {
+      'Submitted for Internal Review': 'For Review',
+      'Under Internal Review': 'Under Review',
+      'Approved for IPOPHL Filing': 'Approved for Filing',
+      'Under IPOPHL Examination': 'Under Examination',
+    };
+    return displayMap[status] || status;
+  };
+
+  // Load comments for the IP app detail modal
+  const loadIpAppComments = async (applicationId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('ip_application_comments')
+        .select('*')
+        .eq('application_id', applicationId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('Could not load comments:', error);
+        setIpAppDetailComments([]);
+        return;
+      }
+
+      // Fetch commenter profiles
+      const commenterIds: string[] = (data || []).map((c: any) => c.commenter_id).filter(Boolean);
+      const uniqueIds = [...new Set(commenterIds)];
+      let profilesMap: Record<string, { full_name: string; role: string }> = {};
+      if (uniqueIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('user_profiles')
+          .select('id, full_name, role')
+          .in('id', uniqueIds);
+        if (profiles) {
+          profilesMap = Object.fromEntries(profiles.map((p: any) => [p.id, p]));
+        }
+      }
+
+      const mapped = (data || []).map((c: any) => {
+        const commenter = profilesMap[c.commenter_id];
+        return {
+          ...c,
+          commenter_name: commenter?.full_name || (commenter?.role === 'faculty' ? 'Faculty' : 'Reviewer'),
+          commenter_role: commenter?.role === 'faculty' ? 'Faculty' : 'IP Committee'
+        };
+      });
+      setIpAppDetailComments(mapped);
+    } catch (err) {
+      console.warn('Could not load comments:', err);
+      setIpAppDetailComments([]);
+    }
+  };
+
+  // Submit a comment from the admin detail modal
+  const handleDetailModalComment = async () => {
+    if (!ipAppDetailNewComment.trim() || !selectedIpApp) return;
+    setIsSubmittingDetailComment(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('full_name')
+        .eq('id', session.user.id)
+        .single();
+
+      const { error } = await (supabase as any)
+        .from('ip_application_comments')
+        .insert([{
+          application_id: selectedIpApp.id,
+          comment: ipAppDetailNewComment.trim(),
+          commenter_id: session.user.id,
+          is_internal: false
+        }]);
+
+      if (error) {
+        console.error('Error posting comment:', error);
+        toast({ title: "Error", description: "Failed to post comment.", variant: "destructive" });
+        return;
+      }
+
+      // Add to local state
+      const newComment = {
+        id: Date.now().toString(),
+        application_id: selectedIpApp.id,
+        comment: ipAppDetailNewComment.trim(),
+        commenter_name: profile?.full_name || 'Admin',
+        commenter_role: 'IP Committee',
+        is_internal: false,
+        created_at: new Date().toISOString()
+      };
+      setIpAppDetailComments(prev => [newComment, ...prev]);
+      setIpAppDetailNewComment('');
+      toast({ title: "Comment Posted", description: "Your comment has been added." });
+
+      // Notify the faculty member about the comment
+      try {
+        const facultyId = selectedIpApp.faculty_id;
+        if (facultyId) {
+          await supabase.from('faculty_notifications').insert([{
+            faculty_id: facultyId,
+            application_id: selectedIpApp.id,
+            notification_type: 'comment',
+            title: 'New Comment on Your Application',
+            message: `A reviewer commented on "${selectedIpApp.title || 'your application'}": "${ipAppDetailNewComment.trim().substring(0, 80)}${ipAppDetailNewComment.trim().length > 80 ? '...' : ''}"`,
+            is_read: false
+          }]);
+        }
+      } catch (notifErr) {
+        console.warn('Could not send faculty notification:', notifErr);
+      }
+    } catch (err) {
+      console.error('Error posting comment:', err);
+      toast({ title: "Error", description: "Failed to post comment.", variant: "destructive" });
+    } finally {
+      setIsSubmittingDetailComment(false);
+    }
+  };
+
+  const getFilteredIpApplications = () => {
+    return ipApplications.filter(app => {
+      const matchesSearch = 
+        app.title?.toLowerCase().includes(ipAppSearchTerm.toLowerCase()) ||
+        app.applicant_full_name?.toLowerCase().includes(ipAppSearchTerm.toLowerCase()) ||
+        app.faculty?.email?.toLowerCase().includes(ipAppSearchTerm.toLowerCase()) ||
+        app.field_of_technology?.toLowerCase().includes(ipAppSearchTerm.toLowerCase());
+      
+      const matchesStatus = ipAppStatusFilter === 'all' || app.status === ipAppStatusFilter;
+      const matchesType = ipAppTypeFilter === 'all' || app.ip_type === ipAppTypeFilter;
+      
+      return matchesSearch && matchesStatus && matchesType;
+    });
+  };
+
+  const getPaginatedIpApplications = () => {
+    const filtered = getFilteredIpApplications();
+    const startIndex = (ipAppCurrentPage - 1) * ipAppsPerPage;
+    return filtered.slice(startIndex, startIndex + ipAppsPerPage);
+  };
+
+  const getTotalIpAppPages = () => {
+    return Math.ceil(getFilteredIpApplications().length / ipAppsPerPage);
   };
 
   // Load all activities for the modal (past logs)
@@ -824,6 +1370,10 @@ const Admin = () => {
           serviceRequests: stats.service_requests_count,
           pendingRequests: stats.pending_requests,
         });
+        // Also load licensed revenue
+        if (stats.licensed_revenue !== undefined) {
+          setLicensedRevenue(String(stats.licensed_revenue));
+        }
       } else {
         // Fallback to static table if RPC fails
         const { data: staticData, error: staticError } = await supabase
@@ -844,6 +1394,10 @@ const Admin = () => {
             serviceRequests: stats.service_requests_count,
             pendingRequests: stats.pending_requests,
           });
+          // Also load licensed revenue
+          if (stats.licensed_revenue !== undefined) {
+            setLicensedRevenue(String(stats.licensed_revenue));
+          }
         }
       }
     } catch (error) {
@@ -1017,6 +1571,7 @@ const Admin = () => {
           year: patent.year,
           file_url: patent.file_url,
           file_name: patent.file_name,
+          files: patent.files || [], // Array of all attached files
         })));
       }
     } catch (error) {
@@ -1822,29 +2377,36 @@ const Admin = () => {
     let fileName = null;
 
     try {
-      // Upload file to Supabase Storage if a file is selected
-      if (patentFile) {
-        const fileExt = patentFile.name.split('.').pop();
-        const filePath = `patents/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      // Upload all files to Supabase Storage and collect URLs
+      const uploadedFiles: { url: string; name: string }[] = [];
+      
+      if (patentFiles.length > 0) {
+        for (const file of patentFiles) {
+          const fileExt = file.name.split('.').pop();
+          const filePath = `patents/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('patent-files')
-          .upload(filePath, patentFile);
+          const { error: uploadError } = await supabase.storage
+            .from('patent-files')
+            .upload(filePath, file);
 
-        if (uploadError) {
-          console.error('Error uploading file:', uploadError);
-          toast({ title: 'Error', description: 'Failed to upload file: ' + uploadError.message, variant: 'destructive' });
-          setUploadingPatent(false);
-          return;
+          if (uploadError) {
+            console.error('Error uploading file:', uploadError);
+            toast({ title: 'Error', description: 'Failed to upload file: ' + uploadError.message, variant: 'destructive' });
+            setUploadingPatent(false);
+            return;
+          }
+
+          // Get the public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('patent-files')
+            .getPublicUrl(filePath);
+
+          uploadedFiles.push({ url: publicUrl, name: file.name });
         }
-
-        // Get the public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('patent-files')
-          .getPublicUrl(filePath);
-
-        fileUrl = publicUrl;
-        fileName = patentFile.name;
+        
+        // First file is the primary file
+        fileUrl = uploadedFiles[0]?.url || null;
+        fileName = uploadedFiles[0]?.name || null;
       }
 
       const patentData = {
@@ -1854,11 +2416,12 @@ const Admin = () => {
         field: patentForm.field,
         description: patentForm.description,
         abstract: patentForm.abstract,
-        status: patentForm.status || 'Pending',
+        status: patentForm.status || 'Filed',
         year: patentForm.year || new Date().getFullYear().toString(),
         published: true,
         file_url: fileUrl,
         file_name: fileName,
+        files: uploadedFiles.length > 0 ? uploadedFiles : null, // Store all files as JSON
       };
 
       const { error } = await supabase
@@ -1882,11 +2445,10 @@ const Admin = () => {
         field: '',
         description: '',
         abstract: '',
-        status: 'Pending',
+        status: 'Filed',
         year: new Date().getFullYear().toString()
       });
-      setPatentFile(null);
-      setPatentFileName('');
+      setPatentFiles([]);
 
       toast({ title: 'Success', description: 'Patent saved successfully!' });
     } catch (error) {
@@ -1907,9 +2469,15 @@ const Admin = () => {
       field: patent.field,
       description: patent.description || '',
       abstract: patent.abstract || '',
-      status: patent.status || 'Pending',
-      year: patent.year || new Date().getFullYear().toString()
+      status: patent.status || 'Filed',
+      year: patent.year || new Date().getFullYear().toString(),
+      file_url: patent.file_url || '',
+      file_name: patent.file_name || '',
+      files: patent.files || []
     });
+    // Reset file management states
+    setPatentEditNewFiles([]);
+    setPatentEditFilesToDelete([]);
     setShowPatentModal(true);
   };
 
@@ -1920,66 +2488,164 @@ const Admin = () => {
       return;
     }
 
-    const patentData = {
-      title: patentEditForm.title,
-      patent_number: patentEditForm.patentId,
-      inventors: patentEditForm.inventors,
-      field: patentEditForm.field,
-      description: patentEditForm.description,
-      abstract: patentEditForm.abstract,
-      status: patentEditForm.status,
-      year: patentEditForm.year,
-    };
-
-    const { error } = await supabase
-      .from('admin_patents')
-      .update(patentData)
-      .eq('id', editingPatent.id);
+    setUploadingPatent(true);
     
-    if (error) {
-      console.error('Error updating patent:', error);
-      toast({ title: 'Error', description: 'Error updating patent', variant: 'destructive' })
+    try {
+      // Start with existing files (excluding those marked for deletion)
+      let updatedFiles = patentEditForm.files.filter(f => !patentEditFilesToDelete.includes(f.url));
+      
+      // Delete files marked for deletion from storage
+      for (const fileUrl of patentEditFilesToDelete) {
+        const filePathMatch = fileUrl.match(/patent-files\/(.+)$/);
+        if (filePathMatch) {
+          await supabase.storage.from('patent-files').remove([filePathMatch[1]]);
+        }
+      }
+
+      // Upload new files
+      for (const file of patentEditNewFiles) {
+        const fileExt = file.name.split('.').pop();
+        const filePath = `patents/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('patent-files')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          console.error('Error uploading file:', uploadError);
+          toast({ title: 'Error', description: 'Failed to upload file: ' + uploadError.message, variant: 'destructive' });
+          setUploadingPatent(false);
+          return;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('patent-files')
+          .getPublicUrl(filePath);
+
+        updatedFiles.push({ url: publicUrl, name: file.name });
+      }
+
+      // Primary file is the first one (for backward compatibility)
+      const primaryFile = updatedFiles[0];
+
+      const patentData = {
+        title: patentEditForm.title,
+        patent_number: patentEditForm.patentId,
+        inventors: patentEditForm.inventors,
+        field: patentEditForm.field,
+        description: patentEditForm.description,
+        abstract: patentEditForm.abstract,
+        status: patentEditForm.status,
+        year: patentEditForm.year,
+        file_url: primaryFile?.url || null,
+        file_name: primaryFile?.name || null,
+        files: updatedFiles.length > 0 ? updatedFiles : null,
+      };
+
+      const { error } = await supabase
+        .from('admin_patents')
+        .update(patentData)
+        .eq('id', editingPatent.id);
+      
+      if (error) {
+        console.error('Error updating patent:', error);
+        toast({ title: 'Error', description: 'Error updating patent', variant: 'destructive' })
+        return;
+      }
+
+      // Also update the corresponding entry in admin_technologies (featured technologies)
+      const { error: techError } = await supabase
+        .from('admin_technologies')
+        .update({
+          title: patentEditForm.title,
+          description: patentEditForm.description || patentEditForm.abstract || `Patent in ${patentEditForm.field}`,
+          field: patentEditForm.field,
+          status: patentEditForm.status,
+          inventors: patentEditForm.inventors,
+          year: patentEditForm.year,
+          abstract: patentEditForm.abstract,
+          patent_number: patentEditForm.patentId
+        })
+        .eq('id', editingPatent.id);
+      
+      if (techError) {
+        console.error('Error updating featured technology:', techError);
+        // Don't block the patent update if featured tech update fails
+      }
+
+      loadPatents();
+      loadTechnologies(); // Refresh featured technologies
+      window.dispatchEvent(new Event('storage'));
+      
+      setShowPatentModal(false);
+      setEditingPatent(null);
+      setPatentEditNewFiles([]);
+      setPatentEditFilesToDelete([]);
+      setPatentEditForm({
+        title: '',
+        patentId: '',
+        inventors: '',
+        field: '',
+        description: '',
+        abstract: '',
+        status: 'Filed',
+        year: new Date().getFullYear().toString(),
+        file_url: '',
+        file_name: '',
+        files: []
+      });
+      
+      toast({ title: 'Success', description: 'Patent updated successfully!' })
+    } catch (err) {
+      console.error('Error in update:', err);
+      toast({ title: 'Error', description: 'An unexpected error occurred', variant: 'destructive' })
+    } finally {
+      setUploadingPatent(false);
+    }
+  };
+
+  // Handle saving licensed revenue
+  const handleSaveRevenue = async () => {
+    const revenue = parseFloat(licensedRevenue);
+    if (isNaN(revenue) || revenue < 0) {
+      toast({ title: 'Error', description: 'Please enter a valid revenue amount', variant: 'destructive' });
       return;
     }
-
-    // Also update the corresponding entry in admin_technologies (featured technologies)
-    const { error: techError } = await supabase
-      .from('admin_technologies')
-      .update({
-        title: patentEditForm.title,
-        description: patentEditForm.description || patentEditForm.abstract || `Patent in ${patentEditForm.field}`,
-        field: patentEditForm.field,
-        status: patentEditForm.status,
-        inventors: patentEditForm.inventors,
-        year: patentEditForm.year,
-        abstract: patentEditForm.abstract,
-        patent_number: patentEditForm.patentId
-      })
-      .eq('id', editingPatent.id);
-    
-    if (techError) {
-      console.error('Error updating featured technology:', techError);
-      // Don't block the patent update if featured tech update fails
+    setSavingRevenue(true);
+    try {
+      // Use RPC function to update licensed_revenue
+      const { error } = await supabase
+        .rpc('update_licensed_revenue' as any, { new_revenue: revenue });
+      
+      if (error) {
+        console.error('Error updating revenue:', error);
+        toast({ title: 'Error', description: 'Failed to save revenue: ' + error.message, variant: 'destructive' });
+        return;
+      }
+      
+      // Verify the save by re-reading the value
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('admin_dashboard_stats')
+        .select('licensed_revenue')
+        .limit(1);
+      
+      if (!verifyError && verifyData && verifyData.length > 0) {
+        const saved = Number((verifyData[0] as any).licensed_revenue);
+        setLicensedRevenue(String(saved));
+        if (saved !== revenue) {
+          toast({ title: 'Warning', description: `Value may not have saved correctly. Database shows ₱${saved.toLocaleString()} instead of ₱${revenue.toLocaleString()}.`, variant: 'destructive' });
+          setSavingRevenue(false);
+          return;
+        }
+      }
+      
+      toast({ title: 'Success', description: `Licensed revenue saved: ₱${revenue.toLocaleString()}` });
+    } catch (err) {
+      console.error('Error saving revenue:', err);
+      toast({ title: 'Error', description: 'An unexpected error occurred', variant: 'destructive' });
+    } finally {
+      setSavingRevenue(false);
     }
-
-    loadPatents();
-    loadTechnologies(); // Refresh featured technologies
-    window.dispatchEvent(new Event('storage'));
-    
-    setShowPatentModal(false);
-    setEditingPatent(null);
-    setPatentEditForm({
-      title: '',
-      patentId: '',
-      inventors: '',
-      field: '',
-      description: '',
-      abstract: '',
-      status: 'Pending',
-      year: new Date().getFullYear().toString()
-    });
-    
-    toast({ title: 'Success', description: 'Patent updated successfully!' })
   };
 
   // Handle deleting a patent
@@ -2013,6 +2679,8 @@ const Admin = () => {
     { key: 'year', label: 'Year', default: true },
     { key: 'description', label: 'Description', default: false },
     { key: 'abstract', label: 'Abstract', default: false },
+    { key: 'fileCount', label: 'File Count', default: false },
+    { key: 'fileNames', label: 'File Names', default: false },
   ];
 
   const handleDownloadCSV = () => {
@@ -2029,8 +2697,13 @@ const Admin = () => {
       return matchesSearch && matchesField;
     });
 
-    if (filteredPatents.length === 0) {
-      toast({ title: 'Validation Error', description: 'No patents to download based on current filters.', variant: 'destructive' })
+    // Further filter to only selected patents if in selected mode
+    const patentsToExport = patentExportMode === 'selected' 
+      ? filteredPatents.filter(p => selectedPatentsForExport.includes(p.id))
+      : filteredPatents;
+
+    if (patentsToExport.length === 0) {
+      toast({ title: 'Validation Error', description: patentExportMode === 'selected' ? 'No patents selected for export.' : 'No patents to download based on current filters.', variant: 'destructive' })
       return;
     }
 
@@ -2041,9 +2714,25 @@ const Admin = () => {
     });
 
     // Create CSV rows
-    const rows = filteredPatents.map(patent => {
+    const rows = patentsToExport.map(patent => {
       return selectedPatentFields.map(field => {
-        const value = patent[field];
+        let value;
+        
+        // Handle special fields for file information
+        if (field === 'fileCount') {
+          value = patent.files?.length || (patent.file_url ? 1 : 0);
+        } else if (field === 'fileNames') {
+          if (patent.files && patent.files.length > 0) {
+            value = patent.files.map((f: any) => f.name).join('; ');
+          } else if (patent.file_name) {
+            value = patent.file_name;
+          } else {
+            value = '';
+          }
+        } else {
+          value = patent[field];
+        }
+        
         // Escape quotes and wrap in quotes if contains comma
         if (value === null || value === undefined) return '';
         const stringValue = String(value);
@@ -2088,37 +2777,135 @@ const Admin = () => {
     
     try {
       const text = await file.text();
-      const lines = text.split('\n').filter(line => line.trim());
       
-      if (lines.length < 2) {
+      // Strip BOM if present (Excel CSV exports)
+      const cleanText = text.replace(/^\uFEFF/, '');
+      
+      // Detect delimiter (comma or tab)
+      const firstLine = cleanText.split(/\r?\n/)[0] || '';
+      const delimiter = firstLine.includes('\t') ? '\t' : ',';
+      
+      // Parse CSV/TSV with proper quote handling that supports multi-line fields
+      const parseCSV = (csvText: string, delim: string): { headers: string[], rows: string[][] } => {
+        const rows: string[][] = [];
+        let currentRow: string[] = [];
+        let currentField = '';
+        let inQuotes = false;
+        let i = 0;
+        
+        while (i < csvText.length) {
+          const char = csvText[i];
+          const nextChar = csvText[i + 1];
+          
+          if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+              // Escaped quote
+              currentField += '"';
+              i += 2;
+              continue;
+            } else {
+              // Toggle quote state
+              inQuotes = !inQuotes;
+            }
+          } else if (char === delim && !inQuotes) {
+            // End of field
+            currentRow.push(currentField.trim());
+            currentField = '';
+          } else if ((char === '\n' || char === '\r') && !inQuotes) {
+            // End of row
+            if (currentField.length > 0 || currentRow.length > 0) {
+              currentRow.push(currentField.trim());
+              if (currentRow.some(field => field.length > 0)) {
+                rows.push(currentRow);
+              }
+              currentRow = [];
+              currentField = '';
+            }
+            // Handle \r\n line endings
+            if (char === '\r' && nextChar === '\n') {
+              i++;
+            }
+          } else {
+            currentField += char;
+          }
+          i++;
+        }
+        
+        // Don't forget the last field/row
+        if (currentField.length > 0 || currentRow.length > 0) {
+          currentRow.push(currentField.trim());
+          if (currentRow.some(field => field.length > 0)) {
+            rows.push(currentRow);
+          }
+        }
+        
+        // First row is headers
+        const headers = rows.shift() || [];
+        return { headers, rows };
+      };
+      
+      const { headers: rawHeaders, rows: parsedRows } = parseCSV(cleanText, delimiter);
+      
+      if (rawHeaders.length === 0 || parsedRows.length === 0) {
         toast({ title: 'Validation Error', description: 'CSV file is empty or invalid.', variant: 'destructive' })
         return;
       }
-
-      // Parse header
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+      
+      // Map header labels to field keys
+      // Download uses: Title, Patent ID, Inventors, Field, Status, Year, Abstract, Description
+      // We need to map these to: title, patentId, inventors, field, status, year, abstract, description
+      const headerMapping: { [key: string]: string } = {
+        'title': 'title',
+        'Title': 'title',
+        'patentid': 'patentId',
+        'Patent ID': 'patentId',
+        'PatentID': 'patentId',
+        'inventors': 'inventors',
+        'Inventors': 'inventors',
+        'field': 'field',
+        'Field': 'field',
+        'status': 'status',
+        'Status': 'status',
+        'year': 'year',
+        'Year': 'year',
+        'abstract': 'abstract',
+        'Abstract': 'abstract',
+        'description': 'description',
+        'Description': 'description',
+      };
+      
+      const headers = rawHeaders.map(h => {
+        const cleanHeader = h.replace(/^"|"$/g, '');
+        return headerMapping[cleanHeader] || cleanHeader.toLowerCase();
+      });
       
       // Required fields
       const requiredFields = ['title', 'field'];
       const missingFields = requiredFields.filter(field => !headers.includes(field));
       
       if (missingFields.length > 0) {
-        toast({ title: 'Validation Error', description: `Missing required fields: ${missingFields.join(', ')}`, variant: 'destructive' });
+        toast({ 
+          title: 'Validation Error', 
+          description: `Missing required fields: ${missingFields.join(', ')}. Detected headers: ${rawHeaders.join(', ')}`, 
+          variant: 'destructive' 
+        });
         return;
       }
 
       // Parse data rows
       const patentsToInsert = [];
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+      for (const row of parsedRows) {
         const patent: any = {};
         
         headers.forEach((header, index) => {
-          patent[header] = values[index] || '';
+          let value = row[index] || '';
+          // Remove surrounding quotes and unescape double quotes
+          value = value.replace(/^"|"$/g, '').replace(/""/g, '"');
+          patent[header] = value;
         });
 
         // Set defaults
-        patent.status = patent.status || 'Pending';
+        patent.status = patent.status || 'Filed';
         patent.year = patent.year || new Date().getFullYear().toString();
         
         patentsToInsert.push(patent);
@@ -2163,8 +2950,8 @@ const Admin = () => {
       toast({ title: 'Error', description: 'Error parsing CSV file. Please check the format.', variant: 'destructive' })
     } finally {
       setIsUploading(false);
-      // Reset file input
-      event.target.value = '';
+      // Reset file input by incrementing key
+      setCsvUploadKey(prev => prev + 1);
     }
   };
 
@@ -3159,7 +3946,14 @@ const Admin = () => {
                           className={`px-4 py-3 hover:bg-muted/50 cursor-pointer transition-colors ${
                             !notification.isRead ? 'bg-blue-50/50' : ''
                           }`}
-                          onClick={() => markNotificationAsRead(notification.id)}
+                          onClick={() => {
+                            markNotificationAsRead(notification.id);
+                            // If this notification is linked to an IP application, open its detail modal
+                            if (notification.type === 'ip_application' && notification.application_id) {
+                              setNotificationOpen(false);
+                              navigateToIpApplication(notification.application_id);
+                            }
+                          }}
                         >
                           <div className="flex items-start gap-3">
                             <div className="mt-0.5">
@@ -3169,6 +3963,11 @@ const Admin = () => {
                               <p className={`text-sm ${!notification.isRead ? 'font-medium' : ''}`}>
                                 {notification.title}
                               </p>
+                              {notification.description && (
+                                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                                  {notification.description}
+                                </p>
+                              )}
                               <p className="text-xs text-muted-foreground mt-0.5">
                                 {notification.action} • {formatRelativeTime(notification.timestamp)}
                               </p>
@@ -3201,8 +4000,10 @@ const Admin = () => {
                       size="sm" 
                       className="w-full text-xs"
                       onClick={() => {
-                        navigate('/notifications');
+                        markAllNotificationsAsRead();
                         setNotificationOpen(false);
+                        // Navigate to full notifications page
+                        navigate('/notifications');
                       }}
                     >
                       View all notifications
@@ -3220,13 +4021,14 @@ const Admin = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 ">
-        <Tabs defaultValue="dashboard" className="space-y-6 ">
-          <TabsList className={`grid w-full text-[#f7f7f7] ${currentUserRole === 'admin' ? 'grid-cols-8' : 'grid-cols-7'}`}>
+        <Tabs value={activeAdminTab} onValueChange={setActiveAdminTab} className="space-y-6 ">
+          <TabsList className={`grid w-full text-[#f7f7f7] ${currentUserRole === 'admin' ? 'grid-cols-9' : 'grid-cols-8'}`}>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="news">News</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
             <TabsTrigger value="patents">Patents</TabsTrigger>
+            <TabsTrigger value="ip-applications">IP Applications</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="resources">Resources</TabsTrigger>
             {currentUserRole === 'admin' && <TabsTrigger value="users">Users</TabsTrigger>}
@@ -3285,18 +4087,28 @@ const Admin = () => {
                   {recentActivity
                     .slice((activityPage - 1) * ACTIVITIES_PER_PAGE, activityPage * ACTIVITIES_PER_PAGE)
                     .map((activity) => (
-                    <div key={activity.id} className="flex items-center gap-4 p-3 border rounded-lg">
+                    <div key={activity.id} className={`flex items-center gap-4 p-3 border rounded-lg ${activity.type === 'ip_application' && activity.application_id ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                      onClick={() => {
+                        if (activity.type === 'ip_application' && activity.application_id) {
+                          navigateToIpApplication(activity.application_id);
+                        }
+                      }}
+                    >
                       <div className={`w-2 h-2 rounded-full ${
+                        activity.type === 'ip_application' ? 'bg-cyan-500' :
                         activity.type === 'news' ? 'bg-blue-500' :
                         activity.type === 'technology' ? 'bg-green-500' :
                         activity.type === 'service' ? 'bg-purple-500' :
                         activity.type === 'event' ? 'bg-orange-500' :
                         'bg-gray-500'
                       }`}></div>
-                      <div>
-                        <p className="font-medium">{activity.action} {activity.type}</p>
+                      <div className="flex-1">
+                        <p className="font-medium">{activity.action} {activity.type === 'ip_application' ? 'IP Application' : activity.type}</p>
                         <p className="text-sm text-muted-foreground">{activity.title} - {formatDate(activity.timestamp)}</p>
                       </div>
+                      {activity.type === 'ip_application' && activity.application_id && (
+                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -3442,196 +4254,26 @@ const Admin = () => {
           <TabsContent value="news" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">News Management</h2>
-              <Button variant="ustp" onClick={() => { setEditingNews(null); setShowNewsModal(true); }}>
+              <Button variant="ustp" onClick={() => { 
+                setEditingNews(null); 
+                setNewsForm({
+                  title: '',
+                  category: '',
+                  author: '',
+                  date: new Date().toISOString().split('T')[0],
+                  excerpt: '',
+                  content: '',
+                  image: null,
+                  contentImages: [],
+                  youtubeUrl: ''
+                });
+                setExistingContentImages([]);
+                setShowNewsModal(true); 
+              }}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create News Article
               </Button>
             </div>
-
-            <Card id="news-form" className={showNewsModal ? "hidden" : ""}>
-              <CardHeader>
-                <CardTitle>
-                  {editingNews ? (
-                    <div className="flex items-center gap-2">
-                      <Edit className="h-5 w-5 text-blue-600" />
-                      Edit Article: "{editingNews.title}"
-                    </div>
-                  ) : (
-                    "Create News Article"
-                  )}
-                </CardTitle>
-                {editingNews && (
-                  <CardDescription className="text-blue-600">
-                    You are currently editing an existing article. Changes will update the original article.
-                  </CardDescription>
-                )}
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="news-title">Article Title *</Label>
-                    <Input 
-                      id="news-title" 
-                      placeholder="Enter article title" 
-                      value={newsForm.title}
-                      onChange={(e) => setNewsForm({...newsForm, title: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="news-category">Category *</Label>
-                    <Select value={newsForm.category} onValueChange={(value) => setNewsForm({...newsForm, category: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Events">Events</SelectItem>
-                        <SelectItem value="Partnerships">Partnerships</SelectItem>
-                        <SelectItem value="Education">Education</SelectItem>
-                        <SelectItem value="Innovation">Innovation</SelectItem>
-                        <SelectItem value="Announcements">Announcements</SelectItem>
-                        <SelectItem value="Patent">Patent</SelectItem>
-                        <SelectItem value="Research">Research</SelectItem>
-                        <SelectItem value="Licensing">Licensing</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="news-author">Author</Label>
-                    <Input 
-                      id="news-author" 
-                      placeholder="Article author" 
-                      value={newsForm.author}
-                      onChange={(e) => setNewsForm({...newsForm, author: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="news-date">Publication Date</Label>
-                    <Input 
-                      id="news-date" 
-                      type="date" 
-                      value={newsForm.date}
-                      onChange={(e) => setNewsForm({...newsForm, date: e.target.value})}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="news-excerpt">Excerpt</Label>
-                  <Textarea 
-                    id="news-excerpt" 
-                    placeholder="Brief summary of the article" 
-                    rows={2} 
-                    value={newsForm.excerpt}
-                    onChange={(e) => setNewsForm({...newsForm, excerpt: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="news-content">Article Content *</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/*';
-                        input.multiple = true;
-                        input.onchange = async (e) => {
-                          const files = Array.from((e.target as HTMLInputElement).files || []);
-                          if (files.length === 0) return;
-                          const startIndex = existingContentImages.length + newsForm.contentImages.length;
-                          const newFiles = [...newsForm.contentImages, ...files];
-                          let markers = '';
-                          files.forEach((_, i) => {
-                            markers += `\n[IMAGE:${startIndex + i}]\n`;
-                          });
-                          const textarea = document.getElementById('news-content') as HTMLTextAreaElement;
-                          if (textarea) {
-                            const pos = textarea.selectionStart;
-                            const content = newsForm.content;
-                            const newContent = content.slice(0, pos) + markers + content.slice(pos);
-                            setNewsForm({...newsForm, content: newContent, contentImages: newFiles});
-                          } else {
-                            setNewsForm({...newsForm, content: newsForm.content + markers, contentImages: newFiles});
-                          }
-                        };
-                        input.click();
-                      }}
-                    >
-                      <Upload className="h-4 w-4 mr-1" /> Insert Image
-                    </Button>
-                  </div>
-                  <Textarea 
-                    id="news-content" 
-                    placeholder="Full article content. Use 'Insert Image' to add images inline." 
-                    rows={8} 
-                    value={newsForm.content}
-                    onChange={(e) => setNewsForm({...newsForm, content: e.target.value})}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Use the "Insert Image" button to add images directly into the article. They appear as [IMAGE:N] markers.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="news-image">Featured Image</Label>
-                  <Input 
-                    id="news-image" 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={(e) => setNewsForm({...newsForm, image: e.target.files?.[0] || null})}
-                  />
-                </div>
-                
-                {/* YouTube URL */}
-                <div className="space-y-2">
-                  <Label htmlFor="news-youtube-url">YouTube Video URL</Label>
-                  <Input 
-                    id="news-youtube-url" 
-                    type="url" 
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    value={newsForm.youtubeUrl}
-                    onChange={(e) => setNewsForm({...newsForm, youtubeUrl: e.target.value})}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Add a YouTube video URL to embed it in the article.
-                  </p>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button variant="ustp" onClick={handlePublishNews}>
-                    {editingNews ? 'Update Article' : 'Publish Article'}
-                  </Button>
-                  <Button variant="outline" onClick={handleSaveDraft}>
-                    {editingNews ? 'Save Changes as Draft' : 'Save as Draft'}
-                  </Button>
-                  {editingNews && (
-                    <Button 
-                      variant="ghost" 
-                      onClick={() => {
-                        if (confirm('Are you sure you want to cancel editing? Any unsaved changes will be lost.')) {
-                          setEditingNews(null);
-                          setNewsForm({
-                            title: '',
-                            category: '',
-                            author: '',
-                            date: new Date().toISOString().split('T')[0],
-                            excerpt: '',
-                            content: '',
-                            image: null,
-                            contentImages: [],
-                            youtubeUrl: ''
-                          });
-                          toast({ title: 'Info', description: 'Editing cancelled. Form has been reset to create a new article.' })
-                        }
-                      }}
-                      className="text-gray-600 hover:text-gray-800"
-                    >
-                      ❌ Cancel Edit
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
 
             {/* News Tabs */}
             <Card>
@@ -4143,15 +4785,15 @@ const Admin = () => {
                         type="file"
                         accept=".csv"
                         onChange={handleCSVUpload}
-                        disabled={isUploading}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                         id="csv-upload"
+                        key={csvUploadKey}
                       />
                       <Button 
                         variant="outline" 
                         size="sm"
                         disabled={isUploading}
-                        className="relative"
+                        className="relative pointer-events-none"
                       >
                         {isUploading ? (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -4366,6 +5008,52 @@ const Admin = () => {
               </CardContent>
             </Card>
 
+            {/* Licensed Revenue */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-violet-600" />
+                  <div>
+                    <CardTitle>Licensed (Revenue)</CardTitle>
+                    <CardDescription>Enter total revenue from licensed patents (from logbook)</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {licensedRevenue && parseFloat(licensedRevenue) > 0 && (
+                  <div className="mb-3 p-3 bg-violet-50 rounded-lg">
+                    <p className="text-sm text-violet-700">Current value shown in Portfolio Overview:</p>
+                    <p className="text-lg font-bold text-violet-900">₱{parseFloat(licensedRevenue).toLocaleString()}</p>
+                  </div>
+                )}
+                <div className="flex flex-col sm:flex-row gap-3 items-end">
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor="licensed-revenue">Total Revenue (PHP)</Label>
+                    <Input
+                      id="licensed-revenue"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={licensedRevenue}
+                      onChange={(e) => setLicensedRevenue(e.target.value)}
+                      placeholder="e.g. 150000"
+                    />
+                  </div>
+                  <Button 
+                    variant="ustp" 
+                    onClick={handleSaveRevenue}
+                    disabled={savingRevenue}
+                  >
+                    {savingRevenue ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</>
+                    ) : (
+                      <><DollarSign className="mr-2 h-4 w-4" />Save</>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Add New Patent - Now Second */}
             <Card>
               <CardHeader>
@@ -4439,6 +5127,7 @@ const Admin = () => {
                         <SelectItem value="Registered">Registered</SelectItem>
                         <SelectItem value="Commercialized">Commercialized</SelectItem>
                         <SelectItem value="Licensed">Licensed</SelectItem>
+                        <SelectItem value="Under Review">Under Review</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -4476,47 +5165,66 @@ const Admin = () => {
                   />
                 </div>
 
-                {/* File Upload Section */}
-                <div className="space-y-2">
-                  <Label htmlFor="patent-file">Attach PDF File</Label>
-                  <div className="flex items-center gap-4">
-                    <div className="relative flex-1">
-                      <input
-                        type="file"
-                        id="patent-file"
-                        accept=".pdf"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setPatentFile(file);
-                            setPatentFileName(file.name);
-                          }
-                        }}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      />
-                      <div className="flex items-center gap-2 px-3 py-2 border rounded-md bg-white hover:bg-gray-50 transition-colors">
-                        <FileUp className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600 truncate">
-                          {patentFileName || 'Choose PDF file...'}
-                        </span>
-                      </div>
-                    </div>
-                    {patentFile && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setPatentFile(null);
-                          setPatentFileName('');
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
+                {/* File Upload Section - Multiple Files */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Attach PDF Files</Label>
+                    <span className="text-xs text-muted-foreground">
+                      {patentFiles.length} file{patentFiles.length !== 1 ? 's' : ''} selected
+                    </span>
                   </div>
+                  
+                  {/* Selected Files List */}
+                  {patentFiles.length > 0 && (
+                    <div className="space-y-2">
+                      {patentFiles.map((file, index) => (
+                        <div key={index} className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <FileText className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
+                            <p className="text-xs text-blue-600">
+                              {index === 0 ? 'Primary document' : 'Additional document'}
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700"
+                            onClick={() => {
+                              setPatentFiles(patentFiles.filter((_, i) => i !== index));
+                            }}
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Add File Button */}
+                  <div className="relative">
+                    <input
+                      type="file"
+                      id="patent-file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setPatentFiles([...patentFiles, file]);
+                        }
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                    <Button variant="outline" size="sm" className="w-full relative pointer-events-none">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Add PDF File
+                    </Button>
+                  </div>
+                  
                   <p className="text-xs text-muted-foreground">
-                    Upload a PDF file containing the patent document (optional)
+                    Upload PDF files containing the patent documents (optional). First file will be the primary document.
                   </p>
                 </div>
 
@@ -4537,6 +5245,333 @@ const Admin = () => {
                     </>
                   )}
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* IP Applications Tab */}
+          <TabsContent value="ip-applications" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold">IP Applications</h2>
+                <p className="text-muted-foreground">Review and manage faculty IP submissions</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={loadIpApplications} disabled={ipAppLoading}>
+                  {ipAppLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Clock className="mr-2 h-4 w-4" />}
+                  Refresh
+                </Button>
+              </div>
+            </div>
+
+            {/* Statistics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Applications</p>
+                      <p className="text-2xl font-bold">{ipApplications.length}</p>
+                    </div>
+                    <FileText className="h-8 w-8 text-blue-500" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">For Review</p>
+                      <p className="text-2xl font-bold">
+                        {ipApplications.filter(app => 
+                          app.status === 'Submitted for Internal Review' || 
+                          app.status === 'Under Internal Review'
+                        ).length}
+                      </p>
+                    </div>
+                    <Clock className="h-8 w-8 text-yellow-500" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Needs Revision</p>
+                      <p className="text-2xl font-bold">
+                        {ipApplications.filter(app => app.status === 'Needs Revision').length}
+                      </p>
+                    </div>
+                    <Edit className="h-8 w-8 text-orange-500" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Approved</p>
+                      <p className="text-2xl font-bold">
+                        {ipApplications.filter(app => 
+                          app.status === 'Approved for IPOPHL Filing' ||
+                          app.status === 'Filed to IPOPHL' ||
+                          app.status === 'Granted'
+                        ).length}
+                      </p>
+                    </div>
+                    <CheckCircle className="h-8 w-8 text-green-500" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Filters */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search by title, applicant, or field..."
+                      value={ipAppSearchTerm}
+                      onChange={(e) => {
+                        setIpAppSearchTerm(e.target.value);
+                        setIpAppCurrentPage(1);
+                      }}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Select value={ipAppStatusFilter} onValueChange={(value) => {
+                    setIpAppStatusFilter(value);
+                    setIpAppCurrentPage(1);
+                  }}>
+                    <SelectTrigger className="w-full md:w-[200px]">
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="Submitted for Internal Review">For Review</SelectItem>
+                      <SelectItem value="Under Internal Review">Under Review</SelectItem>
+                      <SelectItem value="Needs Revision">Needs Revision</SelectItem>
+                      <SelectItem value="Approved for IPOPHL Filing">Approved for Filing</SelectItem>
+                      <SelectItem value="Filed to IPOPHL">Filed to IPOPHL</SelectItem>
+                      <SelectItem value="Under IPOPHL Examination">Under Examination</SelectItem>
+                      <SelectItem value="Granted">Granted</SelectItem>
+                      <SelectItem value="Rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={ipAppTypeFilter} onValueChange={(value) => {
+                    setIpAppTypeFilter(value);
+                    setIpAppCurrentPage(1);
+                  }}>
+                    <SelectTrigger className="w-full md:w-[200px]">
+                      <FileText className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filter by type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="Patent">Patent</SelectItem>
+                      <SelectItem value="Utility Model">Utility Model</SelectItem>
+                      <SelectItem value="Industrial Design">Industrial Design</SelectItem>
+                      <SelectItem value="Copyright">Copyright</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Applications Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Applications ({getFilteredIpApplications().length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {ipAppLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                  </div>
+                ) : getFilteredIpApplications().length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                    <p>No IP applications found.</p>
+                    <p className="text-sm">Applications submitted by faculty will appear here.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b bg-gray-50">
+                            <th className="text-left p-3 text-sm font-semibold text-gray-700">Application</th>
+                            <th className="text-left p-3 text-sm font-semibold text-gray-700">Applicant</th>
+                            <th className="text-left p-3 text-sm font-semibold text-gray-700">Type</th>
+                            <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
+                            <th className="text-left p-3 text-sm font-semibold text-gray-700">Submitted</th>
+                            <th className="text-left p-3 text-sm font-semibold text-gray-700">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {getPaginatedIpApplications().map((app) => (
+                            <tr key={app.id} className="border-b hover:bg-gray-50">
+                              <td className="p-3">
+                                <div className="flex items-center gap-2">
+                                  <div>
+                                    <p className="font-medium text-sm">{app.title}</p>
+                                    <p className="text-xs text-gray-500">{app.field_of_technology}</p>
+                                  </div>
+                                  {(app as any)._facultyCommentCount > 0 && (
+                                    <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 ml-auto" title={`${(app as any)._facultyCommentCount} faculty comment(s)`}>
+                                      <MessageSquare className="h-3 w-3 mr-1" />
+                                      {(app as any)._facultyCommentCount}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="p-3">
+                                <div>
+                                  <p className="text-sm">{app.applicant_full_name}</p>
+                                  <p className="text-xs text-gray-500">{app.faculty?.department}</p>
+                                </div>
+                              </td>
+                              <td className="p-3">
+                                <Badge variant="outline">{app.ip_type}</Badge>
+                              </td>
+                              <td className="p-3">
+                                <Badge className={`${getIpAppStatusBadge(app.status)} text-white`}>
+                                  {getIpAppStatusDisplay(app.status)}
+                                </Badge>
+                              </td>
+                              <td className="p-3 text-sm text-gray-600">
+                                {app.submitted_at ? formatRelativeTime(app.submitted_at) : 'Draft'}
+                              </td>
+                              <td className="p-3">
+                                <div className="flex items-center gap-1">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedIpApp(app);
+                                      setShowIpAppDetailModal(true);
+                                      loadIpAppComments(app.id);
+                                    }}
+                                    title="View Details"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  {(app.status === 'Submitted for Internal Review' || app.status === 'Under Internal Review') && (
+                                    <>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        onClick={() => {
+                                          setSelectedIpApp(app);
+                                          setIpAppReviewAction('approve');
+                                          setIpAppReviewNotes('');
+                                          setShowIpAppReviewModal(true);
+                                        }}
+                                        title="Approve"
+                                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                      >
+                                        <CheckCircle className="h-4 w-4" />
+                                      </Button>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        onClick={() => {
+                                          setSelectedIpApp(app);
+                                          setIpAppReviewAction('return');
+                                          setIpAppReviewNotes('');
+                                          setShowIpAppReviewModal(true);
+                                        }}
+                                        title="Flag for Revision"
+                                        className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                      >
+                                        <AlertCircle className="h-4 w-4" />
+                                      </Button>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        onClick={() => {
+                                          setSelectedIpApp(app);
+                                          setIpAppReviewAction('reject');
+                                          setIpAppReviewNotes('');
+                                          setShowIpAppReviewModal(true);
+                                        }}
+                                        title="Reject"
+                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      >
+                                        <XCircle className="h-4 w-4" />
+                                      </Button>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        onClick={() => {
+                                          setSelectedIpApp(app);
+                                          setIpAppReviewNotes('');
+                                          setShowIpAppReviewModal(true);
+                                        }}
+                                        title="Leave Comment"
+                                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                      >
+                                        <MessageSquare className="h-4 w-4" />
+                                      </Button>
+                                    </>
+                                  )}
+                                  {app.status === 'Needs Revision' && (
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedIpApp(app);
+                                        setIpAppReviewNotes('');
+                                        setShowIpAppReviewModal(true);
+                                      }}
+                                      title="Leave Comment"
+                                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                    >
+                                      <MessageSquare className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Pagination */}
+                    {getTotalIpAppPages() > 1 && (
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                        <p className="text-sm text-gray-600">
+                          Showing {((ipAppCurrentPage - 1) * ipAppsPerPage) + 1} - {Math.min(ipAppCurrentPage * ipAppsPerPage, getFilteredIpApplications().length)} of {getFilteredIpApplications().length}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIpAppCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={ipAppCurrentPage === 1}
+                          >
+                            Previous
+                          </Button>
+                          <span className="flex items-center px-3 text-sm">
+                            Page {ipAppCurrentPage} of {getTotalIpAppPages()}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIpAppCurrentPage(prev => Math.min(getTotalIpAppPages(), prev + 1))}
+                            disabled={ipAppCurrentPage === getTotalIpAppPages()}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -5127,7 +6162,7 @@ const Admin = () => {
 
       {/* News Edit Modal */}
       <Dialog open={showNewsModal} onOpenChange={setShowNewsModal}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+        <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>
               {editingNews ? 'Edit News Article' : 'Create News Article'}
@@ -5140,18 +6175,19 @@ const Admin = () => {
           <div className="space-y-4 overflow-y-auto flex-1 pr-1">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="modal-news-title">Article Title *</Label>
+                <Label htmlFor="modal-news-title" className="ml-2">Article Title *</Label>
                 <Input 
                   id="modal-news-title" 
+                  className="ml-2 mr-2"
                   value={newsForm.title}
                   onChange={(e) => setNewsForm({...newsForm, title: e.target.value})}
                   placeholder="Enter article title"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="modal-news-category">Category *</Label>
+                <Label htmlFor="modal-news-category" className="ml-2">Category *</Label>
                 <Select value={newsForm.category} onValueChange={(value) => setNewsForm({...newsForm, category: value})}>
-                  <SelectTrigger>
+                  <SelectTrigger className="ml-2 mr-2">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -5167,28 +6203,31 @@ const Admin = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="modal-news-author">Author</Label>
+                <Label htmlFor="modal-news-author" className="ml-2">Author</Label>
                 <Input 
                   id="modal-news-author" 
+                  className="ml-2 mr-2"
                   value={newsForm.author}
                   onChange={(e) => setNewsForm({...newsForm, author: e.target.value})}
                   placeholder="Article author"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="modal-news-date">Publication Date</Label>
+                <Label htmlFor="modal-news-date" className="ml-2">Publication Date</Label>
                 <Input 
                   id="modal-news-date" 
                   type="date" 
+                  className="ml-2 mr-2"
                   value={newsForm.date}
                   onChange={(e) => setNewsForm({...newsForm, date: e.target.value})}
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="modal-news-excerpt">Excerpt</Label>
+              <Label htmlFor="modal-news-excerpt" className="ml-2">Excerpt</Label>
               <Textarea 
                 id="modal-news-excerpt" 
+                className="ml-2 mr-2"
                 value={newsForm.excerpt}
                 onChange={(e) => setNewsForm({...newsForm, excerpt: e.target.value})}
                 placeholder="Brief summary of the article" 
@@ -5197,7 +6236,7 @@ const Admin = () => {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="modal-news-content">Article Content *</Label>
+                <Label htmlFor="modal-news-content" className="ml-2">Article Content *</Label>
                 <Button
                   type="button"
                   variant="outline"
@@ -5234,6 +6273,7 @@ const Admin = () => {
               </div>
               <Textarea 
                 id="modal-news-content" 
+                className="ml-2 mr-2"
                 value={newsForm.content}
                 onChange={(e) => setNewsForm({...newsForm, content: e.target.value})}
                 placeholder="Full article content. Use 'Insert Image' to add images inline." 
@@ -5244,21 +6284,23 @@ const Admin = () => {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="modal-news-image">Featured Image</Label>
+              <Label htmlFor="modal-news-image" className="ml-2">Featured Image</Label>
               <Input 
                 id="modal-news-image" 
                 type="file" 
                 accept="image/*" 
+                className="ml-2 mr-2"
                 onChange={(e) => setNewsForm({...newsForm, image: e.target.files?.[0] || null})}
               />
             </div>
             
             {/* YouTube URL in Modal */}
             <div className="space-y-2">
-              <Label htmlFor="modal-news-youtube-url">YouTube Video URL</Label>
+              <Label htmlFor="modal-news-youtube-url" className="ml-2">YouTube Video URL</Label>
               <Input 
                 id="modal-news-youtube-url" 
                 type="url" 
+                className="ml-2 mr-2"
                 placeholder="https://www.youtube.com/watch?v=..."
                 value={newsForm.youtubeUrl}
                 onChange={(e) => setNewsForm({...newsForm, youtubeUrl: e.target.value})}
@@ -5414,7 +6456,7 @@ const Admin = () => {
 
       {/* Patent Edit Modal */}
       <Dialog open={showPatentModal} onOpenChange={setShowPatentModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Edit Patent
@@ -5469,6 +6511,7 @@ const Admin = () => {
                   <SelectItem value="energy">Energy Technology</SelectItem>
                   <SelectItem value="medical">Medical Technology</SelectItem>
                   <SelectItem value="chemical">Chemical Engineering</SelectItem>
+                  <SelectItem value="software">Software</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -5479,9 +6522,10 @@ const Admin = () => {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Available">Available</SelectItem>
+                  <SelectItem value="Filed">Filed</SelectItem>
+                  <SelectItem value="Registered">Registered</SelectItem>
+                  <SelectItem value="Commercialized">Commercialized</SelectItem>
                   <SelectItem value="Licensed">Licensed</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
                   <SelectItem value="Under Review">Under Review</SelectItem>
                 </SelectContent>
               </Select>
@@ -5521,12 +6565,133 @@ const Admin = () => {
                 rows={4}
               />
             </div>
+            
+            {/* Attached Files Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Attached Files</Label>
+                <span className="text-xs text-muted-foreground">
+                  {patentEditForm.files.filter(f => !patentEditFilesToDelete.includes(f.url)).length + patentEditNewFiles.length} file(s)
+                </span>
+              </div>
+              
+              {/* Existing Files from files array */}
+              {patentEditForm.files
+                .filter(file => !patentEditFilesToDelete.includes(file.url))
+                .map((file, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 border rounded-lg">
+                  <FileText className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {file.name || 'PDF Document'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {index === 0 ? 'Primary Document' : 'Additional Document'}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(file.url, '_blank')}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700"
+                      onClick={() => setPatentEditFilesToDelete([...patentEditFilesToDelete, file.url])}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              
+              {/* Legacy single file support (for backward compatibility) */}
+              {patentEditForm.file_url && !patentEditFilesToDelete.includes(patentEditForm.file_url) && 
+               !patentEditForm.files.some(f => f.url === patentEditForm.file_url) && (
+                <div className="flex items-center gap-3 p-3 bg-gray-50 border rounded-lg">
+                  <FileText className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {patentEditForm.file_name || 'PDF Document'}
+                    </p>
+                    <p className="text-xs text-gray-500">PDF Document</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(patentEditForm.file_url, '_blank')}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700"
+                      onClick={() => setPatentEditFilesToDelete([...patentEditFilesToDelete, patentEditForm.file_url])}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {/* New Files to Upload */}
+              {patentEditNewFiles.map((file, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <FileText className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
+                    <p className="text-xs text-blue-600">Ready to upload</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700"
+                    onClick={() => {
+                      setPatentEditNewFiles(patentEditNewFiles.filter((_, i) => i !== index));
+                    }}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              
+              {/* Add File Button */}
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setPatentEditNewFiles([...patentEditNewFiles, e.target.files[0]]);
+                    }
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+                <Button variant="outline" size="sm" className="w-full relative pointer-events-none">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Add PDF File
+                </Button>
+              </div>
+            </div>
           </div>
           
           <DialogFooter>
             <Button variant="outline" onClick={() => {
               setShowPatentModal(false);
               setEditingPatent(null);
+              setPatentEditNewFiles([]);
+              setPatentEditFilesToDelete([]);
               setPatentEditForm({
                 title: '',
                 patentId: '',
@@ -5534,14 +6699,17 @@ const Admin = () => {
                 field: '',
                 description: '',
                 abstract: '',
-                status: 'Pending',
-                year: new Date().getFullYear().toString()
+                status: 'Filed',
+                year: new Date().getFullYear().toString(),
+                file_url: '',
+                file_name: '',
+                files: []
               });
             }}>
               Cancel
             </Button>
-            <Button variant="ustp" onClick={handleUpdatePatent}>
-              Update Patent
+            <Button variant="ustp" onClick={handleUpdatePatent} disabled={uploadingPatent}>
+              {uploadingPatent ? 'Updating...' : 'Update Patent'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -5653,28 +6821,107 @@ const Admin = () => {
       </Dialog>
 
       {/* Patent Download Dialog */}
-      <Dialog open={showDownloadDialog} onOpenChange={setShowDownloadDialog}>
-        <DialogContent className="max-w-md">
+      <Dialog open={showDownloadDialog} onOpenChange={(open) => {
+        setShowDownloadDialog(open);
+        if (!open) {
+          setSelectedPatentsForExport([]);
+          setPatentExportMode('all');
+        }
+      }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Download Patent Portfolio</DialogTitle>
             <DialogDescription>
-              Select which fields to include in the CSV export. The download will include patents matching your current filters.
+              Select which patents and fields to include in the CSV export.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            <div className="text-sm text-muted-foreground mb-2">
-              Patents to export: {patents.filter((patent) => {
-                const matchesSearch = !patentSearchTerm || 
-                  patent.title?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
-                  patent.patentId?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
-                  patent.inventors?.toLowerCase().includes(patentSearchTerm.toLowerCase());
-                const matchesField = patentFieldFilter === 'all' || 
-                  patent.field?.toLowerCase() === patentFieldFilter.toLowerCase();
-                return matchesSearch && matchesField;
-              }).length}
+            {/* Export Mode Selection */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Select Patents to Export:</Label>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="exportMode"
+                    value="all"
+                    checked={patentExportMode === 'all'}
+                    onChange={() => setPatentExportMode('all')}
+                    className="h-4 w-4 text-blue-600"
+                  />
+                  <span className="text-sm">All filtered patents ({patents.filter((patent) => {
+                    const matchesSearch = !patentSearchTerm || 
+                      patent.title?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+                      patent.patentId?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+                      patent.inventors?.toLowerCase().includes(patentSearchTerm.toLowerCase());
+                    const matchesField = patentFieldFilter === 'all' || 
+                      patent.field?.toLowerCase() === patentFieldFilter.toLowerCase();
+                    return matchesSearch && matchesField;
+                  }).length})</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="exportMode"
+                    value="selected"
+                    checked={patentExportMode === 'selected'}
+                    onChange={() => setPatentExportMode('selected')}
+                    className="h-4 w-4 text-blue-600"
+                  />
+                  <span className="text-sm">Selected patents only ({selectedPatentsForExport.length})</span>
+                </label>
+              </div>
             </div>
             
+            {/* Patent Selection List (when in selected mode) */}
+            {patentExportMode === 'selected' && (
+              <div className="border rounded-lg p-3 max-h-[200px] overflow-y-auto">
+                <div className="text-xs text-muted-foreground mb-2">
+                  Check the patents you want to export:
+                </div>
+                <div className="space-y-1">
+                  {patents.filter((patent) => {
+                    const matchesSearch = !patentSearchTerm || 
+                      patent.title?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+                      patent.patentId?.toLowerCase().includes(patentSearchTerm.toLowerCase()) ||
+                      patent.inventors?.toLowerCase().includes(patentSearchTerm.toLowerCase());
+                    const matchesField = patentFieldFilter === 'all' || 
+                      patent.field?.toLowerCase() === patentFieldFilter.toLowerCase();
+                    return matchesSearch && matchesField;
+                  }).map((patent) => (
+                    <div key={patent.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
+                      <input
+                        type="checkbox"
+                        id={`export-patent-${patent.id}`}
+                        checked={selectedPatentsForExport.includes(patent.id)}
+                        onChange={() => {
+                          if (selectedPatentsForExport.includes(patent.id)) {
+                            setSelectedPatentsForExport(selectedPatentsForExport.filter(id => id !== patent.id));
+                          } else {
+                            setSelectedPatentsForExport([...selectedPatentsForExport, patent.id]);
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                      />
+                      <label htmlFor={`export-patent-${patent.id}`} className="text-sm cursor-pointer flex-1 truncate">
+                        <span className="font-medium">{patent.title}</span>
+                        {patent.patentId && <span className="text-muted-foreground ml-2">({patent.patentId})</span>}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {selectedPatentsForExport.length === 0 && (
+                  <p className="text-sm text-amber-600 text-center py-2">
+                    Please select at least one patent to export.
+                  </p>
+                )}
+              </div>
+            )}
+            
+            <hr />
+            
+            {/* Field Selection */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">Select Fields to Include:</Label>
               <div className="grid grid-cols-2 gap-2 mt-2">
@@ -5709,7 +6956,7 @@ const Admin = () => {
             <Button 
               variant="ustp" 
               onClick={handleDownloadCSV}
-              disabled={selectedPatentFields.length === 0}
+              disabled={selectedPatentFields.length === 0 || (patentExportMode === 'selected' && selectedPatentsForExport.length === 0)}
             >
               <FileDown className="mr-2 h-4 w-4" />
               Download CSV
@@ -6833,29 +8080,56 @@ const Admin = () => {
                 </div>
               )}
 
-              {/* Attached File */}
-              {selectedPatentForDetail.file_url && (
-                <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">Attached File</Label>
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 border rounded-lg">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {selectedPatentForDetail.file_name || 'Patent Document.pdf'}
-                      </p>
-                      <p className="text-xs text-gray-500">PDF Document</p>
+              {/* Attached Files */}
+              {(selectedPatentForDetail.files?.length > 0 || selectedPatentForDetail.file_url) && (
+                <div className="space-y-3">
+                  <Label className="text-sm text-muted-foreground">
+                    Attached Files ({selectedPatentForDetail.files?.length || 1})
+                  </Label>
+                  
+                  {/* Files from files array */}
+                  {selectedPatentForDetail.files?.map((file: any, index: number) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 border rounded-lg">
+                      <FileText className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {file.name || `Document ${index + 1}.pdf`}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {index === 0 ? 'Primary Document' : 'Additional Document'}
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(file.url, '_blank')}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        window.open(selectedPatentForDetail.file_url, '_blank');
-                      }}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
-                    </Button>
-                  </div>
+                  ))}
+                  
+                  {/* Legacy single file support */}
+                  {selectedPatentForDetail.file_url && !selectedPatentForDetail.files?.some((f: any) => f.url === selectedPatentForDetail.file_url) && (
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 border rounded-lg">
+                      <FileText className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {selectedPatentForDetail.file_name || 'Patent Document.pdf'}
+                        </p>
+                        <p className="text-xs text-gray-500">PDF Document</p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(selectedPatentForDetail.file_url, '_blank')}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -6877,6 +8151,254 @@ const Admin = () => {
                 Edit Patent
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* IP Application Detail Modal */}
+      <Dialog open={showIpAppDetailModal} onOpenChange={setShowIpAppDetailModal}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Application Details</DialogTitle>
+            <DialogDescription>
+              {selectedIpApp?.application_number || 'No application number'}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedIpApp && (
+            <div className="space-y-4">
+              {/* Title & Status */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">{selectedIpApp.title || 'Untitled'}</h3>
+                  <p className="text-sm text-gray-500">{selectedIpApp.field_of_technology}</p>
+                </div>
+                <Badge className={`${getIpAppStatusBadge(selectedIpApp.status)} text-white`}>
+                  {getIpAppStatusDisplay(selectedIpApp.status)}
+                </Badge>
+              </div>
+
+              {/* Info Grid */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-xs text-gray-500">IP Type</p>
+                  <p className="font-medium">{selectedIpApp.ip_type}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Applicant</p>
+                  <p className="font-medium">{selectedIpApp.applicant_full_name}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Email</p>
+                  <p className="font-medium">{selectedIpApp.applicant_email}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Department</p>
+                  <p className="font-medium">{selectedIpApp.faculty?.department || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Submitted</p>
+                  <p className="font-medium">{selectedIpApp.submitted_at ? formatDate(selectedIpApp.submitted_at) : 'Not submitted'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Updated</p>
+                  <p className="font-medium">{formatDate(selectedIpApp.updated_at)}</p>
+                </div>
+              </div>
+
+              {/* Abstract */}
+              {selectedIpApp.abstract && (
+                <div>
+                  <h4 className="font-medium mb-1">Abstract</h4>
+                  <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedIpApp.abstract}</p>
+                </div>
+              )}
+
+              {/* Detailed Description */}
+              {selectedIpApp.detailed_description && (
+                <div>
+                  <h4 className="font-medium mb-1">Detailed Description</h4>
+                  <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedIpApp.detailed_description}</p>
+                </div>
+              )}
+
+              {/* Attachments */}
+              {selectedIpApp.attachments && selectedIpApp.attachments.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">Attachments ({selectedIpApp.attachments.length})</h4>
+                  <div className="space-y-2">
+                    {selectedIpApp.attachments.map((att: any) => (
+                      <div key={att.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                        <FileText className="h-4 w-4 text-blue-500" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{att.file_name}</p>
+                          <p className="text-xs text-gray-500">{att.document_type || att.file_type}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Admin Notes */}
+              {selectedIpApp.admin_notes && (
+                <div>
+                  <h4 className="font-medium mb-1">Admin Notes</h4>
+                  <p className="text-sm text-gray-700 bg-yellow-50 p-3 rounded-lg border border-yellow-200">{selectedIpApp.admin_notes}</p>
+                </div>
+              )}
+
+              {/* Comments */}
+              <div>
+                <h4 className="font-medium mb-2">Comments</h4>
+
+                {/* Comment Input */}
+                <div className="space-y-2 mb-4">
+                  <Textarea
+                    placeholder="Add a comment..."
+                    value={ipAppDetailNewComment}
+                    onChange={(e) => setIpAppDetailNewComment(e.target.value)}
+                    rows={3}
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={handleDetailModalComment}
+                      disabled={!ipAppDetailNewComment.trim() || isSubmittingDetailComment}
+                    >
+                      <Send className="h-4 w-4 mr-1" />
+                      {isSubmittingDetailComment ? 'Posting...' : 'Post Comment'}
+                    </Button>
+                  </div>
+                </div>
+
+                {ipAppDetailComments.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-lg">No comments yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {ipAppDetailComments.map((comment: any) => (
+                      <div key={comment.id} className={`p-3 rounded-lg ${comment.commenter_role === 'Faculty' ? 'bg-blue-50 border border-blue-100' : 'bg-gray-50'}`}>
+                        <p className="text-sm text-gray-700">{comment.comment}</p>
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-gray-600">{comment.commenter_name}</span>
+                            <Badge variant={comment.commenter_role === 'Faculty' ? 'secondary' : 'outline'} className="text-xs">
+                              {comment.commenter_role}
+                            </Badge>
+                          </div>
+                          <span className="text-xs text-gray-400">
+                            {formatDate(comment.created_at)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            {(selectedIpApp?.status === 'Submitted for Internal Review' || selectedIpApp?.status === 'Under Internal Review') && (
+              <Button onClick={() => {
+                setShowIpAppDetailModal(false);
+                setIpAppReviewAction('approve');
+                setIpAppReviewNotes('');
+                setShowIpAppReviewModal(true);
+              }}>
+                Review Application
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => setShowIpAppDetailModal(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* IP Application Review Modal */}
+      <Dialog open={showIpAppReviewModal} onOpenChange={setShowIpAppReviewModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Review Application</DialogTitle>
+            <DialogDescription>
+              {selectedIpApp?.application_number} - {selectedIpApp?.title || 'Untitled'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Status Display */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Current Status:</span>
+              <Badge className={`${getIpAppStatusBadge(selectedIpApp?.status)} text-white`}>
+                {getIpAppStatusDisplay(selectedIpApp?.status)}
+              </Badge>
+            </div>
+
+            {/* Action Selection */}
+            {(selectedIpApp?.status === 'Submitted for Internal Review' || selectedIpApp?.status === 'Under Internal Review') && (
+              <div className="space-y-2">
+                <Label>Action</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    type="button"
+                    variant={ipAppReviewAction === 'approve' ? 'default' : 'outline'}
+                    className={ipAppReviewAction === 'approve' ? 'bg-green-600 hover:bg-green-700' : ''}
+                    onClick={() => setIpAppReviewAction('approve')}
+                  >
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Approve
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={ipAppReviewAction === 'return' ? 'default' : 'outline'}
+                    className={ipAppReviewAction === 'return' ? 'bg-orange-600 hover:bg-orange-700' : ''}
+                    onClick={() => setIpAppReviewAction('return')}
+                  >
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    Need Revision
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={ipAppReviewAction === 'reject' ? 'default' : 'outline'}
+                    className={ipAppReviewAction === 'reject' ? 'bg-red-600 hover:bg-red-700' : ''}
+                    onClick={() => setIpAppReviewAction('reject')}
+                  >
+                    <XCircle className="h-4 w-4 mr-1" />
+                    Reject
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Comment */}
+            <div className="space-y-2">
+              <Label>Comment {ipAppReviewAction !== 'approve' && <span className="text-red-500">*</span>}</Label>
+              <Textarea
+                placeholder="Enter your review comments... (required for revision/rejection)"
+                value={ipAppReviewNotes}
+                onChange={(e) => setIpAppReviewNotes(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => {
+              setShowIpAppReviewModal(false);
+              setIpAppReviewNotes('');
+              setSelectedIpApp(null);
+            }}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleIpAppReview}
+              className={
+                ipAppReviewAction === 'approve' ? 'bg-green-600 hover:bg-green-700' :
+                ipAppReviewAction === 'return' ? 'bg-orange-600 hover:bg-orange-700' :
+                ipAppReviewAction === 'reject' ? 'bg-red-600 hover:bg-red-700' :
+                'bg-blue-600 hover:bg-blue-700'
+              }
+            >
+              {ipAppReviewAction === 'approve' && 'Approve Application'}
+              {ipAppReviewAction === 'return' && 'Flag for Revision'}
+              {ipAppReviewAction === 'reject' && 'Reject Application'}
+              {!ipAppReviewAction && 'Submit Comment'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

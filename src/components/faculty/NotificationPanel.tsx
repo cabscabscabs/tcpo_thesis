@@ -11,10 +11,12 @@ import {
   AlertCircle, 
   CheckCircle,
   Info,
-  X
+  X,
+  RefreshCw
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NotificationPanelProps {
   facultyId: string;
@@ -26,56 +28,132 @@ export function NotificationPanel({ facultyId, darkMode = false }: NotificationP
   const [notifications, setNotifications] = useState<FacultyNotification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Mock data - replace with actual API call
-  useEffect(() => {
-    // TODO: Replace with actual API call
-    const mockNotifications: FacultyNotification[] = [
-      {
-        id: "1",
-        faculty_id: facultyId,
-        application_id: "app-1",
-        title: "Application Approved",
-        message: "Your patent application 'Smart Agriculture System' has been approved for IPOPHL filing.",
-        type: "approval",
-        is_read: false,
-        created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: "2",
-        faculty_id: facultyId,
-        application_id: "app-2",
-        title: "Revision Required",
-        message: "Please update the claims section of your utility model application.",
-        type: "revision_required",
-        is_read: false,
-        created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: "3",
-        faculty_id: facultyId,
-        application_id: null,
-        title: "Welcome to IP Filing System",
-        message: "Start submitting your IP applications through our new faculty portal.",
-        type: "general",
-        is_read: true,
-        created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  // Load notifications from Supabase
+  const loadNotifications = async () => {
+    if (!facultyId) return;
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('faculty_notifications')
+        .select('*')
+        .eq('faculty_id', facultyId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) {
+        console.error('Error loading notifications:', error);
+        return;
       }
-    ];
-    setNotifications(mockNotifications);
-    setUnreadCount(mockNotifications.filter(n => !n.is_read).length);
+
+      if (data) {
+        const mapped: FacultyNotification[] = data.map((n: any) => ({
+          id: n.id,
+          faculty_id: n.faculty_id,
+          application_id: n.application_id,
+          title: n.title,
+          message: n.message,
+          type: mapNotificationType(n.notification_type),
+          is_read: n.is_read ?? false,
+          created_at: n.created_at
+        }));
+        setNotifications(mapped);
+        setUnreadCount(mapped.filter(n => !n.is_read).length);
+      }
+    } catch (err) {
+      console.error('Error loading notifications:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Map database notification_type to frontend type
+  const mapNotificationType = (dbType: string): FacultyNotification['type'] => {
+    const typeMap: Record<string, FacultyNotification['type']> = {
+      'approval': 'approval',
+      'revision_required': 'revision_required',
+      'status_change': 'status_change',
+      'comment': 'comment',
+      'rejection': 'revision_required',
+      'admin_message': 'general',
+      'admin_broadcast': 'general',
+      'general': 'general'
+    };
+    return typeMap[dbType] || 'general';
+  };
+
+  // Load on mount and set up real-time subscription
+  useEffect(() => {
+    loadNotifications();
+
+    // Real-time subscription for new notifications
+    const channel = supabase
+      .channel('faculty-notifications-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'faculty_notifications',
+          filter: `faculty_id=eq.${facultyId}`
+        },
+        (payload) => {
+          const newNotif = payload.new as any;
+          const mapped: FacultyNotification = {
+            id: newNotif.id,
+            faculty_id: newNotif.faculty_id,
+            application_id: newNotif.application_id,
+            title: newNotif.title,
+            message: newNotif.message,
+            type: mapNotificationType(newNotif.notification_type),
+            is_read: newNotif.is_read ?? false,
+            created_at: newNotif.created_at
+          };
+          setNotifications(prev => [mapped, ...prev]);
+          setUnreadCount(prev => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [facultyId]);
 
-  const markAsRead = (notificationId: string) => {
+  const markAsRead = async (notificationId: string) => {
+    // Optimistic update
     setNotifications(prev => 
       prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
     );
     setUnreadCount(prev => Math.max(0, prev - 1));
+
+    // Update in database
+    try {
+      await supabase
+        .from('faculty_notifications')
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq('id', notificationId);
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
+    // Optimistic update
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     setUnreadCount(0);
+
+    // Update in database
+    try {
+      await supabase
+        .from('faculty_notifications')
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq('faculty_id', facultyId)
+        .eq('is_read', false);
+    } catch (err) {
+      console.error('Error marking all as read:', err);
+    }
   };
 
   const handleNotificationClick = (notification: FacultyNotification) => {
@@ -126,7 +204,7 @@ export function NotificationPanel({ facultyId, darkMode = false }: NotificationP
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -150,6 +228,14 @@ export function NotificationPanel({ facultyId, darkMode = false }: NotificationP
                 )}
               </div>
               <div className="flex items-center gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={loadNotifications}
+                  title="Refresh"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                </Button>
                 {unreadCount > 0 && (
                   <Button 
                     variant="ghost" 
@@ -157,7 +243,7 @@ export function NotificationPanel({ facultyId, darkMode = false }: NotificationP
                     onClick={markAllAsRead}
                   >
                     <Check className="h-4 w-4 mr-1" />
-                    Mark all read
+                    Mark all
                   </Button>
                 )}
                 <Button 
@@ -171,7 +257,12 @@ export function NotificationPanel({ facultyId, darkMode = false }: NotificationP
             </div>
 
             <ScrollArea className="h-96">
-              {notifications.length === 0 ? (
+              {isLoading && notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-48 text-gray-500">
+                  <RefreshCw className="h-8 w-8 mb-2 animate-spin text-gray-300" />
+                  <p>Loading...</p>
+                </div>
+              ) : notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-48 text-gray-500">
                   <Bell className="h-12 w-12 mb-2 text-gray-300" />
                   <p>No notifications yet</p>

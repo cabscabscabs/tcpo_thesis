@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { 
   FileText, 
   CheckCircle, 
@@ -8,6 +10,10 @@ import {
   XCircle, 
   AlertCircle,
   TrendingUp,
+  TrendingDown,
+  ArrowUpRight,
+  ArrowDownRight,
+  Minus,
   Building2,
   Lightbulb,
   Award,
@@ -15,7 +21,9 @@ import {
   Filter,
   LineChart,
   BarChart,
-  Activity
+  Activity,
+  Download,
+  FileDown
 } from "lucide-react";
 import { useState, useMemo } from "react";
 
@@ -26,12 +34,18 @@ interface PatentAnalyticsProps {
 type TrendFilter = 'all' | 'field' | 'status';
 type ChartType = 'bar' | 'line' | 'combo';
 
+type ExportSection = 'overview' | 'status' | 'field' | 'trends' | 'summary';
+
 export function PatentAnalyticsCard({ patents }: PatentAnalyticsProps) {
   // State for filing trends
   const [trendFilter, setTrendFilter] = useState<TrendFilter>('all');
   const [selectedField, setSelectedField] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [chartType, setChartType] = useState<ChartType>('combo');
+  
+  // State for export dialog
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [exportSections, setExportSections] = useState<ExportSection[]>(['overview', 'status', 'field', 'trends', 'summary']);
 
   // Calculate metrics
   const totalPatents = patents.length;
@@ -126,6 +140,109 @@ export function PatentAnalyticsCard({ patents }: PatentAnalyticsProps) {
       .join(' ');
   };
 
+  // Handle CSV export
+  const handleExportCSV = () => {
+    const rows: string[] = [];
+    const timestamp = new Date().toLocaleString();
+    
+    // Header
+    rows.push('Patent Analytics Report');
+    rows.push(`Generated on: ${timestamp}`);
+    rows.push(`Total Patents: ${totalPatents}`);
+    rows.push('');
+
+    // Overview Section
+    if (exportSections.includes('overview')) {
+      rows.push('=== OVERVIEW ===');
+      rows.push('Metric,Count,Percentage');
+      const approvedCount = statusCounts['Approved'] || statusCounts['Granted'] || statusCounts['Approved for IPOPHL Filing'] || statusCounts['Available'] || 0;
+      const underReviewCount = (statusCounts['Under Review'] || 0) + 
+        (statusCounts['Pending'] || 0) + 
+        (statusCounts['Submitted for Internal Review'] || 0) +
+        (statusCounts['Under IPOPHL Examination'] || 0);
+      rows.push(`Total Applications,${totalPatents},100%`);
+      rows.push(`Approved,${approvedCount},${totalPatents > 0 ? ((approvedCount / totalPatents) * 100).toFixed(1) : 0}%`);
+      rows.push(`Under Review,${underReviewCount},${totalPatents > 0 ? ((underReviewCount / totalPatents) * 100).toFixed(1) : 0}%`);
+      rows.push('');
+    }
+
+    // Status Distribution Section
+    if (exportSections.includes('status')) {
+      rows.push('=== STATUS DISTRIBUTION ===');
+      rows.push('Status,Count,Percentage');
+      Object.entries(statusCounts)
+        .sort(([,a], [,b]) => (b as number) - (a as number))
+        .forEach(([status, count]) => {
+          const percentage = totalPatents > 0 ? ((count as number) / totalPatents * 100).toFixed(1) : '0';
+          rows.push(`${status},${count},${percentage}%`);
+        });
+      rows.push('');
+    }
+
+    // Field Distribution Section
+    if (exportSections.includes('field')) {
+      rows.push('=== FIELD DISTRIBUTION ===');
+      rows.push('Field,Count,Percentage');
+      Object.entries(fieldCounts)
+        .sort(([,a], [,b]) => (b as number) - (a as number))
+        .forEach(([field, count]) => {
+          const percentage = totalPatents > 0 ? ((count as number) / totalPatents * 100).toFixed(1) : '0';
+          rows.push(`${formatFieldName(field)},${count},${percentage}%`);
+        });
+      rows.push('');
+    }
+
+    // Year Trends Section
+    if (exportSections.includes('trends')) {
+      rows.push('=== FILING TRENDS BY YEAR ===');
+      rows.push('Year,Count');
+      Object.entries(yearCounts)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .forEach(([year, count]) => {
+          rows.push(`${year},${count}`);
+        });
+      rows.push('');
+    }
+
+    // Summary Stats Section
+    if (exportSections.includes('summary')) {
+      const sortedYears = Object.keys(yearCounts).sort();
+      const values = sortedYears.map(year => yearCounts[year]);
+      const avgPerYear = values.length > 0 ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1) : '0';
+      const peakYear = values.length > 0 ? Math.max(...values) : 0;
+      
+      rows.push('=== SUMMARY STATISTICS ===');
+      rows.push('Statistic,Value');
+      rows.push(`Total Patents,${totalPatents}`);
+      rows.push(`Years Covered,${sortedYears.length}`);
+      rows.push(`Average per Year,${avgPerYear}`);
+      rows.push(`Peak Year Count,${peakYear}`);
+      rows.push(`Earliest Year,${sortedYears[0] || 'N/A'}`);
+      rows.push(`Latest Year,${sortedYears[sortedYears.length - 1] || 'N/A'}`);
+    }
+
+    // Create and download CSV
+    const csvContent = rows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `patent-analytics-report-${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setShowExportDialog(false);
+  };
+
+  const toggleExportSection = (section: ExportSection) => {
+    if (exportSections.includes(section)) {
+      setExportSections(exportSections.filter(s => s !== section));
+    } else {
+      setExportSections([...exportSections, section]);
+    }
+  };
+
   return (
     <Card className="border-2 border-blue-100">
       <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
@@ -139,16 +256,27 @@ export function PatentAnalyticsCard({ patents }: PatentAnalyticsProps) {
               <p className="text-sm text-blue-600">TPCO Monitoring Dashboard</p>
             </div>
           </div>
-          <Badge variant="outline" className="bg-white">
-            <TrendingUp className="h-3 w-3 mr-1" />
-            Real-time
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowExportDialog(true)}
+              className="bg-white hover:bg-blue-50"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              Export CSV
+            </Button>
+            <Badge variant="outline" className="bg-white">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              Real-time
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       
       <CardContent className="p-6 space-y-6">
         {/* KPI Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {/* Total Patents */}
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
             <div className="flex items-center gap-2 mb-2">
@@ -184,18 +312,6 @@ export function PatentAnalyticsCard({ patents }: PatentAnalyticsProps) {
                (statusCounts['Under IPOPHL Examination'] || 0)}
             </div>
             <div className="text-xs opacity-80 mt-1">In progress</div>
-          </div>
-
-          {/* Needs Attention */}
-          <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-xl p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="h-4 w-4 opacity-80" />
-              <span className="text-sm opacity-90">Needs Attention</span>
-            </div>
-            <div className="text-3xl font-bold">
-              {(statusCounts['Needs Revision'] || 0) + (statusCounts['Rejected'] || 0)}
-            </div>
-            <div className="text-xs opacity-80 mt-1">Action required</div>
           </div>
         </div>
 
@@ -296,6 +412,65 @@ export function PatentAnalyticsCard({ patents }: PatentAnalyticsProps) {
           setChartType={setChartType}
         />
       </CardContent>
+
+      {/* Export Dialog */}
+      <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Export Analytics Report</DialogTitle>
+            <DialogDescription>
+              Select which sections to include in the CSV report.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="text-sm text-muted-foreground">
+              Total patents in report: <span className="font-medium">{totalPatents}</span>
+            </div>
+            
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Select Sections to Export:</Label>
+              
+              <div className="space-y-2">
+                {[
+                  { key: 'overview', label: 'Overview (KPI Summary)', desc: 'Total, Approved, Under Review' },
+                  { key: 'status', label: 'Status Distribution', desc: 'Breakdown by patent status' },
+                  { key: 'field', label: 'Field Distribution', desc: 'Breakdown by field/college' },
+                  { key: 'trends', label: 'Filing Trends by Year', desc: 'Year-over-year filing counts' },
+                  { key: 'summary', label: 'Summary Statistics', desc: 'Avg per year, peak year, date range' },
+                ].map((section) => (
+                  <div key={section.key} className="flex items-start gap-3 p-2 rounded hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      id={`export-${section.key}`}
+                      checked={exportSections.includes(section.key as ExportSection)}
+                      onChange={() => toggleExportSection(section.key as ExportSection)}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 mt-0.5"
+                    />
+                    <label htmlFor={`export-${section.key}`} className="flex-1 cursor-pointer">
+                      <div className="text-sm font-medium">{section.label}</div>
+                      <div className="text-xs text-muted-foreground">{section.desc}</div>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowExportDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleExportCSV}
+              disabled={exportSections.length === 0}
+            >
+              <FileDown className="mr-2 h-4 w-4" />
+              Download CSV
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
@@ -357,9 +532,13 @@ function EnhancedFilingTrends({
     const years = Object.keys(counts).sort();
     const values = years.map(year => counts[year]);
     
-    // Calculate cumulative trend line
+    // Calculate cumulative trend line - starts from first year's value
     const cumulative = values.reduce((acc, val, i) => {
-      acc.push((acc[i - 1] || 0) + val);
+      if (i === 0) {
+        acc.push(val);
+      } else {
+        acc.push(acc[i - 1] + val);
+      }
       return acc;
     }, [] as number[]);
 
@@ -371,10 +550,36 @@ function EnhancedFilingTrends({
       return slice.reduce((a, b) => a + b, 0) / slice.length;
     });
 
-    return { years, values, cumulative, movingAvg, counts };
+    // Year-over-year growth rates
+    const yoyGrowth = values.map((val, i) => {
+      if (i === 0) return null;
+      const prev = values[i - 1];
+      if (prev === 0) return val > 0 ? 100 : 0;
+      return ((val - prev) / prev) * 100;
+    });
+
+    // Find fastest growing year
+    let fastestGrowthYear = years[0];
+    let fastestGrowthRate = 0;
+    yoyGrowth.forEach((rate, i) => {
+      if (rate !== null && rate > fastestGrowthRate) {
+        fastestGrowthRate = rate;
+        fastestGrowthYear = years[i];
+      }
+    });
+
+    // Most active year
+    const maxVal = Math.max(...values, 0);
+    const mostActiveYear = years[values.indexOf(maxVal)] || years[0];
+
+    // Latest YoY trend
+    const latestYoY = yoyGrowth[yoyGrowth.length - 1];
+    const trendDirection = latestYoY === null ? 'flat' : latestYoY > 5 ? 'up' : latestYoY < -5 ? 'down' : 'flat';
+
+    return { years, values, cumulative, movingAvg, counts, yoyGrowth, fastestGrowthYear, fastestGrowthRate, mostActiveYear, trendDirection, latestYoY };
   }, [patents, trendFilter, selectedField, selectedStatus]);
 
-  const { years, values, cumulative, movingAvg } = yearData;
+  const { years, values, cumulative, movingAvg, yoyGrowth, fastestGrowthYear, fastestGrowthRate, mostActiveYear, trendDirection, latestYoY } = yearData;
   const maxValue = Math.max(...values, 1);
   const maxCumulative = Math.max(...cumulative, 1);
 
@@ -494,6 +699,45 @@ function EnhancedFilingTrends({
         )}
       </div>
 
+      {/* Trend Insights */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-blue-50 rounded-lg p-3 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+            <Award className="h-4 w-4 text-blue-600" />
+          </div>
+          <div>
+            <div className="text-xs text-gray-500">Most Active Year</div>
+            <div className="text-sm font-semibold text-gray-900">{mostActiveYear} <span className="text-blue-600">({Math.max(...values, 0)} patents)</span></div>
+          </div>
+        </div>
+        <div className="bg-green-50 rounded-lg p-3 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+            <TrendingUp className="h-4 w-4 text-green-600" />
+          </div>
+          <div>
+            <div className="text-xs text-gray-500">Fastest Growth</div>
+            <div className="text-sm font-semibold text-gray-900">{fastestGrowthYear} <span className="text-green-600">(+{fastestGrowthRate.toFixed(0)}%)</span></div>
+          </div>
+        </div>
+        <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+            {trendDirection === 'up' && <ArrowUpRight className="h-4 w-4 text-green-600" />}
+            {trendDirection === 'down' && <ArrowDownRight className="h-4 w-4 text-red-600" />}
+            {trendDirection === 'flat' && <Minus className="h-4 w-4 text-gray-500" />}
+          </div>
+          <div>
+            <div className="text-xs text-gray-500">Latest Trend</div>
+            <div className="text-sm font-semibold text-gray-900">
+              {latestYoY === null ? 'N/A' : (
+                <span className={latestYoY > 0 ? 'text-green-600' : latestYoY < 0 ? 'text-red-600' : 'text-gray-600'}>
+                  {latestYoY > 0 ? '+' : ''}{latestYoY.toFixed(0)}% vs last year
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Chart Area */}
       <div className="relative">
         {/* Y-axis labels */}
@@ -518,17 +762,21 @@ function EnhancedFilingTrends({
               const cumValue = cumulative[index];
               const avgValue = movingAvg[index];
               const barHeight = maxValue > 0 ? (value / maxValue) * 100 : 0;
-              const lineY = maxValue > 0 ? 100 - (avgValue / maxValue) * 100 : 50;
-              const cumY = maxCumulative > 0 ? 100 - (cumValue / maxCumulative) * 100 : 50;
 
               return (
                 <div key={year} className="flex-1 flex flex-col items-center gap-1 relative group">
                   {/* Tooltip */}
-                  <div className="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                    <div className="font-medium">{year}</div>
-                    <div>Count: {value}</div>
-                    {chartType !== 'bar' && <div>Cumulative: {cumValue}</div>}
-                    <div>3yr Avg: {avgValue.toFixed(1)}</div>
+                  <div className="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs rounded px-2 py-1.5 whitespace-nowrap z-10 shadow-lg">
+                    <div className="font-medium text-sm mb-1">{year}</div>
+                    <div className="flex items-center gap-1"><div className="w-2 h-2 bg-blue-400 rounded-sm" /> Count: <span className="font-semibold">{value}</span></div>
+                    {chartType !== 'bar' && <div className="flex items-center gap-1"><div className="w-2 h-2 bg-green-400 rounded-full" /> Cumulative: <span className="font-semibold">{cumValue}</span></div>}
+                    <div className="flex items-center gap-1"><div className="w-2 h-2 bg-yellow-400 rounded-full" /> 3yr Avg: <span className="font-semibold">{avgValue.toFixed(1)}</span></div>
+                    {yoyGrowth[index] !== null && (
+                      <div className={`flex items-center gap-1 mt-1 pt-1 border-t border-gray-700 ${(yoyGrowth[index] as number) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {(yoyGrowth[index] as number) >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                        YoY: <span className="font-semibold">{(yoyGrowth[index] as number) > 0 ? '+' : ''}{(yoyGrowth[index] as number).toFixed(0)}%</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Bar */}
@@ -542,15 +790,23 @@ function EnhancedFilingTrends({
                   {/* Line point for moving average */}
                   {(chartType === 'line' || chartType === 'combo') && (
                     <>
-                      {/* Moving average dot */}
+                      {/* Moving average dot - positioned relative to chart height */}
                       <div 
-                        className="absolute w-2 h-2 bg-yellow-500 rounded-full border-2 border-white shadow-sm"
-                        style={{ bottom: `${lineY}%`, transform: 'translateY(50%)' }}
+                        className="absolute w-2 h-2 bg-yellow-500 rounded-full border-2 border-white shadow-sm z-10"
+                        style={{ 
+                          bottom: `${Math.max(0, Math.min(100, (avgValue / maxValue) * 100))}%`,
+                          left: '50%',
+                          transform: 'translate(-50%, 50%)'
+                        }}
                       />
-                      {/* Cumulative line dot */}
+                      {/* Cumulative line dot - positioned on secondary scale */}
                       <div 
-                        className="absolute w-2 h-2 bg-green-500 rounded-full border-2 border-white shadow-sm"
-                        style={{ bottom: `${cumY}%`, transform: 'translateY(50%)' }}
+                        className="absolute w-2 h-2 bg-green-500 rounded-full border-2 border-white shadow-sm z-10"
+                        style={{ 
+                          bottom: `${Math.max(0, Math.min(100, (cumValue / maxCumulative) * 100))}%`,
+                          left: '50%',
+                          transform: 'translate(-50%, 50%)'
+                        }}
                       />
                     </>
                   )}
@@ -562,32 +818,30 @@ function EnhancedFilingTrends({
             })}
 
             {/* Connecting lines */}
-            {(chartType === 'line' || chartType === 'combo') && (
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
+            {(chartType === 'line' || chartType === 'combo') && years.length > 1 && (
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 100">
                 {/* Moving average line */}
                 <polyline
                   fill="none"
                   stroke="#eab308"
-                  strokeWidth="2"
+                  strokeWidth="1"
                   points={years.map((_, i) => {
                     const x = ((i + 0.5) / years.length) * 100;
                     const y = 100 - (movingAvg[i] / maxValue) * 100;
                     return `${x},${y}`;
                   }).join(' ')}
-                  style={{ vectorEffect: 'non-scaling-stroke' }}
                 />
                 {/* Cumulative line */}
                 <polyline
                   fill="none"
                   stroke="#22c55e"
-                  strokeWidth="2"
-                  strokeDasharray="4,4"
+                  strokeWidth="1"
+                  strokeDasharray="2,2"
                   points={years.map((_, i) => {
                     const x = ((i + 0.5) / years.length) * 100;
                     const y = 100 - (cumulative[i] / maxCumulative) * 100;
                     return `${x},${y}`;
                   }).join(' ')}
-                  style={{ vectorEffect: 'non-scaling-stroke' }}
                 />
               </svg>
             )}
@@ -618,24 +872,35 @@ function EnhancedFilingTrends({
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-        <div className="text-center">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
+        <div className="bg-blue-50 rounded-lg p-3 text-center">
           <div className="text-2xl font-bold text-blue-600">
             {values.reduce((a, b) => a + b, 0)}
           </div>
-          <div className="text-xs text-gray-500">Total (Filtered)</div>
+          <div className="text-xs text-gray-500 mt-1">Total (Filtered)</div>
         </div>
-        <div className="text-center">
+        <div className="bg-yellow-50 rounded-lg p-3 text-center">
           <div className="text-2xl font-bold text-yellow-600">
             {(values.reduce((a, b) => a + b, 0) / years.length).toFixed(1)}
           </div>
-          <div className="text-xs text-gray-500">Avg per Year</div>
+          <div className="text-xs text-gray-500 mt-1">Avg per Year</div>
         </div>
-        <div className="text-center">
+        <div className="bg-green-50 rounded-lg p-3 text-center">
           <div className="text-2xl font-bold text-green-600">
             {Math.max(...values)}
           </div>
-          <div className="text-xs text-gray-500">Peak Year</div>
+          <div className="text-xs text-gray-500 mt-1">Peak Year Count</div>
+        </div>
+        <div className="bg-gray-50 rounded-lg p-3 text-center">
+          <div className="flex items-center justify-center gap-1">
+            {trendDirection === 'up' && <TrendingUp className="h-5 w-5 text-green-600" />}
+            {trendDirection === 'down' && <TrendingDown className="h-5 w-5 text-red-600" />}
+            {trendDirection === 'flat' && <Minus className="h-5 w-5 text-gray-500" />}
+            <div className={`text-2xl font-bold ${trendDirection === 'up' ? 'text-green-600' : trendDirection === 'down' ? 'text-red-600' : 'text-gray-600'}`}>
+              {latestYoY === null ? '—' : `${latestYoY > 0 ? '+' : ''}${latestYoY.toFixed(0)}%`}
+            </div>
+          </div>
+          <div className="text-xs text-gray-500 mt-1">Latest YoY Growth</div>
         </div>
       </div>
     </div>

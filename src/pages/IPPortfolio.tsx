@@ -8,6 +8,7 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -30,17 +31,22 @@ import {
   ExternalLink, 
   ChevronLeft, 
   ChevronRight,
-  Lightbulb
+  Lightbulb,
+  FileCheck,
+  TrendingUp,
+  DollarSign,
+  Clock
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ExtendedPortfolioItem, transformToExtendedPortfolioItem } from "@/integrations/supabase/extendedTypes";
 import { getStatusColor, getFieldColor } from "@/lib/utils";
 import ipBgImage from "@/assets/ip-portfolio-bg.jpg";
 import { usePortfolioRecommendations } from "@/hooks/useRecommendations";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 10;
 
 // Define interfaces for the filter data
 interface CategoryData {
@@ -54,6 +60,7 @@ interface PatentStatusData {
 const IPPortfolio = () => {
   const navigate = useNavigate();
   const [portfolioItems, setPortfolioItems] = useState<ExtendedPortfolioItem[]>([]);
+  const [allPatents, setAllPatents] = useState<ExtendedPortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -63,6 +70,8 @@ const IPPortfolio = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [fieldOptions, setFieldOptions] = useState<string[]>([]);
   const [statusOptions, setStatusOptions] = useState<string[]>([]);
+  const [ipApplicationCount, setIpApplicationCount] = useState(0);
+  const [licensedRevenue, setLicensedRevenue] = useState(0);
   const { recommendations, loading: recLoading } = usePortfolioRecommendations(3);
 
   const fetchPortfolioItems = useCallback(async () => {
@@ -77,7 +86,8 @@ const IPPortfolio = () => {
         const { data: patentsData, error: patentsError } = await supabase
           .from('admin_patents' as any)
           .select('*')
-          .eq('published', true);
+          .eq('published', true)
+          .neq('status', 'Draft');
         
         if (patentsData && !patentsError) {
           patentData = patentsData.map((patent: any) => ({
@@ -124,7 +134,8 @@ const IPPortfolio = () => {
             priority_claims: null,
             technology_fields: patent.technology_fields || null,
             ipc_classes: null,
-            cpc_classes: null
+            cpc_classes: null,
+            files: patent.files || null,
           }));
         }
       } catch (error) {
@@ -139,8 +150,14 @@ const IPPortfolio = () => {
         allData = getSamplePortfolioItems();
       }
       
+      // Keep all patents for statistics (includes Under Review, excludes Draft)
+      setAllPatents(allData);
+      
+      // Filter out Under Review and Draft from public display
+      let displayData = allData.filter(p => p.status !== 'Under Review' && p.status !== 'Draft');
+      
       // Apply client-side filtering
-      let filteredData = allData;
+      let filteredData = displayData;
       
       if (searchTerm) {
         filteredData = filteredData.filter(item => 
@@ -183,6 +200,44 @@ const IPPortfolio = () => {
     }
   }, [currentPage, searchTerm, selectedField, selectedStatus]);
 
+  // Fetch IP application count (excluding Draft)
+  const fetchIpApplicationCount = useCallback(async () => {
+    try {
+      const { count, error } = await supabase
+        .from('ip_applications' as any)
+        .select('*', { count: 'exact', head: true })
+        .neq('status', 'Draft');
+      
+      if (!error && count !== null) {
+        setIpApplicationCount(count);
+      }
+    } catch (err) {
+      console.error('Error fetching IP application count:', err);
+    }
+  }, []);
+
+  // Fetch licensed revenue from dashboard stats
+  const fetchLicensedRevenue = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_dashboard_stats')
+        .select('*')
+        .limit(1);
+      
+      if (error) {
+        console.error('Error fetching licensed revenue:', error);
+        return;
+      }
+      if (data && data.length > 0) {
+        const row = data[0] as any;
+        const val = Number(row.licensed_revenue);
+        setLicensedRevenue(isNaN(val) ? 0 : val);
+      }
+    } catch (err) {
+      console.error('Error fetching licensed revenue:', err);
+    }
+  }, []);
+
   const fetchFilterOptions = useCallback(async () => {
     try {
       // Get options from admin_patents in Supabase (single source of truth)
@@ -192,7 +247,8 @@ const IPPortfolio = () => {
       try {
         const { data: patentData } = await supabase
           .from('admin_patents' as any)
-          .select('field, status');
+          .select('field, status')
+          .neq('status', 'Draft');
         
         if (patentData) {
           patentFields = Array.from(new Set(patentData.map((patent: any) => patent.field).filter(Boolean))) as string[];
@@ -222,20 +278,20 @@ const IPPortfolio = () => {
         const combinedStatuses = [...new Set([...patentStatuses])].sort();
         
         setFieldOptions(combinedFields.length > 0 ? combinedFields : ["Agriculture", "Materials Science", "Food Technology", "Environmental Technology", "Energy Technology", "Information Technology"]);
-        setStatusOptions(combinedStatuses.length > 0 ? combinedStatuses : ["Available", "Licensed", "Pending", "Under Review"]);
+        setStatusOptions(combinedStatuses.length > 0 ? combinedStatuses.filter((s: string) => s !== 'Draft' && s !== 'Under Review') : ["Available", "Licensed", "Pending"]);
       } catch (err) {
         console.error("Error fetching filter options:", err);
         // Use patent options + fallback if Supabase fails
         const combinedFields = [...new Set([...patentFields])].sort();
         const combinedStatuses = [...new Set([...patentStatuses])].sort();
         setFieldOptions(combinedFields.length > 0 ? combinedFields : ["Agriculture", "Materials Science", "Food Technology", "Environmental Technology", "Energy Technology", "Information Technology"]);
-        setStatusOptions(combinedStatuses.length > 0 ? combinedStatuses : ["Available", "Licensed", "Pending", "Under Review"]);
+        setStatusOptions(combinedStatuses.length > 0 ? combinedStatuses.filter((s: string) => s !== 'Draft' && s !== 'Under Review') : ["Available", "Licensed", "Pending"]);
       }
     } catch (err) {
       console.error("Error fetching filter options:", err);
       // Fallback to hardcoded options if everything fails
       setFieldOptions(["Agriculture", "Materials Science", "Food Technology", "Environmental Technology", "Energy Technology", "Information Technology"]);
-      setStatusOptions(["Available", "Licensed", "Pending", "Under Review"]);
+      setStatusOptions(["Available", "Licensed", "Pending"]);
     }
   }, []);
 
@@ -247,16 +303,22 @@ const IPPortfolio = () => {
     fetchFilterOptions();
   }, [fetchFilterOptions]);
 
+  useEffect(() => {
+    fetchIpApplicationCount();
+    fetchLicensedRevenue();
+  }, [fetchIpApplicationCount, fetchLicensedRevenue]);
+
   // Listen for storage changes from admin panel
   useEffect(() => {
     const handleStorageChange = () => {
       fetchPortfolioItems();
       fetchFilterOptions();
+      fetchLicensedRevenue();
     };
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [fetchPortfolioItems, fetchFilterOptions]);
+  }, [fetchPortfolioItems, fetchFilterOptions, fetchLicensedRevenue]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -275,20 +337,127 @@ const IPPortfolio = () => {
 
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
+  // Calculate statistics for all patents (excludes Draft)
+  const stats = useMemo(() => {
+    // Exclude Draft from all statistics
+    const nonDraftPatents = allPatents.filter(p => p.status !== 'Draft');
+    const total = nonDraftPatents.length;
+    
+    // Count by status
+    const filed = nonDraftPatents.filter(p => p.status === 'Filed').length;
+    const registered = nonDraftPatents.filter(p => p.status === 'Registered').length;
+    const commercialized = nonDraftPatents.filter(p => p.status === 'Commercialized').length;
+    const licensed = nonDraftPatents.filter(p => p.status === 'Licensed').length;
+    // Licensed revenue comes from admin_dashboard_stats (manually entered)
+    // Status pie chart data (IP in Application is separate from patents)
+    const pieData = [
+      { name: 'Filed', value: filed, color: '#3b82f6' },      // blue-500
+      { name: 'Registered', value: registered, color: '#22c55e' },  // green-500
+      { name: 'Commercialized', value: commercialized, color: '#f59e0b' }, // amber-500
+      { name: 'Licensed', value: licensed, color: '#8b5cf6' },   // violet-500
+      { name: 'IP in Application', value: ipApplicationCount, color: '#f97316' }, // orange-500
+    ].filter(item => item.value > 0);
+
+    // Count by field / patent type
+    const fieldCounts: Record<string, number> = {};
+    nonDraftPatents.forEach(p => {
+      const field = p.field || p.category || 'Unspecified';
+      fieldCounts[field] = (fieldCounts[field] || 0) + 1;
+    });
+
+    const fieldColors = ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#f97316', '#84cc16'];
+    const fieldPieData = Object.entries(fieldCounts)
+      .map(([name, value], index) => ({
+        name,
+        value,
+        color: fieldColors[index % fieldColors.length]
+      }))
+      .filter(item => item.value > 0)
+      .sort((a, b) => b.value - a.value);
+    
+    return {
+      total,
+      filed,
+      registered,
+      commercialized,
+      licensed,
+      licensedRevenue,
+      ipApplicationCount,
+      pieData,
+      fieldPieData
+    };
+  }, [allPatents, ipApplicationCount, licensedRevenue]);
+
   if (loading && portfolioItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">IP Portfolio</h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Explore our collection of innovative technologies and intellectual properties
-            </p>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+
+        {/* Hero Skeleton */}
+        <section className="relative py-20 bg-primary/80">
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <Skeleton className="h-12 w-3/4 max-w-2xl mx-auto mb-6 bg-white/20" />
+            <Skeleton className="h-6 w-2/3 max-w-3xl mx-auto mb-8 bg-white/20" />
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Skeleton className="h-12 w-48 mx-auto sm:mx-0 bg-white/20" />
+              <Skeleton className="h-12 w-48 mx-auto sm:mx-0 bg-white/20" />
+            </div>
           </div>
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </section>
+
+        {/* Search & Filter Skeleton */}
+        <section className="py-8 bg-gray-50 border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row gap-4">
+              <Skeleton className="h-10 flex-1" />
+              <div className="flex gap-2">
+                <Skeleton className="h-10 w-48" />
+                <Skeleton className="h-10 w-48" />
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
+
+        {/* Portfolio Grid Skeleton */}
+        <section className="py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Skeleton className="h-5 w-48 mb-6" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-lg border bg-card shadow-sm overflow-hidden">
+                  <div className="p-6 bg-gradient-to-r from-primary to-accent">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex gap-2">
+                        <Skeleton className="h-5 w-20" />
+                        <Skeleton className="h-5 w-24" />
+                      </div>
+                      <Skeleton className="h-5 w-16" />
+                    </div>
+                    <Skeleton className="h-6 w-3/4" />
+                  </div>
+                  <div className="p-5 space-y-4">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-4 rounded-full" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-4 rounded-full" />
+                      <Skeleton className="h-4 w-1/3" />
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Skeleton className="h-9 flex-1" />
+                      <Skeleton className="h-9 w-10" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <Footer />
       </div>
     );
   }
@@ -616,6 +785,173 @@ const IPPortfolio = () => {
         </div>
       </section>
 
+      {/* Statistics Section - Portfolio Overview */}
+      <section className="py-12 bg-white border-t">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Portfolio Overview</h2>
+          
+          {/* Stats Cards Row */}
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+            {/* Filed */}
+            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0">
+              <CardContent className="p-4 text-white text-center">
+                <FileText className="h-6 w-6 mx-auto mb-2 opacity-90" />
+                <div className="text-3xl font-bold">{stats.filed}</div>
+                <div className="text-sm opacity-90">Filed</div>
+                <div className="text-xs opacity-70 mt-1">From IP Portfolio</div>
+              </CardContent>
+            </Card>
+
+            {/* Registered */}
+            <Card className="bg-gradient-to-br from-green-500 to-green-600 border-0">
+              <CardContent className="p-4 text-white text-center">
+                <FileCheck className="h-6 w-6 mx-auto mb-2 opacity-90" />
+                <div className="text-3xl font-bold">{stats.registered}</div>
+                <div className="text-sm opacity-90">Registered</div>
+                <div className="text-xs opacity-70 mt-1">From IP Portfolio</div>
+              </CardContent>
+            </Card>
+
+            {/* Commercialized */}
+            <Card className="bg-gradient-to-br from-amber-500 to-orange-500 border-0">
+              <CardContent className="p-4 text-white text-center">
+                <TrendingUp className="h-6 w-6 mx-auto mb-2 opacity-90" />
+                <div className="text-3xl font-bold">{stats.commercialized}</div>
+                <div className="text-sm opacity-90">Commercialized</div>
+                <div className="text-xs opacity-70 mt-1">From IP Portfolio</div>
+              </CardContent>
+            </Card>
+
+            {/* Licensed */}
+            <Card className="bg-gradient-to-br from-violet-500 to-purple-600 border-0">
+              <CardContent className="p-4 text-white text-center">
+                <FileCheck className="h-6 w-6 mx-auto mb-2 opacity-90" />
+                <div className="text-3xl font-bold">{stats.licensed}</div>
+                <div className="text-sm opacity-90">Licensed</div>
+                <div className="text-xs opacity-70 mt-1">From IP Portfolio</div>
+              </CardContent>
+            </Card>
+
+            {/* Licensed (Revenue) */}
+            <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 border-0">
+              <CardContent className="p-4 text-white text-center">
+                <DollarSign className="h-6 w-6 mx-auto mb-2 opacity-90" />
+                <div className="text-3xl font-bold">
+                  {stats.licensedRevenue > 0 ? `₱${stats.licensedRevenue.toLocaleString()}` : '0'}
+                </div>
+                <div className="text-sm opacity-90">Revenue</div>
+                <div className="text-xs opacity-70 mt-1">
+                  {stats.licensedRevenue > 0 ? 'Commercialized' : 'From licenses'}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* IP in Application */}
+            <Card className="bg-gradient-to-br from-orange-500 to-orange-600 border-0">
+              <CardContent className="p-4 text-white text-center">
+                <Clock className="h-6 w-6 mx-auto mb-2 opacity-90" />
+                <div className="text-3xl font-bold">{stats.ipApplicationCount}</div>
+                <div className="text-sm opacity-90">IP in Application</div>
+                <div className="text-xs opacity-70 mt-1">Faculty Status</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Total Count Banner */}
+          <div className="text-center mb-8">
+            <div className="text-gray-600 mb-1">Total Patents in Portfolio</div>
+            <div className="text-5xl font-bold text-gray-900">{stats.total}</div>
+          </div>
+
+          {/* Pie Charts */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Status Distribution Pie Chart */}
+            <Card>
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="text-lg">Status Distribution</CardTitle>
+                <CardDescription>Breakdown by patent status</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {stats.pieData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <PieChart>
+                      <Pie
+                        data={stats.pieData}
+                        cx="50%"
+                        cy="45%"
+                        innerRadius={70}
+                        outerRadius={90}
+                        paddingAngle={4}
+                        dataKey="value"
+                      >
+                        {stats.pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value: number, name: string) => [`${value} patents`, name]}
+                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+                      />
+                      <Legend 
+                        verticalAlign="bottom" 
+                        height={50}
+                        iconType="circle"
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[280px] text-gray-400">
+                    No data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Patent Type / Field Distribution Pie Chart */}
+            <Card>
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="text-lg">Patent Types</CardTitle>
+                <CardDescription>Breakdown by field or category</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {stats.fieldPieData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <PieChart>
+                      <Pie
+                        data={stats.fieldPieData}
+                        cx="50%"
+                        cy="45%"
+                        innerRadius={70}
+                        outerRadius={90}
+                        paddingAngle={4}
+                        dataKey="value"
+                      >
+                        {stats.fieldPieData.map((entry, index) => (
+                          <Cell key={`field-cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value: number, name: string) => [`${value} patents`, name]}
+                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+                      />
+                      <Legend 
+                        verticalAlign="bottom" 
+                        height={50}
+                        iconType="circle"
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[280px] text-gray-400">
+                    No data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* How to License Section */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -712,7 +1048,8 @@ const getSamplePortfolioItems = (): ExtendedPortfolioItem[] => [
     priority_claims: null,
     technology_fields: null,
     ipc_classes: null,
-    cpc_classes: null
+    cpc_classes: null,
+    files: null
   },
   {
     id: "2",
@@ -758,7 +1095,8 @@ const getSamplePortfolioItems = (): ExtendedPortfolioItem[] => [
     priority_claims: null,
     technology_fields: null,
     ipc_classes: null,
-    cpc_classes: null
+    cpc_classes: null,
+    files: null
   },
   {
     id: "3",
@@ -804,7 +1142,8 @@ const getSamplePortfolioItems = (): ExtendedPortfolioItem[] => [
     priority_claims: null,
     technology_fields: null,
     ipc_classes: null,
-    cpc_classes: null
+    cpc_classes: null,
+    files: null
   },
   {
     id: "4",
@@ -850,7 +1189,8 @@ const getSamplePortfolioItems = (): ExtendedPortfolioItem[] => [
     priority_claims: null,
     technology_fields: null,
     ipc_classes: null,
-    cpc_classes: null
+    cpc_classes: null,
+    files: null
   },
   {
     id: "5",
@@ -896,7 +1236,8 @@ const getSamplePortfolioItems = (): ExtendedPortfolioItem[] => [
     priority_claims: null,
     technology_fields: null,
     ipc_classes: null,
-    cpc_classes: null
+    cpc_classes: null,
+    files: null
   },
   {
     id: "6",
@@ -942,7 +1283,8 @@ const getSamplePortfolioItems = (): ExtendedPortfolioItem[] => [
     priority_claims: null,
     technology_fields: null,
     ipc_classes: null,
-    cpc_classes: null
+    cpc_classes: null,
+    files: null
   }
 ];
 
