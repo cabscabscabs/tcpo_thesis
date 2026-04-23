@@ -3,7 +3,22 @@ USTP TPCO - ABOUT PAGE CONTENT
 
 OVERVIEW
 --------
-USTP Technology Promotions and Commercialization Office (TPCO) leads technology transfer and innovation in Northern Mindanao through strategic partnerships between academia and industry.
+The Technology Promotions and Commercialization Office (TPCO) serves as the interface 
+between the talent and technology housed in the academic institute, the industry, and 
+the community; fostering new relationships and partnerships resulting in life-changing 
+innovations, enhanced productivity and ingenious discoveries that amends the human 
+condition. The TPCO ambitiously aspires to be in the innovation map, visibly interfacing 
+with stakeholders and creating a significant mark in fostering innovations not just in 
+the academe but in the whole innovation community.
+
+At the TPCO, we contribute towards nurturing an empowered innovation ecosystem that 
+promotes entrepreneurship and commercialization of technologies to contribute to the 
+economic and social development of the community it serves. As part of the university's 
+commitment in delivering its Strategic Directional Areas, the TPCO was established and 
+approved by the Board of Regents in May 2020 amidst the challenges of the COVID-19 
+pandemic in the country. The office was officially launched to the public in August 2020 
+and is strategically poised right at the forefront of the university making it accessible 
+for stakeholders.
 
 Quick Stats:
 - 6 Years of Excellence
@@ -13,11 +28,15 @@ Quick Stats:
 
 OUR MISSION
 -----------
-To accelerate the translation of USTP research innovations into market-ready technologies that address regional and national development needs while fostering sustainable industry-academe partnerships.
+Create and nurture a working innovation ecosystem that promotes entrepreneurship and 
+commercialization of technologies to contribute to the economic and social development 
+of the community it services.
 
 OUR VISION
 ----------
-To be the premier technology transfer office in the Philippines, recognized for excellence in innovation commercialization and as the catalyst for economic development in Northern Mindanao.
+To be on the innovation map, visibly interfacing with stakeholders and creating a 
+significant mark in fostering innovations not just in the academe but in the whole 
+innovation community.
 
 OUR VALUES
 ----------
@@ -68,6 +87,15 @@ STRATEGIC PARTNERS
 - Department of Trade and Industry (DTI) Misamis Oriental - Supporting SME development and business partnerships
 - CDO b.i.t.e.s. (Cagayan de Oro business innovation technology e-startup) - Premier startup incubator and innovation hub in Cagayan de Oro
 - Intellectual Property Office of the Philippines (IPOPhil) - Official IP registration and protection agency
+- USAID - U.S. Agency for International Development
+- RTI International - Independent, nonprofit research institute
+- Food Innovation Center (Northern Mindanao) - Food innovation and product development center
+- OROBEST Innovation - Regional innovation program
+- DOST-PCIEERD - Philippine Council for Industry, Energy and Emerging Technology Research and Development
+- Best Friend Goodies - Local food industry partner
+- Bukidnon State University - State university partner in Northern Mindanao
+- European Chamber of Commerce of the Philippines (ECCP) - European business chamber in the Philippines
+- Asian Development Bank - Regional development bank
 
 
 USTP TPCO - CONTACT PAGE CONTENT
@@ -78,16 +106,18 @@ VISIT US
 We're located at the heart of USTP's innovation ecosystem.
 
 ADDRESS:
+University of Science and Technology of Southern Philippines
 USTP Technology Transfer Office
 Cagayan de Oro Campus
-Cagayan de Oro City, Philippines 9000
+Claro M. Recto Ave, Lapasan
+Cagayan de Oro City, 9000 Misamis Oriental, Philippines
 
 PHONE:
-+63 (088) 856-1738
++63 (088) 856-1738 (primary - available Monday to Friday, 8:00 AM - 5:00 PM)
 +63 (088) 856-1739
 
 EMAIL:
-tpco@ustp.edu.ph
+tpco@ustp.edu.ph (primary - we respond within 24 hours)
 info@ustp.edu.ph
 
 OFFICE HOURS:
@@ -97,17 +127,48 @@ Walk-in consultations welcome, appointments recommended
 HOW TO CONTACT US
 -----------------
 You can reach us through:
-1. Email: tpco@ustp.edu.ph
-2. Phone: +63 (088) 856-1738 or +63 (088) 856-1739
-3. Visit our office at USTP Cagayan de Oro Campus
+1. Phone: Call (088) 856-1738 directly - available Monday to Friday, 8:00 AM - 5:00 PM
+2. Email: Send email to tpco@ustp.edu.ph - we respond within 24 hours
+3. Visit our office at USTP Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan
 4. Schedule a meeting through the Contact page on our website
+5. Use the "Contact Us" button in the navigation bar on the website
+
+SERVICES WE CAN HELP WITH
+-------------------------
+Technology Transfer Services:
+- IP Protection & Patent Application
+- Technology Licensing Support
+- Prior Art Search & Analysis
+- Technology Valuation
+
+Partnership & Commercialization:
+- Industry-Academe Matching
+- Startup Incubation Programs
+- Market Research & Analysis
+- Funding & Investment Guidance
+
 
 NAVIGATION - HOW TO FIND PAGES
 ------------------------------
-- Home: Main landing page with overview of services
-- Our IP: Access the IP Portfolio to browse available technologies and patents
-- Services: View available services like patent assistance, technology transfer, etc.
-- Resources: Access documents, forms, and helpful materials
-- Latest News: Read updates and announcements
+The website navigation bar contains:
+- Home: Main landing page with Hero, Featured Technologies, Services Overview, Impact Statistics, and Latest News
+- Our IP: Access the IP Portfolio to browse available technologies and patents with search/filter and analytics
+- Services: View available services (core + additional), success stories, and request service consultations
+- Resources: Access Templates, Guidelines, and Workshops & Events with event registration
+- Latest News: Read updates and announcements with category-based articles
 - About: Learn about USTP TPCO, team members, journey, and partners
-- Contact Us: Page with contact details, inquiry forms, and office location
+- Contact Us: Contact details, inquiry forms, and office location with call/email buttons
+- Login: Access admin panel or faculty IP portal
+
+ADDITIONAL PAGES:
+- /service-request: Submit a service-specific request form
+- /additional-services: Detailed information on additional services with pricing
+- /browse-resources: Full resource catalog
+- /facility-booking: Shared Service Facility booking
+- /events: All upcoming and past events with registration
+- /technology/{slug}: Individual technology/patent details
+- /news/{slug}: Individual news article details
+- /admin: Admin panel (requires authentication)
+- /faculty: Faculty IP Portal (requires faculty role authentication)
+- /faculty/applications/new: Create new IP application
+- /faculty/applications/{id}: View/edit IP application

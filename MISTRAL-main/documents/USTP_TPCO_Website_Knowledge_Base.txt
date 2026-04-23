@@ -1,8 +1,8 @@
 ================================================================================
-USTP TPCO WEBSITE - AI ASSISTANT KNOWLEDGE BASE
+USTP TPCO WEBSITE - TEEPEE AI ASSISTANT KNOWLEDGE BASE
 ================================================================================
-This document contains essential information for the AI chat assistant to help 
-users navigate the USTP TPCO website and answer common questions.
+This document contains essential information for Tepee, the AI chat mascot of
+USTP TPCO, to help users navigate the website and answer common questions.
 
 ================================================================================
 SECTION 1: WEBSITE NAVIGATION GUIDE
@@ -13,94 +13,208 @@ MAIN PAGES AND HOW TO ACCESS THEM:
 1. HOME PAGE
    - URL: / (root)
    - Navigation: Click "Home" in the navigation bar
-   - Content: Homepage with featured technologies, services overview, impact statistics, and latest news
+   - Content: Homepage with Hero section, Featured Technologies, Services Overview, Impact Statistics, and Latest News
+   - Hero Section: Displays dynamic title ("Accelerating Innovation Through Technology Transfer"), subtitle, and 3 stats counters (Patents Granted, Industry Partners, Technologies Developed) - these values are editable from the admin panel via admin_homepage_content table
+   - Featured Technologies: Shows recommended patents/technologies dynamically pulled from the IP Portfolio (admin_patents table), with patent number, inventors, and year details
+   - Services Overview: Lists 4 core services with descriptions and features, plus a 4-Step Process infographic (1. Initial Consultation, 2. Documentation & Filing, 3. Review & Processing, 4. Commercialization)
+   - Impact Statistics: 6 key metrics loaded from admin panel:
+     * Patents Granted (+6 this year)
+     * Startups Incubated (+4 this year)
+     * Industry Partners (+15 this year)
+     * Technologies Developed (+25 this year)
+     * Regional Economic Impact (₱15M+)
+     * Success Rate (85%)
+   - Latest News: Shows 3 most recent published news articles (1 featured large card + 2 regular cards), loaded from admin_news table
+   - Quick Actions: "Explore Our IP Portfolio" button (navigates to /ip-portfolio) and "Partner With Us" button (navigates to /contact)
 
 2. IP PORTFOLIO (Our IP)
    - URL: /ip-portfolio
    - Navigation: Click "Our IP" in the navigation bar
-   - Content: Collection of patents, technologies, and innovations available for licensing and commercialization
-   - User can search and filter by field and status
-   - Includes information about how to license technologies
+   - Content: Comprehensive collection of patents, technologies, and innovations available for licensing and commercialization
+   - Search: Full-text search by patent title, description, category, or inventors
+   - Filters: Filter by Field (Agriculture, Materials Science, Food Technology, Environmental Technology, Energy Technology, Information Technology) and Status (Available, Licensed, Pending, Filed, Registered, Commercialized)
+   - Pagination: 10 items per page with page navigation
+   - Portfolio Overview analytics section with:
+     * 6 Statistics Cards: Filed, Registered, Commercialized, Licensed, Licensed Revenue (₱), IP in Application
+     * Total Patents in Portfolio count
+     * Status Distribution pie chart (Filed, Registered, Commercialized, Licensed, IP in Application)
+     * Patent Types pie chart (breakdown by technology field/category)
+   - "How to License Our Technologies" 3-step guide:
+     1. Identify Technology - Browse portfolio to find technologies matching business needs
+     2. Contact Us - Reach out to the licensing team to discuss interest
+     3. Negotiate Terms - Work with the team to establish licensing terms
+   - Click any technology card to view full details at /technology/{slug}
+   - Data source: admin_patents table in Supabase (single source of truth), excluding Draft and Under Review from public display
+   - IP Application count sourced from ip_applications table
 
 3. SERVICES
    - URL: /services
    - Navigation: Click "Services" in the navigation bar
-   - Content: Core services offered by TPCO including:
-     * IP Protection Services
-     * Technology Licensing
-     * Industry-Academe Matching
-     * Startup Incubation
-   - Also includes Additional Services and Success Stories
+   - Content: Core services offered by TPCO, loaded dynamically from the services table in Supabase
+   - Each service card has 3 tabs: Features, Process, Details (Timeline & Pricing)
+   - Each service has a "Request This Service" button linking to /service-request?service={slug}
+   - Additional Services section:
+     * IP Training & Workshops (1-3 days)
+     * Technology Assessment (2-4 weeks)
+     * Market Research (3-6 weeks)
+   - Success Stories section with 3 real case studies:
+     * AgriTech Soil Enhancement - GreenGrow Solutions - Bio-Organic Fertilizer System - 35% yield increase, ₱2M annual revenue
+     * Smart Construction Materials - BuildSmart Inc. - Concrete Additive Technology - 20% cost reduction, 15 projects
+     * Food Preservation Innovation - FreshPack Solutions - Natural Packaging Technology - 50% shelf life extension, export market entry
+   - Contact section at bottom with phone, email, and visit info
 
-4. RESOURCES
+4. SERVICE REQUEST
+   - URL: /service-request?service={slug}
+   - Navigation: Click "Request This Service" on any service card on the Services page
+   - Content: Service-specific request form
+   - Available service types: ip-protection, technology-licensing, industry-matching, startup-incubation
+   - Form fields: Full Name (required), Email (required), Phone, Organization, Specific Needs & Requirements, Preferred Contact Method (Email, Phone Call, Video Meeting, In-person Meeting)
+   - Submissions saved to admin_service_requests table in Supabase
+   - Success dialog shown after submission
+
+5. ADDITIONAL SERVICES
+   - URL: /additional-services
+   - Navigation: Click "View All Additional Services" on the Services page
+   - Content: Detailed information for 3 additional services with request forms
+   - Services:
+     * IP Training & Workshops (1-3 days, ₱15,000-₱45,000) - Features: Patent Application Workshop, IP Strategy Development, Technology Commercialization, Prior Art Search Training, IP Portfolio Management, Licensing Negotiations, Market Analysis Techniques, Legal Compliance Guidelines
+     * Technology Assessment (2-4 weeks, ₱25,000-₱75,000) - Features: TRL Assessment, Market Potential Analysis, Competitive Landscape Mapping, IP Position Evaluation, Commercial Viability Study, Risk Assessment, Scalability Analysis, Investment Requirements Estimation
+     * Market Research (3-6 weeks, ₱35,000-₱100,000) - Features: Market Size & Growth Analysis, Customer Needs Assessment, Competitive Intelligence, Industry Trend Analysis, Pricing Strategy Research, Distribution Channel Analysis, Regulatory Environment Study, Go-to-Market Strategy Development
+   - Each service has 4 tabs: Overview, Features, Process, Benefits
+   - Service request form included on the page
+   - FAQ section with common questions
+
+6. RESOURCES
    - URL: /resources
    - Navigation: Click "Resources" in the navigation bar
-   - Content: Resources & Tools including:
-     * Templates (Legal Templates & Documents)
-     * IP 101 Tutorials (Learning Modules)
-     * SSF Booking (Shared Service Facilities)
-     * Guidelines (Research Guidelines & Best Practices)
-   - Events & Workshops section is also accessible here
+   - Content: Resources & Tools with tabbed interface
+   - Tabs: Templates and Guidelines (URL support: /resources?tab=templates or /resources?tab=guidelines)
+   - Templates Tab: Legal Templates & Documents - downloadable templates loaded from resources table (category: Templates)
+   - Guidelines Tab: Research Guidelines & Best Practices - downloadable guidelines loaded from resources table (category: Guidelines)
+   - Each resource shows: title, description, format (Download/Link/Video/Document), last updated date
+   - Workshops & Events section at the bottom:
+     * Shows up to 3 upcoming events with open registration
+     * Each event shows: date, time, location, capacity, registration status
+     * "View Details" button opens event details modal
+     * "Register Now" button opens registration modal
+     * "View All Events" link navigates to /events
+   - "Browse All Resources" button navigates to /browse-resources
 
-5. EVENTS & WORKSHOPS
+7. BROWSE RESOURCES
+   - URL: /browse-resources
+   - Navigation: Click "Browse All Resources" on the Resources page
+   - Content: Full catalog of resources available for browsing
+
+8. FACILITY BOOKING (SSF)
+   - URL: /facility-booking
+   - Navigation: Available from Resources page
+   - Content: Shared Service Facility booking
+
+9. EVENTS & WORKSHOPS
    - URL: /events
    - Navigation: Go to "Resources" page, then click "View All Events" or navigate through the Workshops & Events section
-   - Alternatively: Click "Resources" in nav bar, then scroll to "Workshops & Events" section
-   - Content: Upcoming and past workshops, seminars, and events
+   - Content: All upcoming and past workshops, seminars, and events
    - Users can register for events directly
+   - Event registration form fields: Full Name (required), Email (required), Phone, Organization, Position, Dietary Requirements, Special Requests
+   - Registration data saved to event_registrations table
+   - Duplicate registration prevention (same email for same event)
 
-6. LATEST NEWS
-   - URL: /latest-news
-   - Navigation: Click "Latest News" in the navigation bar
-   - Content: News articles and updates about TPCO activities
+10. LATEST NEWS
+    - URL: /latest-news
+    - Navigation: Click "Latest News" in the navigation bar
+    - Content: All published news articles and updates about TPCO activities
+    - News categories: Patent, Innovation, Research, Licensing, Copyright, Events, Partnerships, Education, Announcements
+    - Click on any news article to view full details at /news/{slug}
 
-7. ABOUT
-   - URL: /about
-   - Navigation: Click "About" in the navigation bar
-   - Content: Information about USTP TPCO, Mission/Vision/Values, Expert Team, Company Journey/Milestones, Strategic Partners
+11. ABOUT
+    - URL: /about
+    - Navigation: Click "About" in the navigation bar
+    - Content: Information about USTP TPCO
+    - Sections: Hero with Quick Stats, About Us description, Mission/Vision/Values, Expert Team, Company Journey/Milestones, Strategic Partners, Contact/Visit Us
+    - Quick Stats: 6 Years of Excellence, 12 Expert Team Members, 95% Success Rate, 24/7 Support Available
 
-8. CONTACT
-   - URL: /contact
-   - Navigation: Click "Contact Us" button in the navigation bar
-   - Content: Contact information, office location, phone, email
+12. CONTACT
+    - URL: /contact
+    - Navigation: Click "Contact Us" button in the navigation bar
+    - Content: Detailed contact information and service consultation page
+    - Phone: (088) 856-1738 (Available Mon-Fri, 8:00 AM - 5:00 PM)
+    - Email: tpco@ustp.edu.ph (response within 24 hours)
+    - Office: University of Science and Technology of Southern Philippines, Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan, Cagayan de Oro City, 9000 Misamis Oriental
+    - "How We Can Help You" section listing Technology Transfer Services and Partnership & Commercialization services
+    - Call-to-action with "Call Now" and "Send Email" buttons
+
+13. ADMIN PANEL
+    - URL: /admin
+    - Navigation: Click "Login" button in the navigation bar
+    - Content: Admin dashboard for managing content (requires authentication)
+    - Features: Manage patents, services, news, events, resources, homepage content, dashboard stats, service requests
+
+14. FACULTY IP PORTAL
+    - URL: /faculty
+    - Navigation: Accessible after login with faculty role
+    - Content: Faculty IP application management dashboard
+    - Features: Create/edit IP applications, track application status through IPOPHL filing process, view notifications
+    - Application statuses: Draft, Submitted for Internal Review, Under Internal Review, Needs Revision, Approved for IPOPHL Filing, Filed to IPOPHL, Under IPOPHL Examination, Published, Granted, Rejected
+    - Tabs: All, Drafts, Pending Review, Approved, Filed to IPOPHL, Completed, Archived
+
+15. IP APPLICATION FORM
+    - URL: /faculty/applications/new (new) or /faculty/applications/{id}/edit (edit)
+    - Navigation: Click "New IP Application" on Faculty Dashboard
+    - Content: Multi-step IP application form for faculty
+    - Fields: IP type, title, applicant info, abstract, detailed description, field of technology, background of invention, summary of invention, co-inventors
+
+16. CHAT WIDGET
+    - Available: On all pages (bottom-right corner)
+    - Powered by: MISTRAL RAG Pipeline (Python FastAPI backend at http://localhost:8000)
+    - Purpose: AI chatbot assistant to help users navigate the website and answer questions about USTP TPCO
 
 COMMON NAVIGATION QUESTIONS:
 
 Q: "Where can I find events?" or "Events?" or "Workshops?"
-A: To access Events & Workshops, go to the "Resources" page by clicking "Resources" in the navigation bar. Then scroll down to the "Workshops & Events" section or click "View All Events" to see all upcoming and past events. You can also access events directly at /events.
+A: To access Events & Workshops, go to the "Resources" page by clicking "Resources" in the navigation bar. Then scroll down to the "Workshops & Events" section or click "View All Events" to see all upcoming and past events. You can also access events directly at /events. You can register for events directly on the page.
 
 Q: "Where are the services?" or "What services do you offer?"
-A: Click "Services" in the navigation bar to view all services offered by TPCO. The Services page includes core services like IP Protection, Technology Licensing, Industry-Academe Matching, and Startup Incubation.
+A: Click "Services" in the navigation bar to view all services offered by TPCO. The Services page includes core services (loaded dynamically from admin), additional services like IP Training & Workshops, Technology Assessment, and Market Research, as well as success stories from real partnerships.
 
 Q: "How do I contact TPCO?" or "Contact information?"
-A: Click "Contact Us" button in the navigation bar to access the Contact page. You can also call (088) 856-1738 or email tpco@ustp.edu.ph directly.
+A: Click "Contact Us" button in the navigation bar to access the Contact page. You can also call (088) 856-1738 or email tpco@ustp.edu.ph directly. The office is at USTP Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan, Cagayan de Oro City.
 
 Q: "Where can I see patents/technologies?" or "IP Portfolio?"
-A: Click "Our IP" in the navigation bar to access the IP Portfolio page. There you can browse, search, and filter patents and technologies available for licensing.
+A: Click "Our IP" in the navigation bar to access the IP Portfolio page. There you can browse, search, and filter patents and technologies available for licensing. The page also includes analytics charts showing status distribution and patent types.
 
 Q: "Where can I find templates/forms?" or "Download documents?"
-A: Go to the "Resources" page and click on the "Templates" tab to find legal templates and documents like Non-Disclosure Agreements (NDA) and Memorandum of Understanding (MOU).
+A: Go to the "Resources" page and click on the "Templates" tab to find legal templates and documents available for download.
 
-Q: "Where can I learn about IP?" or "IP tutorials?"
-A: Go to the "Resources" page and click on the "IP 101 Tutorials" tab to access learning modules about intellectual property fundamentals.
+Q: "Where can I find guidelines?" or "Research guidelines?"
+A: Go to the "Resources" page and click on the "Guidelines" tab to find research guidelines and best practices available for download.
 
-Q: "How do I book a facility?" or "SSF booking?"
-A: Go to the "Resources" page and click on the "SSF Booking" tab to book access to Shared Service Facilities and research equipment.
+Q: "How do I request a service?" or "Apply for service?"
+A: Go to the "Services" page, find the service you need, and click "Request This Service" to fill out a service request form. You can also go directly to /service-request?service={service-slug}.
+
+Q: "How do I apply for IP protection?" or "File a patent?"
+A: Faculty members can log in through the Admin portal (/admin) and access the Faculty IP Portal (/faculty) to submit IP applications. The application process goes through internal review before being filed to IPOPHL.
+
+Q: "What are the success stories?" or "Can you share examples of partnerships?"
+A: Visit the Services page (/services) and scroll to the Success Stories section. There are 3 case studies: AgriTech Soil Enhancement (35% yield increase), Smart Construction Materials (20% cost reduction), and Food Preservation Innovation (50% shelf life extension).
+
+Q: "How do I register for an event?"
+A: Go to the Resources page and scroll to the "Workshops & Events" section, or go to /events. Click "Register Now" on any event with open registration and fill out the registration form with your details.
 
 ================================================================================
 SECTION 2: SERVICES OFFERED
 ================================================================================
 
-CORE SERVICES:
+CORE SERVICES (managed via admin panel, dynamically loaded from services table):
 
 1. IP PROTECTION SERVICES
    Description: Comprehensive intellectual property protection and management services
    Features:
    - Patent Application Assistance
+   - Prior Art Search
+   - IP Portfolio Management
+   - Legal Consultation
    - Trademark Registration
    - Copyright Protection
-   - Prior Art Search & Analysis
-   - IP Portfolio Management
    - Freedom to Operate Analysis
    - Patent Landscape Studies
    - IP Strategy Development
@@ -108,11 +222,11 @@ CORE SERVICES:
    Pricing: Consultation fees apply
 
 2. TECHNOLOGY LICENSING
-   Description: Facilitate technology transfer and commercialization opportunities
+   Description: Connect researchers with industry partners for technology commercialization and licensing opportunities
    Features:
+   - Licensing Negotiations
    - Technology Valuation
    - Market Analysis
-   - Licensing Negotiations
    - Partnership Facilitation
    - Due Diligence Support
    - Contract Management
@@ -122,23 +236,23 @@ CORE SERVICES:
    Pricing: Success-based fees
 
 3. INDUSTRY-ACADEME MATCHING
-   Description: Bridge academic research with industry innovation needs
+   Description: Bridge the gap between academic research and industry needs through strategic partnerships
    Features:
    - Collaboration Matching
    - Joint Research Projects
+   - Consulting Services
+   - Technology Transfer
    - Technical Consulting
-   - Research Partnerships
    - Innovation Challenges
    - Expert Networks
-   - Technology Scouting
    - Partnership Development
    Timeline: 1-3 months
    Pricing: Project-based
 
 4. STARTUP INCUBATION
-   Description: Support researchers in launching technology-based startups
+   Description: Support researchers in launching startups through CDO b.i.t.e.s. incubation program
    Features:
-   - Business Model Development
+   - Business Development
    - Mentorship Programs
    - Funding Assistance
    - Market Entry Support
@@ -149,19 +263,66 @@ CORE SERVICES:
    Timeline: 6-12 months
    Pricing: Equity participation
 
+4-STEP SERVICE PROCESS:
+1. Initial Consultation
+2. Documentation & Filing
+3. Review & Processing
+4. Commercialization
+
 ADDITIONAL SERVICES:
 
 1. IP Training & Workshops
-   Description: Educational programs on intellectual property protection and commercialization
+   Description: Comprehensive educational programs on intellectual property protection and commercialization
    Duration: 1-3 days
+   Price: ₱15,000 - ₱45,000
+   Features: Patent Application Workshop, IP Strategy Development, Technology Commercialization, Prior Art Search Training, IP Portfolio Management, Licensing Negotiations, Market Analysis Techniques, Legal Compliance Guidelines
+   Process: Needs Assessment & Customization → Material Preparation & Expert Assignment → Workshop Delivery & Hands-on Practice → Follow-up Support & Certification
+   Benefits: Enhanced IP knowledge, Practical application experience, Expert guidance, Networking opportunities, Certification upon completion
 
 2. Technology Assessment
-   Description: Comprehensive evaluation of technology readiness and commercial potential
+   Description: Thorough evaluation of technology readiness levels, commercial potential, market viability, and competitive landscape
    Duration: 2-4 weeks
+   Price: ₱25,000 - ₱75,000
+   Features: TRL Assessment, Market Potential Analysis, Competitive Landscape Mapping, IP Position Evaluation, Commercial Viability Study, Risk Assessment & Mitigation, Scalability Analysis, Investment Requirements Estimation
+   Process: Technology Documentation Review → Market Research & Analysis → Expert Evaluation & Testing → Comprehensive Report Delivery
+   Benefits: Clear commercialization roadmap, Market opportunity identification, Risk mitigation strategies, Investment guidance, Strategic recommendations
 
 3. Market Research
-   Description: Detailed market analysis and commercial viability studies
+   Description: In-depth market analysis covering industry trends, competitive intelligence, customer insights, and commercial viability studies
    Duration: 3-6 weeks
+   Price: ₱35,000 - ₱100,000
+   Features: Market Size & Growth Analysis, Customer Needs Assessment, Competitive Intelligence, Industry Trend Analysis, Pricing Strategy Research, Distribution Channel Analysis, Regulatory Environment Study, Go-to-Market Strategy Development
+   Process: Research Design & Methodology → Data Collection & Primary Research → Analysis & Insights Development → Strategic Recommendations
+   Benefits: Data-driven market insights, Strategic positioning guidance, Risk assessment and mitigation, Investment decision support, Go-to-market strategy
+
+SUCCESS STORIES:
+
+1. AgriTech Soil Enhancement
+   Company: GreenGrow Solutions
+   Technology: Bio-Organic Fertilizer System
+   Impact: 35% yield increase, ₱2M annual revenue
+   Timeline: 6 months from licensing to market
+   Challenge: Traditional fertilizers degrading soil quality and becoming expensive
+   Solution: Bio-organic fertilizer system using locally-sourced agricultural waste that enriches soil while reducing costs by 40%
+   Outcome: Transformed 500 hectares of farmland, created sustainable revenue model for farming communities
+
+2. Smart Construction Materials
+   Company: BuildSmart Inc.
+   Technology: Concrete Additive Technology
+   Impact: 20% cost reduction, 15 projects implemented
+   Timeline: 8 months development to deployment
+   Challenge: High construction costs and environmental concerns with traditional concrete
+   Solution: Volcanic ash-based concrete additive that improves strength while reducing costs
+   Outcome: 15 major construction projects completed with improved safety standards
+
+3. Food Preservation Innovation
+   Company: FreshPack Solutions
+   Technology: Natural Packaging Technology
+   Impact: 50% shelf life extension, export market entry
+   Timeline: 4 months pilot to commercial scale
+   Challenge: Limited shelf life preventing export market expansion
+   Solution: Plant-based antimicrobial packaging that naturally preserves food
+   Outcome: Successful entry into international markets, exports to 3 ASEAN countries, 50 new jobs created
 
 ================================================================================
 SECTION 3: EVENTS & WORKSHOPS
@@ -175,8 +336,14 @@ HOW TO ACCESS EVENTS:
 
 EVENT REGISTRATION:
 - Click "Register Now" on any event with open registration
-- Fill out the registration form with your details
-- You will receive a confirmation email
+- Fill out the registration form: Full Name (required), Email (required), Phone, Organization, Position, Dietary Requirements, Special Requests
+- Duplicate registrations are prevented (same email for same event)
+- You will receive a confirmation message upon successful registration
+
+EVENT DETAILS:
+- Click "View Details" to see full event information including description, time, location, and capacity
+- Events loaded from admin_events table in Supabase
+- Only published upcoming events with open registration are shown on Resources page
 
 EVENT TYPES:
 - Workshops
@@ -242,16 +409,17 @@ SECTION 5: CONTACT INFORMATION
 
 OFFICE LOCATION:
 USTP Technology Transfer Office
+University of Science and Technology of Southern Philippines
 Cagayan de Oro Campus
 Claro M. Recto Ave, Lapasan
 Cagayan de Oro City, Philippines 9000
 
 PHONE NUMBERS:
-+63 (088) 856-1738
++63 (088) 856-1738 (primary)
 +63 (088) 856-1739
 
 EMAIL ADDRESSES:
-tpco@ustp.edu.ph
+tpco@ustp.edu.ph (primary - response within 24 hours)
 info@ustp.edu.ph
 
 OFFICE HOURS:
@@ -278,16 +446,29 @@ TECHNOLOGY FIELDS:
 - Information Technology
 
 PATENT/TECHNOLOGY STATUS:
-- Available (Available for licensing)
-- Licensed (Already licensed to a company)
-- Pending (Patent application pending)
-- Under Review (Under evaluation)
-- Granted (Patent granted)
+- Filed: Patent application has been filed
+- Registered: Patent has been registered/granted
+- Commercialized: Technology has been commercialized
+- Licensed: Already licensed to a company
+- Pending: Patent application pending
+- Available: Available for licensing
+- IP in Application: Currently in the IP application process (tracked via ip_applications table)
+
+PORTFOLIO ANALYTICS:
+- Status Distribution: Visual breakdown of patents by status (Filed, Registered, Commercialized, Licensed, IP in Application)
+- Patent Types: Visual breakdown of patents by technology field/category
+- Licensed Revenue: Total revenue from licensed technologies (from admin_dashboard_stats)
+- Total Patents: Count of all non-Draft patents in the portfolio
 
 HOW TO LICENSE TECHNOLOGIES:
-1. Identify Technology - Browse the portfolio to find technologies that align with your needs
-2. Contact Us - Reach out to the licensing team to discuss interest and requirements
-3. Negotiate Terms - Work with the team to establish licensing terms
+1. Identify Technology - Browse the portfolio to find technologies that align with your business needs
+2. Contact Us - Reach out to the licensing team to discuss your interest and requirements
+3. Negotiate Terms - Work with the team to establish licensing terms that benefit both parties
+
+DATA SOURCE:
+- Patent data is loaded from admin_patents table in Supabase (single source of truth)
+- Draft and Under Review patents are hidden from public view
+- IP Application count comes from ip_applications table
 
 ================================================================================
 SECTION 7: STRATEGIC PARTNERS
@@ -319,25 +500,79 @@ USTP TPCO collaborates with the following strategic partners:
    Type: Government Agency
    Description: Official IP registration and protection agency
 
+7. USAID
+   Type: International Development Agency
+   Description: U.S. Agency for International Development
+
+8. RTI International
+   Type: Research Institute
+   Description: Independent, nonprofit research institute
+
+9. Food Innovation Center (Northern Mindanao)
+   Type: Research Facility
+   Description: Food innovation and product development center
+
+10. OROBEST Innovation
+    Type: Innovation Hub
+    Description: Regional innovation program
+
+11. DOST-PCIEERD
+    Type: Government Agency
+    Description: Philippine Council for Industry, Energy and Emerging Technology Research and Development
+
+12. Best Friend Goodies
+    Type: Industry Partner
+    Description: Local food industry partner
+
+13. Bukidnon State University
+    Type: Academic Partner
+    Description: State university partner in Northern Mindanao
+
+14. European Chamber of Commerce of the Philippines (ECCP)
+    Type: Industry Association
+    Description: European business chamber in the Philippines
+
+15. Asian Development Bank
+    Type: International Financial Institution
+    Description: Regional development bank
+
 ================================================================================
 SECTION 8: MISSION, VISION, AND VALUES
 ================================================================================
 
 MISSION:
-To accelerate the translation of USTP research innovations into market-ready technologies 
-that address regional and national development needs while fostering sustainable 
-industry-academe partnerships.
+Create and nurture a working innovation ecosystem that promotes entrepreneurship 
+and commercialization of technologies to contribute to the economic and social 
+development of the community it services.
 
 VISION:
-To be the premier technology transfer office in the Philippines, recognized for excellence 
-in innovation commercialization and as the catalyst for economic development in 
-Northern Mindanao.
+To be on the innovation map, visibly interfacing with stakeholders and creating 
+a significant mark in fostering innovations not just in the academe but in the 
+whole innovation community.
 
 VALUES:
 - Innovation: Fostering creativity and breakthrough thinking
 - Integrity: Ethical practices in all partnerships
 - Excellence: Commitment to quality and continuous improvement
 - Collaboration: Building meaningful partnerships
+
+ABOUT US (DETAILED):
+The Technology Promotions and Commercialization Office (TPCO) serves as the interface 
+between the talent and technology housed in the academic institute, the industry, and 
+the community; fostering new relationships and partnerships resulting in life-changing 
+innovations, enhanced productivity and ingenious discoveries that amends the human 
+condition. The TPCO ambitiously aspires to be in the innovation map, visibly interfacing 
+with stakeholders and creating a significant mark in fostering innovations not just in 
+the academe but in the whole innovation community.
+
+At the TPCO, we contribute towards nurturing an empowered innovation ecosystem that 
+promotes entrepreneurship and commercialization of technologies to contribute to the 
+economic and social development of the community it serves. As part of the university's 
+commitment in delivering its Strategic Directional Areas, the TPCO was established and 
+approved by the Board of Regents in May 2020 amidst the challenges of the COVID-19 
+pandemic in the country. The office was officially launched to the public in August 2020 
+and is strategically poised right at the forefront of the university making it accessible 
+for stakeholders.
 
 ================================================================================
 SECTION 9: COMPANY MILESTONES
@@ -355,20 +590,129 @@ SECTION 9: COMPANY MILESTONES
 SECTION 10: RESOURCES AVAILABLE
 ================================================================================
 
-TEMPLATES:
-- Non-Disclosure Agreement (NDA): Standard template for protecting confidential information during technology discussions
-- Memorandum of Understanding (MOU): Framework for establishing research partnerships and collaboration agreements
+TEMPLATES (Legal Templates & Documents):
+- Available from the Resources page, Templates tab
+- Downloadable legal templates and documentation for IP protection and partnerships
+- Loaded dynamically from resources table (category: Templates)
+- Each resource shows title, description, format, and last updated date
 
-IP 101 TUTORIALS:
-- Introduction to Intellectual Property: Fundamentals of IP protection, types of IP, and why it matters for researchers
+GUIDELINES (Research Guidelines & Best Practices):
+- Available from the Resources page, Guidelines tab
+- Comprehensive guidelines and best practices for research, IP management, and technology transfer
+- Loaded dynamically from resources table (category: Guidelines)
+- Each resource shows title, description, and last updated date
 
 SHARED SERVICE FACILITIES (SSF):
+- Available from the Resources page or /facility-booking
 - Advanced Materials Testing Lab: State-of-the-art equipment for materials characterization and testing
 - Capacity: 10 researchers
 - Hourly Rate: ₱500
 
-GUIDELINES:
-- USTP Research Ethics Guidelines: Comprehensive guide to ethical considerations in research and development
+================================================================================
+SECTION 11: HOMEPAGE IMPACT STATISTICS
+================================================================================
+
+The homepage displays 6 key impact statistics (loaded from admin_homepage_content table):
+
+1. Patents Granted - Default: 24+ (+6 this year)
+2. Startups Incubated - Default: 12 (+4 this year)
+3. Industry Partners - Default: 50+ (+15 this year)
+4. Technologies Developed - Default: 8+ (+25 this year)
+5. Regional Economic Impact - Default: ₱15M (+₱5M this year)
+6. Success Rate - Default: 85% (Industry partnerships)
+
+These values are editable by admin through the admin panel.
+
+HERO STATS (on the hero banner):
+- Patents Granted: Default 24+
+- Industry Partners: Default 50+
+- Technologies Developed: Default 8+
+
+These are also editable from admin_homepage_content table.
+
+================================================================================
+SECTION 12: NEWS CATEGORIES
+================================================================================
+
+News articles on the website can be categorized as:
+- Patent: Blue badge
+- Innovation: Orange badge
+- Research: Primary badge
+- Licensing: Secondary badge
+- Copyright: Muted badge
+- Events: Green badge
+- Partnerships: Purple badge
+- Education: Blue badge
+- Announcements: Orange badge
+
+News articles are loaded from admin_news table, showing only published articles.
+Homepage displays 3 latest articles with featured/regular card layout.
+
+================================================================================
+SECTION 13: FACULTY IP APPLICATION PROCESS
+================================================================================
+
+Faculty members can submit IP applications through the Faculty IP Portal:
+
+APPLICATION STATUSES:
+1. Draft - Initial draft, not yet submitted
+2. Submitted for Internal Review - Submitted to TPCO for review
+3. Under Internal Review - Being reviewed by TPCO staff
+4. Needs Revision - Requires changes before proceeding
+5. Approved for IPOPHL Filing - Approved internally for IPOPHL submission
+6. Filed to IPOPHL - Submitted to the Intellectual Property Office of the Philippines
+7. Under IPOPHL Examination - Being examined by IPOPHL
+8. Published - Published by IPOPHL
+9. Granted - Patent granted by IPOPHL
+10. Rejected - Application rejected
+
+APPLICATION FORM FIELDS:
+- IP Type (Patent, Utility Model, Industrial Design, Copyright)
+- Title
+- Applicant Information (name, address, nationality, phone, email)
+- Abstract
+- Detailed Description
+- Field of Technology
+- Background of Invention
+- Summary of Invention
+- Co-Inventors
+
+================================================================================
+SECTION 14: AI CHAT ASSISTANT
+================================================================================
+
+The website features an AI chat assistant named Tepee (the TPCO mascot) available on all pages:
+- Bot Name: Tepee (greeting: "Hi, I'm Tepee!")
+- Brand Name: TEEPEE
+- Position: Bottom-right corner
+- App Name: USTP TPCO
+- Backend: MISTRAL RAG Pipeline (Python FastAPI)
+- API Endpoint: http://localhost:8000/query
+- Technology: Retrieval-Augmented Generation using Mistral AI and ChromaDB vector database
+- Knowledge Base: Documents in the MISTRAL-main/documents/ folder ingested into ChromaDB
+
+================================================================================
+SECTION 15: QUICK STATS
+================================================================================
+
+About Page Quick Stats:
+- 6 Years of Excellence
+- 12 Expert Team Members
+- 95% Success Rate
+- 24/7 Support Available
+
+Homepage Hero Stats (editable from admin):
+- 24+ Patents Granted
+- 50+ Industry Partners
+- 8+ Technologies Developed
+
+Homepage Impact Stats (editable from admin):
+- 24+ Patents Granted
+- 12 Startups Incubated
+- 50+ Industry Partners
+- 8+ Technologies Developed
+- ₱15M Regional Economic Impact
+- 85% Success Rate
 
 ================================================================================
 END OF KNOWLEDGE BASE

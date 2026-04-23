@@ -430,7 +430,7 @@ const TechnologyDetails = () => {
               <div className="mt-16">
                 <div className="flex items-center mb-6">
                   <Lightbulb className="text-primary mr-3" size={24} />
-                  <h2 className="text-3xl font-roboto font-bold text-primary">Related Technologies</h2>
+                  <h2 className="text-3xl font-roboto font-bold text-primary">Other Technologies</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {recommendations.map((item) => (

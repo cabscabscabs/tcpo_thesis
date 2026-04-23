@@ -92,11 +92,11 @@ const ChatDemo: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-theme-primary-main mb-4">
-            AI Chatbot Widget Demo
+            Tepee — AI Chatbot Widget Demo
           </h1>
           <p className="text-xl text-theme-neutral-gray dark:text-theme-neutral-light max-w-3xl mx-auto">
-            Experience the power of our intelligent AI chatbot widget designed to enhance user support 
-            and navigation across your USTP TPCO web application.
+            Experience Tepee, the friendly AI chatbot mascot of USTP TPCO — designed to enhance user support 
+            and navigation across the web application.
           </p>
         </div>
 
@@ -253,7 +253,7 @@ const ChatDemo: React.FC = () => {
                   <p className="text-theme-neutral-gray dark:text-theme-neutral-light mb-4">
                     Use the widget with predefined responses only (no OpenAI API required):
                   </p>
-                  <div className="bg-theme-neutral-dark text-theme-neutral-light p-3 rounded-lg font-mono text-sm">
+                  <div className="text-sm bg-theme-neutral-dark text-theme-neutral-light p-3 rounded-lg font-mono">
                     {`<ChatWidget appName="USTP TPCO" />`}
                   </div>
                 </CardContent>
@@ -267,7 +267,7 @@ const ChatDemo: React.FC = () => {
                   <p className="text-theme-neutral-gray dark:text-theme-neutral-light mb-4">
                     Enable AI-powered responses with OpenAI integration:
                   </p>
-                  <div className="bg-theme-neutral-dark text-theme-neutral-light p-3 rounded-lg font-mono text-sm">
+                  <div className="text-sm bg-theme-neutral-dark text-theme-neutral-light p-3 rounded-lg font-mono">
                     {`<ChatWidget 
   appName="USTP TPCO"
   openAIKey="sk-..."

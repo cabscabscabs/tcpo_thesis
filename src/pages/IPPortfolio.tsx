@@ -31,7 +31,6 @@ import {
   ExternalLink, 
   ChevronLeft, 
   ChevronRight,
-  Lightbulb,
   FileCheck,
   TrendingUp,
   DollarSign,
@@ -43,7 +42,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { ExtendedPortfolioItem, transformToExtendedPortfolioItem } from "@/integrations/supabase/extendedTypes";
 import { getStatusColor, getFieldColor } from "@/lib/utils";
 import ipBgImage from "@/assets/ip-portfolio-bg.jpg";
-import { usePortfolioRecommendations } from "@/hooks/useRecommendations";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 const ITEMS_PER_PAGE = 10;
@@ -72,7 +70,6 @@ const IPPortfolio = () => {
   const [statusOptions, setStatusOptions] = useState<string[]>([]);
   const [ipApplicationCount, setIpApplicationCount] = useState(0);
   const [licensedRevenue, setLicensedRevenue] = useState(0);
-  const { recommendations, loading: recLoading } = usePortfolioRecommendations(3);
 
   const fetchPortfolioItems = useCallback(async () => {
     try {
@@ -584,63 +581,6 @@ const IPPortfolio = () => {
           )}
         </div>
       </section>
-
-      {/* Recommendations Section */}
-      {recommendations.length > 0 && (
-        <section className="py-12 bg-gradient-to-r from-primary/5 to-accent/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center mb-8">
-              <Lightbulb className="text-primary mr-3" size={24} />
-              <h2 className="text-3xl font-roboto font-bold text-primary">Recommended for You</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {recommendations.map((item) => (
-                <Card 
-                  key={item.id} 
-                  className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1 cursor-pointer"
-                  onClick={() => {
-                    console.log("Navigating to technology with slug:", item.slug);
-                    navigate(`/technology/${item.slug}`);
-                  }}
-                >
-                  <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex gap-1">
-                        {item.status && (
-                          <Badge className={`${getStatusColor(item.status)} text-xs`}>
-                            {item.status}
-                          </Badge>
-                        )}
-                      </div>
-                      <span className="text-sm text-gray-500">{item.year || new Date(item.created_at).getFullYear()}</span>
-                    </div>
-                    <CardTitle className="text-lg font-roboto group-hover:text-primary transition-colors line-clamp-2">
-                      {item.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <CardDescription className="text-gray-600 line-clamp-3 text-sm break-words">
-                      {item.description || item.abstract}
-                    </CardDescription>
-                    <div className="flex flex-wrap gap-1 mt-3">
-                      {(item.field || item.category) && (
-                        <Badge className={`${getFieldColor(item.field || item.category || '')} text-xs pointer-events-none`}>
-                          {item.field || item.category}
-                        </Badge>
-                      )}
-                      {item.tags && item.tags.slice(0, 2).map((tag, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Portfolio Grid */}
       <section className="py-16">

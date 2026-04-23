@@ -53,18 +53,18 @@
 ## FACULTY DASHBOARD
 
 ### Navigation & Layout
-- [ ] Similar look and content type as admin
-- [ ] Only Dashboard, Profile, IP Submission (no "add patent")
-- [ ] Remove services tab
-- [ ] Remove events tab
-- [ ] Remove IP tutorials
-- [ ] Remove facilities and SSF Booking
+- [D] Similar look and content type as admin
+- [D] Only Dashboard, Profile, IP Submission (no "add patent")
+- [D] Remove services tab
+- [D] Remove events tab
+- [D] Remove IP tutorials
+- [D] Remove facilities and SSF Booking
 
 ### IP Submissions
-- [ ] View submission status immediately upon opening account
-- [ ] Show submitted IPs
-- [ ] Show ongoing evaluations
-- [ ] Show returned or incomplete status
+- [D] View submission status immediately upon opening account
+- [D] Show submitted IPs
+- [D] Show ongoing evaluations
+- [D] Show returned or incomplete status
 
 ### Guidelines
 - [ ] IPOPHL guidelines (can get from IPOPHL website)
@@ -75,11 +75,11 @@
 ## AI CHATBOT (TEEPEE)
 
 ### Features
-- [ ] Bot name: "TEEPEE" ("Hi I'm Teepee")
-- [x] Expandable chat for better AI understanding
-- [ ] Add Bisaya/Cebuano language support
+- [ ] Bot name: "TEEPEE" ("Hi I'm Tepee")
+- [D] Expandable chat for better AI understanding
+- [D] Add Bisaya/Cebuano language support
 - [ ] Separate responses for faculty, admin, and public users
-- [ ] Predefined responses for static About page content
+- [D] Predefined responses for static About page content
 - [ ] Conversational starters/greetings
 
 ---
@@ -92,7 +92,7 @@
 
 ### Partners & Licensing
 - [D] Logo only for partnerships
-- [ ] Remove licensing contact us (redirect to contact us page instead)
+- [D] Remove licensing contact us (redirect to contact us page instead)
 
 ### IPOPHL
 - [CANT ACCESS] Add IPOPHL guidelines

@@ -369,20 +369,50 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
-      content: `Hello! I'm your AI assistant for ${appName}. I can help answer questions about patents, IP protection, technology transfer, and USTP TPCO processes.`,
+      content: `Hi, I'm Tepee! Your friendly TPCO assistant. I can help with patents, IP protection, technology transfer, and USTP TPCO processes.`,
       role: 'assistant',
       timestamp: new Date(),
     }
   ]);
 
-  // Suggested questions for users
-  const suggestedQuestions = [
+  // Pool of suggested questions — randomly selected on each chat open (like Featured Technologies)
+  const allSuggestedQuestions = [
+    // Patents
     "What is a patent?",
     "How do I file a patent application?",
+    "What are the requirements for patentability?",
+    "How long does patent protection last?",
+    "What is prior art and why does it matter?",
+    "What's the difference between a patent and a utility model?",
+    // IP Protection
+    "How can I protect my intellectual property?",
+    "What types of IP protection are available?",
+    "How do I register a trademark?",
+    "What is copyright protection?",
+    "What is an industrial design?",
+    "How do I know if my invention is patentable?",
+    // Technology Transfer
+    "What is technology transfer?",
+    "How does technology licensing work?",
+    "How can I license a USTP technology?",
+    "What is the TRL assessment?",
+    "How do industry partnerships work at USTP?",
+    // USTP TPCO Processes
     "Who is the TPCO Director?",
     "What services does TPCO offer?",
-    "How can I contact TPCO?"
+    "How can I contact TPCO?",
+    "What is the IP application process for faculty?",
+    "What forms do I need for IP filing?",
+    "How do I book a facility or equipment?",
+    "What are the TPCO office hours?",
+    "What workshops or events are coming up?",
   ];
+
+  // Pick a random subset each time the component mounts (similar to Featured Technologies logic)
+  const [suggestedQuestions] = useState<string[]>(() => {
+    const shuffled = [...allSuggestedQuestions].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 4);
+  });
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -632,7 +662,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
              <div className="flex items-center justify-between">
                <div className="flex items-center space-x-2">
                  <Bot className="h-4 w-4 md:h-5 md:w-5" />
-                 <CardTitle className="text-base md:text-lg">TPCO AI Assistant</CardTitle>
+                 <CardTitle className="text-base md:text-lg">Tepee</CardTitle>
                </div>
                <div className="flex items-center space-x-1 md:space-x-2">
                  <Badge variant="secondary" className="text-xs bg-white/20 text-white hidden sm:block">
@@ -747,7 +777,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                           setInputValue(question);
                           setTimeout(() => handleSendMessage(), 100);
                         }}
-                        className="text-[11px] px-2.5 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full transition-colors text-left leading-snug"
+                        className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full transition-colors text-left leading-snug"
                       >
                         {question}
                       </button>

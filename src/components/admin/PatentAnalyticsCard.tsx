@@ -29,6 +29,7 @@ import { useState, useMemo } from "react";
 
 interface PatentAnalyticsProps {
   patents: any[];
+  ipApplications?: any[];
 }
 
 type TrendFilter = 'all' | 'field' | 'status';
@@ -36,7 +37,7 @@ type ChartType = 'bar' | 'line' | 'combo';
 
 type ExportSection = 'overview' | 'status' | 'field' | 'trends' | 'summary';
 
-export function PatentAnalyticsCard({ patents }: PatentAnalyticsProps) {
+export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnalyticsProps) {
   // State for filing trends
   const [trendFilter, setTrendFilter] = useState<TrendFilter>('all');
   const [selectedField, setSelectedField] = useState<string>('all');
@@ -155,7 +156,11 @@ export function PatentAnalyticsCard({ patents }: PatentAnalyticsProps) {
     if (exportSections.includes('overview')) {
       rows.push('=== OVERVIEW ===');
       rows.push('Metric,Count,Percentage');
-      const approvedCount = statusCounts['Approved'] || statusCounts['Granted'] || statusCounts['Approved for IPOPHL Filing'] || statusCounts['Available'] || 0;
+      const approvedCount = ipApplications.filter((app: any) =>
+        app.status === 'Approved for IPOPHL Filing' ||
+        app.status === 'Filed to IPOPHL' ||
+        app.status === 'Granted'
+      ).length || (statusCounts['Approved'] || statusCounts['Granted'] || statusCounts['Approved for IPOPHL Filing'] || statusCounts['Available'] || 0);
       const underReviewCount = (statusCounts['Under Review'] || 0) + 
         (statusCounts['Pending'] || 0) + 
         (statusCounts['Submitted for Internal Review'] || 0) +
@@ -294,7 +299,11 @@ export function PatentAnalyticsCard({ patents }: PatentAnalyticsProps) {
               <span className="text-sm opacity-90">Approved</span>
             </div>
             <div className="text-3xl font-bold">
-              {statusCounts['Approved'] || statusCounts['Granted'] || statusCounts['Approved for IPOPHL Filing'] || statusCounts['Available'] || 0}
+              {ipApplications.filter((app: any) =>
+                app.status === 'Approved for IPOPHL Filing' ||
+                app.status === 'Filed to IPOPHL' ||
+                app.status === 'Granted'
+              ).length || (statusCounts['Approved'] || statusCounts['Granted'] || statusCounts['Approved for IPOPHL Filing'] || statusCounts['Available'] || 0)}
             </div>
             <div className="text-xs opacity-80 mt-1">Ready for filing</div>
           </div>

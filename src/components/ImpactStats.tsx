@@ -1,57 +1,99 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, Award, Building, Users, Lightbulb, DollarSign } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface ImpactStat {
+  icon: any;
+  value: string;
+  label: string;
+  trend: string;
+  color: string;
+  link?: string;
+}
 
 const ImpactStats = () => {
   const navigate = useNavigate();
+  const [stats, setStats] = useState<ImpactStat[]>([]);
 
-  const stats = [
-    {
-      icon: Award,
-      value: "24+",
-      label: "Patents Granted",
-      trend: "+6 this year",
-      color: "text-green-600",
-      link: "/ip-portfolio"
-    },
-    {
-      icon: Building,
-      value: "12",
-      label: "Startups Incubated",
-      trend: "+4 this year",
-      color: "text-blue-600"
-    },
-    {
-      icon: Users,
-      value: "6+",
-      label: "Industry Partners",
-      trend: "+15 this year",
-      color: "text-purple-600",
-      link: "/about#strategic-partners"
-    },
-    {
-      icon: Lightbulb,
-      value: "8+",
-      label: "Technologies Developed",
-      trend: "+25 this year",
-      color: "text-primary",
-      link: "/ip-portfolio"
-    },
-    {
-      icon: DollarSign,
-      value: "₱15M",
-      label: "Regional Economic Impact",
-      trend: "+₱5M this year",
-      color: "text-green-600"
-    },
-    {
-      icon: TrendingUp,
-      value: "85%",
-      label: "Success Rate",
-      trend: "Industry partnerships",
-      color: "text-primary"
-    }
-  ];
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('admin_homepage_content')
+          .select('patents_count, partners_count, startups_count, technologies_count, regional_impact, success_rate')
+          .limit(1)
+          .single();
+
+        if (data && !error) {
+          const content = data as any;
+          setStats([
+            {
+              icon: Award,
+              value: `${content.patents_count}+`,
+              label: "Patents Granted",
+              trend: "+6 this year",
+              color: "text-green-600",
+              link: "/ip-portfolio"
+            },
+            {
+              icon: Building,
+              value: String(content.startups_count),
+              label: "Startups Incubated",
+              trend: "+4 this year",
+              color: "text-blue-600"
+            },
+            {
+              icon: Users,
+              value: `${content.partners_count}+`,
+              label: "Industry Partners",
+              trend: "+15 this year",
+              color: "text-purple-600",
+              link: "/about#strategic-partners"
+            },
+            {
+              icon: Lightbulb,
+              value: `${content.technologies_count}+`,
+              label: "Technologies Developed",
+              trend: "+25 this year",
+              color: "text-primary",
+              link: "/ip-portfolio"
+            },
+            {
+              icon: DollarSign,
+              value: content.regional_impact || "₱15M",
+              label: "Regional Economic Impact",
+              trend: "+₱5M this year",
+              color: "text-green-600"
+            },
+            {
+              icon: TrendingUp,
+              value: content.success_rate || "85%",
+              label: "Success Rate",
+              trend: "Industry partnerships",
+              color: "text-primary"
+            }
+          ]);
+          return;
+        }
+      } catch (err) {
+        console.error('Error fetching impact stats:', err);
+      }
+
+      // Fallback to defaults if fetch fails
+      setStats([
+        { icon: Award, value: "24+", label: "Patents Granted", trend: "+6 this year", color: "text-green-600", link: "/ip-portfolio" },
+        { icon: Building, value: "12", label: "Startups Incubated", trend: "+4 this year", color: "text-blue-600" },
+        { icon: Users, value: "6+", label: "Industry Partners", trend: "+15 this year", color: "text-purple-600", link: "/about#strategic-partners" },
+        { icon: Lightbulb, value: "8+", label: "Technologies Developed", trend: "+25 this year", color: "text-primary", link: "/ip-portfolio" },
+        { icon: DollarSign, value: "₱15M", label: "Regional Economic Impact", trend: "+₱5M this year", color: "text-green-600" },
+        { icon: TrendingUp, value: "85%", label: "Success Rate", trend: "Industry partnerships", color: "text-primary" }
+      ]);
+    };
+
+    fetchStats();
+  }, []);
 
   return (
     <section className="py-20 bg-white">

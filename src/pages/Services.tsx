@@ -231,10 +231,8 @@ const Services = () => {
                         <TabsContent value="process" className="mt-4">
                           <div className="space-y-3">
                             {service.process_steps.map((step, idx) => (
-                              <div key={idx} className="flex items-center space-x-3">
-                                <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center text-primary font-bold text-sm">
-                                  {idx + 1}
-                                </div>
+                              <div key={idx} className="flex items-start space-x-3">
+                                <span className="text-sm font-bold text-secondary min-w-[1.5rem]">{idx + 1}.</span>
                                 <span className="text-sm text-gray-600">{step}</span>
                               </div>
                             ))}

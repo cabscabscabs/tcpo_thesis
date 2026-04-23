@@ -1035,6 +1035,10 @@ const Admin = () => {
     const [eventRegistrations, setEventRegistrations] = useState<any[]>([]);
     const [loadingRegistrations, setLoadingRegistrations] = useState(false);
 
+  // Archived Event Detail Modal state
+  const [showArchivedEventDetailModal, setShowArchivedEventDetailModal] = useState(false);
+  const [selectedArchivedEvent, setSelectedArchivedEvent] = useState<any>(null);
+
   // Event form state
   const [eventForm, setEventForm] = useState({
     id: null as number | null,
@@ -1126,67 +1130,15 @@ const Admin = () => {
     patentsCount: 24,
     partnersCount: 50,
     startupsCount: 15,
-    technologiesCount: 8
-  });
-
-  // Featured Technologies management
-  const [featuredTechnologies, setFeaturedTechnologies] = useState([
-    {
-      id: "1",
-      title: "Smart Irrigation System",
-      description: "IoT-based irrigation system that reduces water usage by 40% while optimizing crop yields.",
-      field: "Agriculture",
-      status: "Licensed",
-      inventors: "Dr. Maria Santos, Dr. Juan dela Cruz",
-      year: "2024",
-      abstract: "Revolutionary smart irrigation technology using AI-powered sensors."
-    },
-    {
-      id: "2",
-      title: "Bio-plastic Innovation",
-      description: "Biodegradable plastic made from agricultural waste that decomposes within 6 months.",
-      field: "Materials Science",
-      status: "Available",
-      inventors: "Dr. Roberto Mendez, Dr. Anna Garcia",
-      year: "2023",
-      abstract: "Sustainable packaging solution using local agricultural byproducts."
-    },
-    {
-      id: "3",
-      title: "Food Processing Tech",
-      description: "Advanced food preservation method that extends shelf life by 300% naturally.",
-      field: "Food Technology",
-      status: "Pending",
-      inventors: "Dr. Carmen Reyes, Dr. Luis Torres",
-      year: "2024",
-      abstract: "Natural preservation technology combining traditional methods with modern science."
-    }
-  ]);
-
-  // State for featured technology selection
-  const [selectedFeaturedTech, setSelectedFeaturedTech] = useState<string[]>([]);
-
-  // Modal states for technology management
-  const [showTechModal, setShowTechModal] = useState(false);
-  const [editingTech, setEditingTech] = useState<any>(null);
-  const [techForm, setTechForm] = useState({
-    title: '',
-    description: '',
-    field: '',
-    status: 'Available',
-    inventors: '',
-    year: new Date().getFullYear().toString(),
-    abstract: '',
-    patentId: '',
-    image: null as File | null
+    technologiesCount: 8,
+    regionalImpact: "₱15M",
+    successRate: "85%"
   });
 
   // Modal states for patent management
   const [showPatentModal, setShowPatentModal] = useState(false);
   const [editingPatent, setEditingPatent] = useState<any>(null);
   
-  // Modal state for patent selection
-  const [showPatentSelectionModal, setShowPatentSelectionModal] = useState(false);
 
   // Modal state for event management
   const [showEventModal, setShowEventModal] = useState(false);
@@ -1202,7 +1154,6 @@ const Admin = () => {
     try {
       await Promise.all([
         loadHomepageContent(),
-        loadTechnologies(),
         loadNews(),
         loadDashboardStats(),
         loadServices(),
@@ -1264,35 +1215,12 @@ const Admin = () => {
           partnersCount: content.partners_count,
           startupsCount: content.startups_count,
           technologiesCount: content.technologies_count,
+          regionalImpact: content.regional_impact || "₱15M",
+          successRate: content.success_rate || "85%",
         });
       }
     } catch (error) {
       console.error('Error loading homepage content:', error);
-    }
-  };
-
-  const loadTechnologies = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('admin_technologies')
-        .select('*')
-        .order('order_num', { ascending: true });
-      
-      if (data && !error) {
-        setFeaturedTechnologies(data.map((tech: any) => ({
-          id: tech.id,
-          title: tech.title,
-          description: tech.description,
-          field: tech.field,
-          status: tech.status,
-          inventors: tech.inventors,
-          year: tech.year,
-          abstract: tech.abstract,
-          image: tech.image_url,
-        })));
-      }
-    } catch (error) {
-      console.error('Error loading technologies:', error);
     }
   };
 
@@ -1829,12 +1757,20 @@ const Admin = () => {
     }
   };
 
-  // Handle statistics update
-  const handleStatisticsUpdate = async () => {
-    const patentsCount = parseInt((document.getElementById('patents-count') as HTMLInputElement)?.value) || 24;
-    const partnersCount = parseInt((document.getElementById('partnerships-count') as HTMLInputElement)?.value) || 50;
-    const startupsCount = parseInt((document.getElementById('startups-count') as HTMLInputElement)?.value) || 15;
-    const technologiesCount = parseInt((document.getElementById('technologies-count') as HTMLInputElement)?.value) || 8;
+  // Handle impact statistics update
+  const handleImpactStatsUpdate = async () => {
+    const patentsValue = (document.getElementById('stat-patents') as HTMLInputElement)?.value || homepageContent.patentsCount + '+';
+    const startupsValue = (document.getElementById('stat-startups') as HTMLInputElement)?.value || String(homepageContent.startupsCount);
+    const partnersValue = (document.getElementById('stat-partners') as HTMLInputElement)?.value || homepageContent.partnersCount + '+';
+    const technologiesValue = (document.getElementById('stat-technologies') as HTMLInputElement)?.value || homepageContent.technologiesCount + '+';
+    const regionalImpact = (document.getElementById('stat-impact') as HTMLInputElement)?.value || homepageContent.regionalImpact;
+    const successRate = (document.getElementById('stat-success') as HTMLInputElement)?.value || homepageContent.successRate;
+    
+    // Parse numeric values (remove + and currency symbols for storage)
+    const patentsCount = parseInt(patentsValue.replace(/[^0-9]/g, '')) || homepageContent.patentsCount;
+    const partnersCount = parseInt(partnersValue.replace(/[^0-9]/g, '')) || homepageContent.partnersCount;
+    const startupsCount = parseInt(startupsValue.replace(/[^0-9]/g, '')) || homepageContent.startupsCount;
+    const technologiesCount = parseInt(technologiesValue.replace(/[^0-9]/g, '')) || homepageContent.technologiesCount;
     
     const updatedContent = {
       hero_title: homepageContent.heroTitle,
@@ -1844,6 +1780,8 @@ const Admin = () => {
       partners_count: partnersCount,
       startups_count: startupsCount,
       technologies_count: technologiesCount,
+      regional_impact: regionalImpact,
+      success_rate: successRate,
     };
     
     const { error } = await supabase
@@ -1861,11 +1799,13 @@ const Admin = () => {
       patentsCount,
       partnersCount,
       startupsCount,
-      technologiesCount
+      technologiesCount,
+      regionalImpact,
+      successRate
     });
     
     window.dispatchEvent(new Event('storage'));
-    toast({ title: 'Success', description: 'Statistics updated successfully!' });
+    toast({ title: 'Success', description: 'Impact statistics updated successfully!' });
   };
 
   // Activity logging function
@@ -2262,108 +2202,6 @@ const Admin = () => {
     setShowDeleteNewsDialog(false);
     setDeleteNewsTarget(null);
   };
-  // Featured Technologies Management Functions
-  const handleAddTechnology = () => {
-    setEditingTech(null);
-    setTechForm({
-      title: '',
-      description: '',
-      field: '',
-      status: 'Available',
-      inventors: '',
-      year: new Date().getFullYear().toString(),
-      abstract: '',
-      patentId: '',
-      image: null
-    });
-    setShowTechModal(true);
-  };
-
-  const handleEditTechnology = (tech: any) => {
-    setEditingTech(tech);
-    setTechForm({
-      title: tech.title,
-      description: tech.description,
-      field: tech.field,
-      status: tech.status,
-      inventors: tech.inventors,
-      year: tech.year,
-      abstract: tech.abstract,
-      patentId: tech.patent_number || tech.patentId || '',
-      image: null
-    });
-    setShowTechModal(true);
-  };
-
-  const handleSaveTechnology = async () => {
-    if (!techForm.title || !techForm.description || !techForm.field) {
-      toast({ title: 'Validation Error', description: 'Please fill in all required fields (Title, Description, Field).', variant: 'destructive' });
-      return;
-    }
-
-    const techData = {
-      title: techForm.title,
-      description: techForm.description,
-      field: techForm.field,
-      status: techForm.status,
-      inventors: techForm.inventors,
-      year: techForm.year,
-      abstract: techForm.abstract,
-      patent_number: techForm.patentId,
-      featured: true,
-      published: true,
-    };
-
-    if (editingTech) {
-      const { error } = await supabase
-        .from('admin_technologies')
-        .update(techData)
-        .eq('id', editingTech.id);
-      
-      if (error) {
-        console.error('Error updating technology:', error);
-        toast({ title: 'Error', description: 'Error updating technology', variant: 'destructive' })
-        return;
-      }
-      // Note: Activity is logged automatically by database trigger
-    } else {
-      const { error } = await supabase
-        .from('admin_technologies')
-        .insert([techData]);
-      
-      if (error) {
-        console.error('Error creating technology:', error);
-        toast({ title: 'Error', description: 'Error creating technology', variant: 'destructive' })
-        return;
-      }
-      // Note: Activity is logged automatically by database trigger
-    }
-
-    loadTechnologies();
-    window.dispatchEvent(new Event('storage'));
-    setShowTechModal(false);
-    toast({ title: 'Success', description: `Technology ${editingTech ? 'updated' : 'added'} successfully!` })
-  };
-
-  const handleDeleteTechnology = async (techId: string, title: string) => {
-    if (confirm('Are you sure you want to delete this technology? This action cannot be undone.')) {
-      const { error } = await supabase
-        .from('admin_technologies')
-        .delete()
-        .eq('id', techId);
-      
-      if (error) {
-        console.error('Error deleting technology:', error);
-        toast({ title: 'Error', description: 'Error deleting technology', variant: 'destructive' })
-        return;
-      }
-      
-      loadTechnologies();
-      window.dispatchEvent(new Event('storage'));
-      // Note: Activity is logged automatically by database trigger
-      toast({ title: 'Success', description: 'Technology deleted successfully!' })
-    }
-  };
 
   // Handle saving a new patent
   const handleSavePatent = async () => {
@@ -2553,28 +2391,7 @@ const Admin = () => {
         return;
       }
 
-      // Also update the corresponding entry in admin_technologies (featured technologies)
-      const { error: techError } = await supabase
-        .from('admin_technologies')
-        .update({
-          title: patentEditForm.title,
-          description: patentEditForm.description || patentEditForm.abstract || `Patent in ${patentEditForm.field}`,
-          field: patentEditForm.field,
-          status: patentEditForm.status,
-          inventors: patentEditForm.inventors,
-          year: patentEditForm.year,
-          abstract: patentEditForm.abstract,
-          patent_number: patentEditForm.patentId
-        })
-        .eq('id', editingPatent.id);
-      
-      if (techError) {
-        console.error('Error updating featured technology:', techError);
-        // Don't block the patent update if featured tech update fails
-      }
-
       loadPatents();
-      loadTechnologies(); // Refresh featured technologies
       window.dispatchEvent(new Event('storage'));
       
       setShowPatentModal(false);
@@ -3902,9 +3719,6 @@ const Admin = () => {
             {/* Notification Bell */}
             <Popover open={notificationOpen} onOpenChange={(open) => {
               setNotificationOpen(open);
-              if (open && unreadCount > 0) {
-                markAllNotificationsAsRead();
-              }
             }}>
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
@@ -3949,7 +3763,7 @@ const Admin = () => {
                           onClick={() => {
                             markNotificationAsRead(notification.id);
                             // If this notification is linked to an IP application, open its detail modal
-                            if (notification.type === 'ip_application' && notification.application_id) {
+                            if (notification.application_id) {
                               setNotificationOpen(false);
                               navigateToIpApplication(notification.application_id);
                             }
@@ -4188,67 +4002,40 @@ const Admin = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Featured Technologies</CardTitle>
-                  <CardDescription>Highlight key innovations from existing patents</CardDescription>
+                  <CardTitle>Impact Statistics</CardTitle>
+                  <CardDescription>Update key metrics displayed on homepage</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    {featuredTechnologies.map((tech) => (
-                      <div key={tech.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium">{tech.title}</p>
-                          <p className="text-sm text-muted-foreground">{tech.field} • {tech.status}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleDeleteTechnology(tech.id, tech.title)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="stat-patents">Patents Granted</Label>
+                      <Input id="stat-patents" type="text" placeholder="e.g. 24+" defaultValue={homepageContent.patentsCount + '+'} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="stat-startups">Startups Incubated</Label>
+                      <Input id="stat-startups" type="text" placeholder="e.g. 12" defaultValue={homepageContent.startupsCount} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="stat-partners">Industry Partners</Label>
+                      <Input id="stat-partners" type="text" placeholder="e.g. 6+" defaultValue={homepageContent.partnersCount + '+'} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="stat-technologies">Technologies Developed</Label>
+                      <Input id="stat-technologies" type="text" placeholder="e.g. 8+" defaultValue={homepageContent.technologiesCount + '+'} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="stat-impact">Regional Economic Impact</Label>
+                      <Input id="stat-impact" type="text" placeholder="e.g. ₱15M" defaultValue={homepageContent.regionalImpact} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="stat-success">Success Rate</Label>
+                      <Input id="stat-success" type="text" placeholder="e.g. 85%" defaultValue={homepageContent.successRate} />
+                    </div>
                   </div>
-                  <Button variant="ustp" className="w-full" onClick={() => {
-                    // Open patent selection modal
-                    setShowPatentSelectionModal(true);
-                  }}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Select from Patents
-                  </Button>
+                  <Button variant="ustp" onClick={handleImpactStatsUpdate}>Update Statistics</Button>
                 </CardContent>
               </Card>
             </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Impact Statistics</CardTitle>
-                <CardDescription>Update key metrics displayed on homepage</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-ustp-blue">45</div>
-                    <div className="text-sm text-muted-foreground">Researchers</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-ustp-blue">23</div>
-                    <div className="text-sm text-muted-foreground">Industry Partners</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-ustp-blue">78</div>
-                    <div className="text-sm text-muted-foreground">Students</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-ustp-blue">10</div>
-                    <div className="text-sm text-muted-foreground">Admins</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="news" className="space-y-6">
@@ -4741,11 +4528,11 @@ const Admin = () => {
                                 </div>
                               </div>
                               <div className="flex gap-1 ml-3 flex-shrink-0">
-                                <Button variant="outline" size="sm" onClick={() => handleViewRegistrations(event)} title="View registrations">
-                                  <Users className="h-4 w-4 mr-1" />Regs
-                                </Button>
-                                <Button variant="outline" size="sm" onClick={() => handleArchiveEvent(event.id, false)} title="Restore to active events">
-                                  <Clock className="h-4 w-4 mr-1" />Restore
+                                <Button variant="outline" size="sm" onClick={() => {
+                                  setSelectedArchivedEvent(event);
+                                  setShowArchivedEventDetailModal(true);
+                                }} title="View event details">
+                                  <Eye className="h-4 w-4 mr-1" />View Details
                                 </Button>
                                 <Button variant="outline" size="sm" onClick={() => handleDeleteEvent(event.id, event.title)} className="text-red-600 hover:text-red-700" title="Delete event permanently">
                                   <Trash2 className="h-4 w-4" />
@@ -4768,7 +4555,7 @@ const Admin = () => {
             </div>
 
             {/* Patent Analytics Summary Card */}
-            <PatentAnalyticsCard patents={patents} />
+            <PatentAnalyticsCard patents={patents} ipApplications={ipApplications} />
             
             {/* Existing Patents - Now First */}
             <Card>
@@ -5919,7 +5706,7 @@ const Admin = () => {
                                     variant={resource.published ? 'default' : 'secondary'}
                                     className={`text-xs shrink-0 ${resource.published ? 'bg-green-500' : ''}`}
                                   >
-                                    {resource.published ? 'Published' : 'Draft'}
+                                    {resource.published ? 'Published' : 'Unpublished'}
                                   </Badge>
                                 </div>
                                 <p className="text-sm text-gray-600 truncate">{resource.content}</p>
@@ -5965,7 +5752,7 @@ const Admin = () => {
                                     variant={resource.published ? 'default' : 'secondary'}
                                     className={`text-xs shrink-0 ${resource.published ? 'bg-green-500' : ''}`}
                                   >
-                                    {resource.published ? 'Published' : 'Draft'}
+                                    {resource.published ? 'Published' : 'Unpublished'}
                                   </Badge>
                                 </div>
                                 <p className="text-sm text-gray-600 truncate">{resource.content}</p>
@@ -6337,123 +6124,6 @@ const Admin = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Technology Add/Edit Modal */}
-      <Dialog open={showTechModal} onOpenChange={setShowTechModal}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingTech ? 'Edit Technology' : 'Add New Technology'}
-            </DialogTitle>
-            <DialogDescription>
-              {editingTech ? 'Update the technology information below.' : 'Fill in the details for the new featured technology.'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="tech-title">Title *</Label>
-              <Input 
-                id="tech-title" 
-                value={techForm.title}
-                onChange={(e) => setTechForm({...techForm, title: e.target.value})}
-                placeholder="Technology title"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tech-field">Field *</Label>
-              <Select value={techForm.field} onValueChange={(value) => setTechForm({...techForm, field: value})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select field" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Agriculture">Agriculture</SelectItem>
-                  <SelectItem value="Materials Science">Materials Science</SelectItem>
-                  <SelectItem value="Food Technology">Food Technology</SelectItem>
-                  <SelectItem value="Information Technology">Information Technology</SelectItem>
-                  <SelectItem value="Engineering">Engineering</SelectItem>
-                  <SelectItem value="Environmental Science">Environmental Science</SelectItem>
-                  <SelectItem value="Biotechnology">Biotechnology</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tech-status">Status</Label>
-              <Select value={techForm.status} onValueChange={(value) => setTechForm({...techForm, status: value})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Available">Available</SelectItem>
-                  <SelectItem value="Licensed">Licensed</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Under Review">Under Review</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tech-year">Year</Label>
-              <Input 
-                id="tech-year" 
-                value={techForm.year}
-                onChange={(e) => setTechForm({...techForm, year: e.target.value})}
-                placeholder="2024"
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="tech-inventors">Inventors</Label>
-              <Input 
-                id="tech-inventors" 
-                value={techForm.inventors}
-                onChange={(e) => setTechForm({...techForm, inventors: e.target.value})}
-                placeholder="Dr. John Doe, Dr. Jane Smith"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tech-patent-id">Patent ID</Label>
-              <Input 
-                id="tech-patent-id" 
-                value={techForm.patentId}
-                onChange={(e) => setTechForm({...techForm, patentId: e.target.value})}
-                placeholder="e.g., PH-2024-001"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tech-description">Description *</Label>
-              <Textarea 
-                id="tech-description" 
-                value={techForm.description}
-                onChange={(e) => setTechForm({...techForm, description: e.target.value})}
-                placeholder="Brief description of the technology"
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tech-abstract">Abstract</Label>
-              <Textarea 
-                id="tech-abstract" 
-                value={techForm.abstract}
-                onChange={(e) => setTechForm({...techForm, abstract: e.target.value})}
-                placeholder="Detailed technical abstract"
-                rows={4}
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowTechModal(false)}>
-              Cancel
-            </Button>
-            <Button variant="ustp" onClick={handleSaveTechnology}>
-              {editingTech ? 'Update Technology' : 'Add Technology'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Patent Edit Modal */}
       <Dialog open={showPatentModal} onOpenChange={setShowPatentModal}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -6715,111 +6385,6 @@ const Admin = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Patent Selection Modal */}
-      <Dialog open={showPatentSelectionModal} onOpenChange={setShowPatentSelectionModal}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Select Patents to Feature</DialogTitle>
-            <DialogDescription>
-              Choose patents to add to the featured technologies on the homepage.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {patents.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>No patents available. Add patents in the Patents section first.</p>
-              </div>
-            ) : (
-              <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-                {patents.map((patent) => {
-                  // Check if this patent is already featured
-                  const isFeatured = featuredTechnologies.some(tech => tech.id === patent.id);
-                  
-                  return (
-                    <div key={patent.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{patent.title}</h3>
-                        <div className="flex gap-2 mt-1">
-                          <Badge variant={patent.status === "Granted" ? "default" : "secondary"}>
-                            {patent.status}
-                          </Badge>
-                          <Badge variant="outline">{patent.field}</Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                          {patent.description || patent.abstract || `Patent in ${patent.field}`}
-                        </p>
-                      </div>
-                      <div className="ml-4">
-                        {isFeatured ? (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={async () => {
-                              // Remove from featured technologies
-                              const updatedTechnologies = featuredTechnologies.filter(tech => tech.id !== patent.id);
-                              setFeaturedTechnologies(updatedTechnologies);
-                              // Delete from Supabase
-                              await supabase
-                                .from('admin_technologies')
-                                .delete()
-                                .eq('id', patent.id);
-                            }}
-                          >
-                            Remove
-                          </Button>
-                        ) : (
-                          <Button 
-                            variant="ustp" 
-                            size="sm"
-                            onClick={async () => {
-                              // Add to featured technologies
-                              const newFeaturedTech = {
-                                id: patent.id,
-                                title: patent.title,
-                                slug: patent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-                                description: patent.description || patent.abstract || `Patent in ${patent.field}`,
-                                field: patent.field,
-                                status: patent.status,
-                                inventors: patent.inventors || "Dr. USTP Researcher",
-                                year: new Date().getFullYear().toString(),
-                                abstract: patent.abstract || `Patent abstract for ${patent.title}`
-                              };
-                              const updatedTechnologies = [...featuredTechnologies, newFeaturedTech];
-                              setFeaturedTechnologies(updatedTechnologies);
-                              // Insert to Supabase
-                              await supabase.from('admin_technologies').insert([{
-                                title: patent.title,
-                                description: patent.description || patent.abstract || `Patent in ${patent.field}`,
-                                field: patent.field,
-                                status: patent.status,
-                                inventors: patent.inventors || "Dr. USTP Researcher",
-                                year: new Date().getFullYear().toString(),
-                                abstract: patent.abstract || `Patent abstract for ${patent.title}`,
-                                featured: true,
-                                published: true
-                              }]);
-                            }}
-                          >
-                            Add
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPatentSelectionModal(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Patent Download Dialog */}
       <Dialog open={showDownloadDialog} onOpenChange={(open) => {
         setShowDownloadDialog(open);
@@ -7072,6 +6637,122 @@ const Admin = () => {
             </Button>
             <Button variant="ustp" onClick={handleCreateEvent}>
               {editingEvent ? 'Update Event' : 'Create Event'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Archived Event Details Modal */}
+      <Dialog open={showArchivedEventDetailModal} onOpenChange={setShowArchivedEventDetailModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Event Details
+            </DialogTitle>
+            <DialogDescription>
+              {selectedArchivedEvent && (
+                <span>
+                  <strong>{selectedArchivedEvent.title}</strong>
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedArchivedEvent && (
+            <div className="space-y-5">
+              {/* Status & Type */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className={`text-xs ${selectedArchivedEvent.status === 'Completed' ? 'text-green-600 border-green-600' : selectedArchivedEvent.status === 'Cancelled' ? 'text-red-600 border-red-600' : 'text-gray-600 border-gray-600'}`}
+                >
+                  {selectedArchivedEvent.status}
+                </Badge>
+                {selectedArchivedEvent.archived && (
+                  <Badge variant="secondary" className="text-xs">Archived</Badge>
+                )}
+                {selectedArchivedEvent.type && (
+                  <Badge variant="outline" className="text-xs capitalize">
+                    {selectedArchivedEvent.type}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Event Info */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span>{selectedArchivedEvent.date}</span>
+                </div>
+                {selectedArchivedEvent.time && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>{selectedArchivedEvent.time}</span>
+                  </div>
+                )}
+                {selectedArchivedEvent.location && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Building className="h-4 w-4 text-muted-foreground" />
+                    <span>{selectedArchivedEvent.location}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 text-sm">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span>{selectedArchivedEvent.attendees || 0} attendees{selectedArchivedEvent.capacity ? ` / ${selectedArchivedEvent.capacity} capacity` : ''}</span>
+                </div>
+              </div>
+
+              {/* Description */}
+              {selectedArchivedEvent.description && (
+                <div>
+                  <h4 className="font-medium text-sm mb-1">Description</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedArchivedEvent.description}</p>
+                </div>
+              )}
+
+              {/* Image */}
+              {selectedArchivedEvent.image && (
+                <div>
+                  <h4 className="font-medium text-sm mb-1">Event Image</h4>
+                  <img
+                    src={selectedArchivedEvent.image}
+                    alt={selectedArchivedEvent.title}
+                    className="w-full max-h-64 object-cover rounded-lg border"
+                  />
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex flex-wrap gap-2 pt-3 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    handleViewRegistrations(selectedArchivedEvent);
+                    setShowArchivedEventDetailModal(false);
+                  }}
+                >
+                  <Users className="h-4 w-4 mr-1" />View Registrations
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    await handleArchiveEvent(selectedArchivedEvent.id, false);
+                    setShowArchivedEventDetailModal(false);
+                    setSelectedArchivedEvent(null);
+                  }}
+                >
+                  <Clock className="h-4 w-4 mr-1" />Restore to Active
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowArchivedEventDetailModal(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

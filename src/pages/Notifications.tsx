@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { 
   Select,
@@ -27,7 +27,9 @@ import {
   Info,
   RefreshCw,
   Eye,
-  ArrowUpRight
+  ArrowUpRight,
+  Trash2,
+  X
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
@@ -52,6 +54,8 @@ export default function Notifications() {
   const [readFilter, setReadFilter] = useState<string>("all");
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isSelectMode, setIsSelectMode] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -130,12 +134,15 @@ export default function Notifications() {
 
         // Check which admin notifications are read via per-ID localStorage
         const readIds = getAdminReadIds();
+        const deletedIds = getAdminDeletedIds();
         for (const n of mapped) {
           if (readIds.has(n.id)) {
             n.is_read = true;
           }
         }
-        setNotifications(mapped);
+        // Filter out deleted admin notifications
+        const visible = mapped.filter(n => !deletedIds.has(n.id));
+        setNotifications(visible);
       }
     } catch (error) {
       console.error('Error loading notifications:', error);
@@ -145,15 +152,38 @@ export default function Notifications() {
     }
   };
 
+  const getTypeDisplayName = (type: string): string => {
+    switch (type) {
+      case 'status_change': return 'Status Change';
+      case 'comment': return 'Comment';
+      case 'revision_required': return 'Revision Required';
+      case 'approval': return 'Approval';
+      case 'ip_application': return 'IP Application';
+      case 'system': return 'System';
+      case 'news': return 'News';
+      case 'technology': return 'Technology';
+      case 'service': return 'Service';
+      case 'event': return 'Event';
+      case 'general': return 'General';
+      default: return type;
+    }
+  };
+
   const filterNotifications = () => {
     let filtered = [...notifications];
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(n => 
-        n.title.toLowerCase().includes(query) ||
-        n.message.toLowerCase().includes(query)
-      );
+      filtered = filtered.filter(n => {
+        const titleMatch = n.title.toLowerCase().includes(query);
+        const messageMatch = n.message.toLowerCase().includes(query);
+        const typeMatch = getTypeDisplayName(n.type).toLowerCase().includes(query);
+        const dateStr = format(new Date(n.created_at), 'MMM d, yyyy HH:mm').toLowerCase();
+        const dateMatch = dateStr.includes(query);
+        const relativeDate = formatDistanceToNow(new Date(n.created_at)).toLowerCase();
+        const relativeDateMatch = relativeDate.includes(query);
+        return titleMatch || messageMatch || typeMatch || dateMatch || relativeDateMatch;
+      });
     }
 
     if (typeFilter !== "all") {
@@ -264,20 +294,114 @@ export default function Notifications() {
   const getNotificationColor = (type: string) => {
     switch (type) {
       case 'status_change':
-        return 'bg-blue-50 border-blue-200';
+        return 'bg-blue-100 border-blue-400';
       case 'comment':
-        return 'bg-purple-50 border-purple-200';
+        return 'bg-purple-100 border-purple-400';
       case 'revision_required':
-        return 'bg-orange-50 border-orange-200';
+        return 'bg-orange-100 border-orange-400';
       case 'approval':
-        return 'bg-green-50 border-green-200';
+        return 'bg-green-100 border-green-400';
       case 'ip_application':
-        return 'bg-cyan-50 border-cyan-200';
+        return 'bg-cyan-100 border-cyan-400';
       case 'system':
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-amber-100 border-amber-400';
       default:
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-indigo-100 border-indigo-400';
     }
+  };
+
+  const deleteNotification = useCallback(async (notificationId: string) => {
+    // Optimistic update
+    setNotifications(prev => prev.filter(n => n.id !== notificationId));
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.delete(notificationId);
+      return next;
+    });
+
+    try {
+      if (userRole === 'faculty') {
+        await supabase
+          .from('faculty_notifications')
+          .delete()
+          .eq('id', notificationId);
+      } else {
+        // Admin: store deleted IDs in localStorage so they stay hidden
+        const deletedIds = getAdminDeletedIds();
+        deletedIds.add(notificationId);
+        saveAdminDeletedIds(deletedIds);
+        // Also remove from read set if present
+        const readIds = getAdminReadIds();
+        readIds.delete(notificationId);
+        saveAdminReadIds(readIds);
+      }
+    } catch (err) {
+      console.error('Error deleting notification:', err);
+      toast({ title: "Error", description: "Failed to delete notification.", variant: "destructive" });
+    }
+  }, [userRole]);
+
+  const deleteSelected = async () => {
+    const idsToDelete = [...selectedIds];
+    setNotifications(prev => prev.filter(n => !selectedIds.has(n.id)));
+    setSelectedIds(new Set());
+    setIsSelectMode(false);
+
+    try {
+      if (userRole === 'faculty') {
+        await supabase
+          .from('faculty_notifications')
+          .delete()
+          .in('id', idsToDelete);
+      } else {
+        const deletedIds = getAdminDeletedIds();
+        for (const id of idsToDelete) {
+          deletedIds.add(id);
+        }
+        saveAdminDeletedIds(deletedIds);
+        const readIds = getAdminReadIds();
+        for (const id of idsToDelete) {
+          readIds.delete(id);
+        }
+        saveAdminReadIds(readIds);
+      }
+      toast({ title: "Deleted", description: `${idsToDelete.length} notification(s) deleted.` });
+    } catch (err) {
+      console.error('Error deleting selected notifications:', err);
+      toast({ title: "Error", description: "Failed to delete some notifications.", variant: "destructive" });
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredNotifications.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredNotifications.map(n => n.id)));
+    }
+  };
+
+  // Helper: get/set admin deleted notification IDs in localStorage
+  const getAdminDeletedIds = (): Set<string> => {
+    try {
+      const stored = localStorage.getItem('admin_deleted_notification_ids');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  };
+
+  const saveAdminDeletedIds = (ids: Set<string>) => {
+    localStorage.setItem('admin_deleted_notification_ids', JSON.stringify([...ids]));
   };
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -324,6 +448,44 @@ export default function Notifications() {
                   Mark all read
                 </Button>
               )}
+              {isSelectMode ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleSelectAll}
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    {selectedIds.size === filteredNotifications.length && filteredNotifications.length > 0 ? 'Deselect all' : 'Select all'}
+                  </Button>
+                  {selectedIds.size > 0 && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={deleteSelected}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete ({selectedIds.size})
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => { setIsSelectMode(false); setSelectedIds(new Set()); }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSelectMode(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Select
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -337,11 +499,19 @@ export default function Notifications() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search notifications..."
+                  placeholder="Search by title, message, type, or date..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 pr-9"
                 />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
               
               <div className="flex gap-3">
@@ -394,9 +564,11 @@ export default function Notifications() {
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-5 w-5" />
               All Notifications
-              <Badge variant="secondary" className="ml-2">
-                {filteredNotifications.length}
-              </Badge>
+              {searchQuery && (
+                <span className="text-sm font-normal text-gray-500">
+                  — {filteredNotifications.length} result{filteredNotifications.length !== 1 ? 's' : ''} for "{searchQuery}"
+                </span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -420,14 +592,32 @@ export default function Notifications() {
                   {filteredNotifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`relative p-4 border rounded-lg transition-all cursor-pointer hover:shadow-sm ${
+                      className={`relative p-4 border rounded-lg transition-all ${
+                        isSelectMode ? 'cursor-default' : 'cursor-pointer hover:shadow-sm'
+                      } ${
                         notification.is_read 
                           ? 'bg-white border-gray-200' 
                           : `${getNotificationColor(notification.type)} border-l-4`
+                      } ${
+                        selectedIds.has(notification.id) ? 'ring-2 ring-blue-500 ring-offset-1' : ''
                       }`}
-                      onClick={() => handleNotificationClick(notification)}
+                      onClick={() => {
+                        if (isSelectMode) {
+                          toggleSelect(notification.id);
+                        } else {
+                          handleNotificationClick(notification);
+                        }
+                      }}
                     >
                       <div className="flex items-start gap-4">
+                        {isSelectMode && (
+                          <div className="pt-1" onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedIds.has(notification.id)}
+                              onCheckedChange={() => toggleSelect(notification.id)}
+                            />
+                          </div>
+                        )}
                         <div className={`p-2 rounded-full ${getNotificationColor(notification.type)}`}>
                           {getNotificationIcon(notification.type)}
                         </div>
@@ -442,7 +632,7 @@ export default function Notifications() {
                               </h3>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              {notification.application_id && (
+                              {notification.application_id && !isSelectMode && (
                                 <ArrowUpRight className="h-4 w-4 text-gray-400" />
                               )}
                               <span className="text-xs text-gray-400 whitespace-nowrap">
@@ -464,24 +654,39 @@ export default function Notifications() {
                               {format(new Date(notification.created_at), 'MMM d, yyyy HH:mm')}
                             </span>
                             
-                            {!notification.is_read && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  markAsRead(notification.id);
-                                }}
-                              >
-                                <Check className="h-4 w-4 mr-1" />
-                                Mark read
-                              </Button>
-                            )}
+                            <div className="flex items-center gap-1">
+                              {!notification.is_read && !isSelectMode && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    markAsRead(notification.id);
+                                  }}
+                                >
+                                  <Check className="h-4 w-4 mr-1" />
+                                  Mark read
+                                </Button>
+                              )}
+                              {!isSelectMode && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-gray-400 hover:text-red-600"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteNotification(notification.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                         
-                        {!notification.is_read && (
-                          <span className="absolute top-4 right-4 h-2 w-2 bg-blue-500 rounded-full" />
+                        {!notification.is_read && !isSelectMode && (
+                          <span className="absolute top-4 right-4 h-3 w-3 bg-blue-600 rounded-full ring-2 ring-blue-200" />
                         )}
                       </div>
                     </div>

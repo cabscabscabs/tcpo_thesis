@@ -492,7 +492,6 @@ const About = () => {
               <h3 className="font-roboto font-semibold mb-2">Phone</h3>
               <p className="text-primary-foreground/80">
                 +63 (088) 856-1738<br />
-                +63 (088) 856-1739
               </p>
             </div>
 
