@@ -2,24 +2,18 @@
   {
     "id": "eval_001",
     "question": "What services does TPCO offer for patent applications?",
-    "ground_truth": "TPCO offers IP Protection services including assistance with patent applications, patent drafting, filing with IPOPHL, and patent search reports. They help inventors through the IP application process.",
+    "ground_truth": "TPCO offers IP Protection services including Patent Application Assistance, Prior Art Search, IP Portfolio Management, Legal Consultation, Trademark Registration, Copyright Protection, Freedom to Operate Analysis, Patent Landscape Studies, and IP Strategy Development. The timeline is 3-6 months with consultation fees applying.",
     "category": "services",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "IP-System-June-25_2024.pdf"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "patent_services"
-    }
+    "metadata": {"difficulty": "easy", "domain": "patent_services"}
   },
   {
     "id": "eval_002",
     "question": "How do I file a trademark application?",
-    "ground_truth": "To file a trademark application, you need to submit IPOPHL Form 400 (Trademark Application Form) along with the required fees and supporting documents. The process involves classification of goods/services, examination, publication, and registration. TPCO can assist with the preparation and filing process.",
+    "ground_truth": "To file a trademark application, you need to submit IPOPHL Form 400 (Trademark Application Form) along with the required fees and supporting documents. The process involves classification of goods/services using the Nice Classification system (45 classes), examination, publication, and registration. TPCO can assist with the preparation and filing process.",
     "category": "procedures",
     "expected_sources": ["IPOPHLFillableForm400.pdf", "TRADEMARK CLASSIFICATION.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "trademark"
-    }
+    "metadata": {"difficulty": "medium", "domain": "trademark"}
   },
   {
     "id": "eval_003",
@@ -27,10 +21,7 @@
     "ground_truth": "A patent protects inventions, processes, and technical solutions, granting exclusive rights for 20 years. A copyright protects original works of authorship like literary, artistic, and software works, lasting for the author's life plus 50 years. Patents require registration while copyright exists automatically upon creation, though registration provides additional legal benefits.",
     "category": "ip_basics",
     "expected_sources": ["IP-System-June-25_2024.pdf", "Patentability-Requirements-June-25.pdf"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "ip_education"
-    }
+    "metadata": {"difficulty": "easy", "domain": "ip_education"}
   },
   {
     "id": "eval_004",
@@ -38,32 +29,23 @@
     "ground_truth": "An invention is patentable if it is new, involves an inventive step, and is industrially applicable. The invention must not be publicly known or used before the filing date.",
     "category": "patent_requirements",
     "expected_sources": ["Patentability-Requirements-June-25.pdf", "IP-System-June-25_2024.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "patent_law"
-    }
+    "metadata": {"difficulty": "medium", "domain": "patent_law"}
   },
   {
     "id": "eval_005",
     "question": "Where can I find templates for IP application forms?",
-    "ground_truth": "IP application form templates are available on the Resources page under the Templates tab. Navigate to /resources?tab=templates to access downloadable forms for trademark, patent, copyright, and other IP-related applications. Examples include IPOPHL Form 100 for patent applications, Form 300 for copyright, and Form 400 for trademarks.",
+    "ground_truth": "IP application form templates are available on the Resources page under the Templates tab. Navigate to /resources?tab=templates to access downloadable forms for trademark, patent, copyright, and other IP-related applications. Examples include IPOPHL Form 100 for patent applications, Form 300 for copyright, and Form 400 for trademarks. Templates are loaded dynamically from the resources table in Supabase.",
     "category": "navigation",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "website_navigation"
-    }
+    "metadata": {"difficulty": "easy", "domain": "website_navigation"}
   },
   {
     "id": "eval_006",
     "question": "What is technology transfer and how does TPCO facilitate it?",
-    "ground_truth": "Technology transfer is the process of sharing knowledge, skills, and methods to enable broader application. TPCO facilitates technology transfer through IP licensing, commercialization support, and technology utilization planning.",
+    "ground_truth": "Technology transfer is the process of sharing knowledge, skills, and methods to enable broader application. TPCO facilitates technology transfer through IP licensing, commercialization support, technology utilization planning, and its Industry-Academe Matching service which bridges academic research and industry needs through strategic partnerships.",
     "category": "services",
-    "expected_sources": ["Technology-Transfer-June-25_2024.pdf", "Technology_Utilization_Plan_Template.docx"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "tech_transfer"
-    }
+    "expected_sources": ["Technology-Transfer-June-25_2024.pdf", "USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "medium", "domain": "tech_transfer"}
   },
   {
     "id": "eval_007",
@@ -71,21 +53,15 @@
     "ground_truth": "A patent specification should include: (1) Title of the invention, (2) Abstract summarizing the technical disclosure, (3) Detailed description of the invention including background, summary, and detailed explanation, (4) Claims defining the scope of protection, and (5) Drawings if necessary for understanding the invention. The specification must enable a person skilled in the art to reproduce the invention.",
     "category": "patent_drafting",
     "expected_sources": ["Patent-Specification-2-Detailed-Descrition-Drafting.pdf", "Patent_Specification_Template_with_Guide.docx"],
-    "metadata": {
-      "difficulty": "hard",
-      "domain": "patent_drafting"
-    }
+    "metadata": {"difficulty": "hard", "domain": "patent_drafting"}
   },
   {
     "id": "eval_008",
     "question": "How can I book facilities or equipment at USTP?",
-    "ground_truth": "You can book facilities and equipment through the Resources page. Navigate to /resources?tab=facilities to access the SSF (Shared Service Facility) booking system. The facility booking page allows you to view available equipment, check schedules, and submit booking requests.",
+    "ground_truth": "You can book facilities and equipment through the Facility Booking page at /facility-booking, which is accessible from the Resources page. The Shared Service Facility (SSF) includes the Advanced Materials Testing Lab with state-of-the-art equipment for materials characterization and testing, capacity of 10 researchers, and an hourly rate of ₱500.",
     "category": "navigation",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "DPM-USTP-TPCO-001-ITSU.pdf"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "facility_booking"
-    }
+    "metadata": {"difficulty": "easy", "domain": "facility_booking"}
   },
   {
     "id": "eval_009",
@@ -93,32 +69,23 @@
     "ground_truth": "A patent search report identifies prior art (existing patents and publications) relevant to an invention. It is important because it helps determine novelty, assess patentability, identify potential infringement risks, and inform drafting strategy for patent claims. A thorough search saves time and resources by revealing whether an invention is worth patenting.",
     "category": "patent_process",
     "expected_sources": ["Patent-Search-Strategies-UPDATED.pdf", "Patent-Search-Report-Template.docx"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "patent_search"
-    }
+    "metadata": {"difficulty": "medium", "domain": "patent_search"}
   },
   {
     "id": "eval_010",
     "question": "What is the role of the Technology Promotion and Commercialization Office?",
-    "ground_truth": "The Technology Promotion and Commercialization Office (TPCO) at USTP manages intellectual property, facilitates technology transfer, provides IP education and training, assists with patent/trademark/copyright applications, and promotes commercialization of university innovations. TPCO serves as the bridge between university research and industry applications.",
+    "ground_truth": "The Technology Promotions and Commercialization Office (TPCO) serves as the interface between the talent and technology housed in the academic institute, the industry, and the community; fostering new relationships and partnerships resulting in life-changing innovations, enhanced productivity and ingenious discoveries. TPCO manages intellectual property, facilitates technology transfer, provides IP education and training, assists with patent/trademark/copyright applications, and promotes commercialization of university innovations. It was established and approved by the Board of Regents in May 2020.",
     "category": "about",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "tpco_overview"
-    }
+    "metadata": {"difficulty": "easy", "domain": "tpco_overview"}
   },
   {
     "id": "eval_011",
     "question": "How do I submit a service request to TPCO?",
-    "ground_truth": "To submit a service request to TPCO, go to the Service Request page at /service-request. Fill out the request form with your contact information, type of IP assistance needed (patent, trademark, copyright, technology transfer), and description of your inquiry. TPCO staff will review and respond to your request.",
+    "ground_truth": "To submit a service request, go to the Services page, find the service you need, and click 'Request This Service' to fill out a service request form. You can also go directly to /service-request?service={slug}. Available service types include ip-protection, technology-licensing, industry-matching, and startup-incubation. Form fields include Full Name (required), Email (required), Phone, Organization, Specific Needs & Requirements, and Preferred Contact Method.",
     "category": "navigation",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "service_request"
-    }
+    "metadata": {"difficulty": "easy", "domain": "service_request"}
   },
   {
     "id": "eval_012",
@@ -126,21 +93,15 @@
     "ground_truth": "A patent protects inventions with high inventive step and grants 20 years protection. A utility model (also called petty patent) protects minor improvements with lower inventive requirements and provides 7 years protection. Utility models have simpler application process, lower costs, but no substantive examination. Patents undergo full examination while utility models follow a more streamlined process.",
     "category": "ip_basics",
     "expected_sources": ["Patentability-Requirements-June-25.pdf", "IP-System-June-25_2024.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "ip_types"
-    }
+    "metadata": {"difficulty": "medium", "domain": "ip_types"}
   },
   {
     "id": "eval_013",
     "question": "What documents are needed for a patent application?",
     "ground_truth": "A patent application requires: (1) IPOPHL Form 100 (Patent Application Form), (2) Patent specification (title, abstract, description, claims), (3) Drawings if applicable, (4) Abstract, (5) Power of Attorney if filed through an agent, (6) Deed of Assignment if inventor is different from applicant, and (7) Proof of small entity status if claiming reduced fees.",
     "category": "procedures",
-    "expected_sources": ["IPOPHLFillableForm100.pdf", "Patent_Specification_Template_with_Guide.docx", "DEED OF ASSIGNMENT_2026.docx"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "patent_filing"
-    }
+    "expected_sources": ["IPOPHLFillableForm100.pdf", "Patent_Specification_Template_with_Guide.docx"],
+    "metadata": {"difficulty": "medium", "domain": "patent_filing"}
   },
   {
     "id": "eval_014",
@@ -148,32 +109,23 @@
     "ground_truth": "The TRL Assessment Form is used to evaluate the Technology Readiness Level of innovations, helping determine their maturity and readiness for commercialization.",
     "category": "assessment",
     "expected_sources": ["TRL Assessment Form.xlsx", "Technology_Utilization_Plan_Template.docx"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "technology_assessment"
-    }
+    "metadata": {"difficulty": "medium", "domain": "technology_assessment"}
   },
   {
     "id": "eval_015",
-    "question": "Who are the members of the TPCO team?",
-    "ground_truth": "The TPCO team consists of IP specialists, technology transfer officers, and support staff. You can view the complete team roster and their roles on the About page at /about. The team includes staff with expertise in patent drafting, IP law, technology commercialization, and research administration.",
+    "question": "Who is the director of TPCO?",
+    "ground_truth": "Dr. Venessa Garcia is the Director of the Technology Promotions and Commercialization Office at USTP. She leads the TPCO office and oversees all technology transfer activities.",
     "category": "about",
-    "expected_sources": ["ustp-tpco-about-and-contact.txt"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "team_info"
-    }
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "easy", "domain": "team_info"}
   },
   {
     "id": "eval_016",
     "question": "What should be included in a software patent specification?",
     "ground_truth": "A software patent specification should include an abstract, detailed description of the invention, claims defining the scope, and drawings such as flowcharts and system diagrams.",
     "category": "patent_drafting",
-    "expected_sources": ["1.-Abstract_Nalupa_Sample Software.pdf", "2.-Description_Nalupa_Sample Software.pdf", "3.-Claims_Nalupa_Sample Software.pdf", "3-DRAFTING-of-SPECIFICATION - 06-25-2024.pdf"],
-    "metadata": {
-      "difficulty": "hard",
-      "domain": "software_patents"
-    }
+    "expected_sources": ["1.-Abstract_Nalupa_Sample Software.pdf", "2.-Description_Nalupa_Sample Software.pdf"],
+    "metadata": {"difficulty": "hard", "domain": "software_patents"}
   },
   {
     "id": "eval_017",
@@ -181,43 +133,31 @@
     "ground_truth": "Keyword searching in patent prior art involves identifying relevant technical terms and classification codes to find existing patents and publications related to an invention.",
     "category": "patent_search",
     "expected_sources": ["2-Keyword-Searching - 06-25-2024.pdf", "Patent-Search-Strategies-UPDATED.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "prior_art_search"
-    }
+    "metadata": {"difficulty": "medium", "domain": "prior_art_search"}
   },
   {
     "id": "eval_018",
     "question": "How do I contact TPCO for inquiries?",
-    "ground_truth": "You can contact TPCO through the Contact page at /contact, which provides email addresses, phone numbers, and office location. You can also use the contact form on the website or submit a service request through /service-request for specific IP assistance.",
+    "ground_truth": "You can contact TPCO through multiple channels: Phone at (088) 856-1738 (available Monday-Friday, 8:00 AM - 5:00 PM), Email at tpco@ustp.edu.ph (response within 24 hours), or visit their office at USTP Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan, Cagayan de Oro City, 9000 Misamis Oriental. You can also use the Contact page at /contact on the website which has 'Call Now' and 'Send Email' buttons.",
     "category": "navigation",
     "expected_sources": ["ustp-tpco-about-and-contact.txt", "USTP_TPCO_Website_Knowledge_Base.txt"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "contact"
-    }
+    "metadata": {"difficulty": "easy", "domain": "contact"}
   },
   {
     "id": "eval_019",
     "question": "What is a Joint Affidavit of Inventorship and Contribution?",
-    "ground_truth": "A Joint Affidavit of Inventorship and Contribution is a sworn statement executed by co-inventors declaring their contributions to an invention. It establishes each inventor's specific contribution, confirms the collaborative nature of the work, and is required for patent applications with multiple inventors. This document helps prevent future disputes about inventorship rights.",
+    "ground_truth": "A Joint Affidavit of Inventorship and Contribution is a sworn statement executed by co-inventors declaring their contributions to an invention. It establishes each inventor's specific contribution, confirms the collaborative nature of the work, and is required for patent applications with multiple inventors.",
     "category": "legal",
     "expected_sources": ["Joint-Affidavit-of-Inventorship-and-Contribution-Template.docx"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "inventorship"
-    }
+    "metadata": {"difficulty": "medium", "domain": "inventorship"}
   },
   {
     "id": "eval_020",
-    "question": "Where can I find information about TPCO events and seminars?",
-    "ground_truth": "Information about TPCO events and seminars can be found on the Events page at /events on the USTP TPCO website.",
+    "question": "How do I find information about TPCO events and workshops?",
+    "ground_truth": "To access Events & Workshops, go to the Resources page by clicking 'Resources' in the navigation bar, then scroll to the 'Workshops & Events' section or click 'View All Events' to see all upcoming and past events. You can also access events directly at /events. You can register for events directly on the page by clicking 'Register Now'.",
     "category": "navigation",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "events"
-    }
+    "metadata": {"difficulty": "easy", "domain": "events"}
   },
   {
     "id": "eval_021",
@@ -225,10 +165,7 @@
     "ground_truth": "Copyright registration is the process of formally recording ownership of original works like literary, artistic, musical, and software works. To apply, submit IPOPHL Form 300 (Copyright Application Form) along with copies of the work, affidavit of ownership, and required fees. Registration provides legal evidence of ownership and enables enforcement against infringement.",
     "category": "procedures",
     "expected_sources": ["IPOPHLFillableForm300.pdf", "Copyright Registry Enrollment Form 2025.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "copyright"
-    }
+    "metadata": {"difficulty": "medium", "domain": "copyright"}
   },
   {
     "id": "eval_022",
@@ -236,10 +173,7 @@
     "ground_truth": "A patent grants the inventor exclusive rights to prevent others from making, using, selling, or importing the patented invention without permission.",
     "category": "ip_basics",
     "expected_sources": ["IP-System-June-25_2024.pdf", "3-DRAFTING-of-SPECIFICATION - 06-25-2024.pdf"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "patent_rights"
-    }
+    "metadata": {"difficulty": "easy", "domain": "patent_rights"}
   },
   {
     "id": "eval_023",
@@ -247,10 +181,7 @@
     "ground_truth": "Patent protection lasts for 20 years from the filing date. Utility models are protected for 7 years without renewal.",
     "category": "ip_basics",
     "expected_sources": ["IP-System-June-25_2024.pdf", "Patentability-Requirements-June-25.pdf"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "patent_term"
-    }
+    "metadata": {"difficulty": "easy", "domain": "patent_term"}
   },
   {
     "id": "eval_024",
@@ -258,230 +189,167 @@
     "ground_truth": "IPOPHL (Intellectual Property Office of the Philippines) handles the filing, examination, and registration of patent applications.",
     "category": "ip_basics",
     "expected_sources": ["IP-Procedure-.pdf", "IP-System-June-25_2024.pdf"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "ipophl"
-    }
+    "metadata": {"difficulty": "easy", "domain": "ipophl"}
   },
   {
     "id": "eval_025",
-    "question": "What is the difference between a patent and a utility model?",
-    "ground_truth": "A patent requires substantive examination and lasts 20 years. A utility model only requires formal examination, lasts 7 years, and protects minor improvements without requiring inventive step.",
-    "category": "ip_basics",
-    "expected_sources": ["IP-System-June-25_2024.pdf", "IP-Procedure-.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "ip_types"
-    }
+    "question": "What are patent claims and why are they important?",
+    "ground_truth": "Patent claims are the legal definition of the invention's scope of protection. They define the boundaries of what the patent covers and what constitutes infringement. Claims must be clear, supported by the description, and distinguish the invention from prior art. Independent claims stand alone, while dependent claims reference and further limit independent claims.",
+    "category": "patent_drafting",
+    "expected_sources": ["Patent-Specification-Claims-Drafting.pdf", "3.-Claims_Nalupa_Sample Software.pdf"],
+    "metadata": {"difficulty": "medium", "domain": "claims"}
   },
   {
     "id": "eval_026",
-    "question": "What are patent claims and why are they important?",
-    "ground_truth": "Patent claims are the legal definition of the invention's scope of protection. They define the boundaries of what the patent covers and what constitutes infringement. Claims must be clear, supported by the description, and distinguish the invention from prior art. Well-drafted claims are crucial for effective protection and enforcement.",
-    "category": "patent_drafting",
-    "expected_sources": ["Patent-Specification-Claims-Drafting.pdf", "3.-Claims_Nalupa_Sample Software.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "claims"
-    }
-  },
-  {
-    "id": "eval_027",
-    "question": "What is a trademark classification system?",
+    "question": "What is the trademark classification system?",
     "ground_truth": "The trademark classification system (Nice Classification) categorizes goods and services into 45 classes for trademark registration. Classes 1-34 cover goods, and classes 35-45 cover services. Trademarks must be registered in specific classes relevant to the business. A single application can cover multiple classes, but fees apply for each class.",
     "category": "procedures",
     "expected_sources": ["TRADEMARK CLASSIFICATION.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "trademark"
-    }
+    "metadata": {"difficulty": "medium", "domain": "trademark"}
   },
   {
-    "id": "eval_028",
+    "id": "eval_027",
     "question": "How do I protect my invention before filing a patent?",
     "ground_truth": "Before filing a patent, protect your invention by: (1) keeping it confidential through NDAs, (2) documenting the invention process with dated records, (3) avoiding public disclosure which can destroy novelty, (4) conducting a prior art search, and (5) filing a provisional application if available to secure priority date.",
     "category": "procedures",
     "expected_sources": ["Patentability-Requirements-June-25.pdf", "Patent-Search-Strategies-UPDATED.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "confidentiality"
-    }
+    "metadata": {"difficulty": "medium", "domain": "confidentiality"}
   },
   {
-    "id": "eval_029",
-    "question": "What are the different types of patent applications?",
-    "ground_truth": "Patent applications can be for invention patents or utility models. Invention patents undergo substantive examination while utility models undergo formal examination only.",
-    "category": "patent_process",
-    "expected_sources": ["IP-Procedure-.pdf", "IP-System-June-25_2024.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "patent_types"
-    }
-  },
-  {
-    "id": "eval_030",
-    "question": "What is patent licensing and what are its types?",
-    "ground_truth": "Patent licensing is a legal agreement where the patent holder grants permission to another party to use the patented invention. Types include: (1) Exclusive license - sole rights to the licensee, (2) Non-exclusive license - multiple licensees allowed, (3) Sole license - both licensor and licensee can use. Licensing generates revenue and expands technology adoption.",
-    "category": "tech_transfer",
-    "expected_sources": ["Technology-Transfer-June-25_2024.pdf", "Technology_Utilization_Plan_Template.docx"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "licensing"
-    }
-  },
-  {
-    "id": "eval_031",
+    "id": "eval_028",
     "question": "What is prior art and how does it affect patentability?",
     "ground_truth": "Prior art refers to any public knowledge existing before a patent filing date, including published patents, journal articles, products, presentations, and public uses. Prior art can destroy novelty, which is a key requirement for patentability. A thorough prior art search before filing helps assess whether an invention is likely to be patentable.",
     "category": "patent_search",
     "expected_sources": ["Patent-Search-Strategies-UPDATED.pdf", "Patentability-Requirements-June-25.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "prior_art"
-    }
+    "metadata": {"difficulty": "medium", "domain": "prior_art"}
   },
   {
-    "id": "eval_032",
-    "question": "What is an abstract in a patent specification?",
-    "ground_truth": "An abstract in a patent specification is a brief summary (typically 150 words or less) of the technical disclosure. It provides a quick overview of the invention's field, problem solved, and main features. The abstract helps patent examiners and searchers quickly understand the invention's nature without reading the full specification.",
-    "category": "patent_drafting",
-    "expected_sources": ["Patent-Specification-Claims-Drafting.pdf", "1.-Abstract_Nalupa_Sample Software.pdf"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "specification"
-    }
+    "id": "eval_029",
+    "question": "What is patent licensing and what are its types?",
+    "ground_truth": "Patent licensing is a legal agreement where the patent holder grants permission to another party to use the patented invention. Types include: (1) Exclusive license - sole rights to the licensee, (2) Non-exclusive license - multiple licensees allowed, (3) Sole license - both licensor and licensee can use. Licensing generates revenue and expands technology adoption.",
+    "category": "tech_transfer",
+    "expected_sources": ["Technology-Transfer-June-25_2024.pdf", "Technology_Utilization_Plan_Template.docx"],
+    "metadata": {"difficulty": "medium", "domain": "licensing"}
   },
   {
-    "id": "eval_033",
+    "id": "eval_030",
     "question": "What is a deed of assignment in patent applications?",
     "ground_truth": "A deed of assignment is a legal document transferring ownership rights of an invention from the inventor to another party, such as an employer or company. It is required when the patent applicant is different from the inventor. The deed establishes the legal chain of ownership and must be submitted with the patent application.",
     "category": "legal",
     "expected_sources": ["DEED OF ASSIGNMENT_2026.docx"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "ownership"
-    }
+    "metadata": {"difficulty": "medium", "domain": "ownership"}
   },
   {
-    "id": "eval_034",
+    "id": "eval_031",
+    "question": "What is an abstract in a patent specification?",
+    "ground_truth": "An abstract in a patent specification is a brief summary (typically 150 words or less) of the technical disclosure. It provides a quick overview of the invention's field, problem solved, and main features. The abstract helps patent examiners and searchers quickly understand the invention's nature without reading the full specification.",
+    "category": "patent_drafting",
+    "expected_sources": ["Patent-Specification-Claims-Drafting.pdf", "1.-Abstract_Nalupa_Sample Software.pdf"],
+    "metadata": {"difficulty": "easy", "domain": "specification"}
+  },
+  {
+    "id": "eval_032",
     "question": "What happens if an invention is not new?",
     "ground_truth": "If an invention is not new or already forms part of prior art, it cannot be patented. An invention is not considered new if it has been publicly disclosed or published before the filing date.",
     "category": "patent_process",
     "expected_sources": ["Patentability-Requirements-June-25.pdf", "IP-System-June-25_2024.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "novelty"
-    }
+    "metadata": {"difficulty": "medium", "domain": "novelty"}
   },
   {
-    "id": "eval_035",
-    "question": "What types of intellectual property are discussed in the TPCO documents?",
-    "ground_truth": "The TPCO documents discuss patents, utility models, industrial designs, trademarks, and copyright as types of intellectual property.",
-    "category": "ip_basics",
-    "expected_sources": ["IP-System-June-25_2024.pdf"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "ip_types"
-    }
-  },
-  {
-    "id": "eval_036",
-    "question": "What is a patent validity search?",
-    "ground_truth": "A patent validity search (also called invalidity or opposition search) is conducted to determine if a patent can be invalidated by finding prior art that was not considered during examination.",
-    "category": "patent_search",
-    "expected_sources": ["1-Patent Over and Patent-Information - 06-25-2024.pdf", "Patent-Search-Strategies-UPDATED.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "validity_search"
-    }
-  },
-  {
-    "id": "eval_037",
+    "id": "eval_033",
     "question": "What is the patent examination process in the Philippines?",
     "ground_truth": "The Philippine patent examination process includes: (1) Filing with required documents and fees, (2) Formality examination to check completeness, (3) Publication in the IPOPHL e-Gazette after 18 months, (4) Substantive examination assessing novelty, inventive step, and industrial applicability, (5) Office actions requiring responses, and (6) Grant or refusal decision.",
     "category": "patent_process",
     "expected_sources": ["IP-Procedure-.pdf", "USTP-TPCO_IP Application  Process and Requirements.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "examination"
-    }
+    "metadata": {"difficulty": "medium", "domain": "examination"}
   },
   {
-    "id": "eval_038",
+    "id": "eval_034",
     "question": "What is industrial design protection?",
     "ground_truth": "Industrial design protection covers the ornamental or aesthetic aspects of an article, including shape, pattern, color, or combination thereof. It protects how a product looks, not how it works. In the Philippines, industrial designs are registered with IPOPHL and protected for 5 years, renewable for two consecutive 5-year periods.",
     "category": "ip_basics",
     "expected_sources": ["IP-System-June-25_2024.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "industrial_design"
-    }
+    "metadata": {"difficulty": "medium", "domain": "industrial_design"}
   },
   {
-    "id": "eval_039",
+    "id": "eval_035",
+    "question": "What is a patent validity search?",
+    "ground_truth": "A patent validity search (also called invalidity or opposition search) is conducted to determine if a patent can be invalidated by finding prior art that was not considered during examination.",
+    "category": "patent_search",
+    "expected_sources": ["1-Patent Over and Patent-Information - 06-25-2024.pdf", "Patent-Search-Strategies-UPDATED.pdf"],
+    "metadata": {"difficulty": "medium", "domain": "validity_search"}
+  },
+  {
+    "id": "eval_036",
     "question": "What is the difference between national and international patent filing?",
     "ground_truth": "National patent filing provides protection only in the country where filed. International filing through the PCT (Patent Cooperation Treaty) allows filing a single application that can be pursued in multiple member countries. PCT provides a unified procedure, extended timeline for national phase entry (30-31 months), and centralized search and examination.",
     "category": "patent_process",
     "expected_sources": ["IP-Procedure-.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "international_patents"
-    }
+    "metadata": {"difficulty": "medium", "domain": "international_patents"}
   },
   {
-    "id": "eval_040",
+    "id": "eval_037",
     "question": "What are the annual maintenance fees for patents?",
     "ground_truth": "Annual maintenance fees (annuities) are payments required to keep a patent in force. In the Philippines, annual fees start from the 5th year after filing. Failure to pay results in patent expiration. Fees increase progressively each year. Small entities may qualify for reduced fees upon submission of proof.",
     "category": "procedures",
     "expected_sources": ["USTP-TPCO_IP Application  Process and Requirements.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "maintenance"
-    }
+    "metadata": {"difficulty": "medium", "domain": "maintenance"}
   },
   {
-    "id": "eval_041",
+    "id": "eval_038",
     "question": "What is a patent specification drawing?",
-    "ground_truth": "Patent specification drawings are visual representations of the invention that illustrate its features and embodiments. They are required when necessary to understand the invention. Drawings must meet formal requirements including proper labeling with reference numerals, clear lines, and consistent numbering. They help explain complex inventions and support the claims.",
+    "ground_truth": "Patent specification drawings are visual representations of the invention that illustrate its features and embodiments. They are required when necessary to understand the invention. Drawings must meet formal requirements including proper labeling with reference numerals, clear lines, and consistent numbering.",
     "category": "patent_drafting",
-    "expected_sources": ["Patent-Drawing - 06-25-2024 - with exercise.pdf", "4.-Patent-Drawing_Nalupa_Sample Software.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "drawings"
-    }
+    "expected_sources": ["4-Patent Drawing - 06-25-2024 - with exercise.pdf", "4.-Patent-Drawing_Nalupa_Sample Software.pdf"],
+    "metadata": {"difficulty": "medium", "domain": "drawings"}
   },
   {
-    "id": "eval_042",
-    "question": "What is the purpose of a patent search report?",
-    "ground_truth": "A patent search report summarizes findings from searching prior art to determine if an invention is patentable. It helps identify existing patents and publications that may affect the patentability of the invention.",
-    "category": "patent_search",
-    "expected_sources": ["1-Patent Over and Patent-Information - 06-25-2024.pdf", "Patent-Search-Report-Template.docx"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "search_report"
-    }
-  },
-  {
-    "id": "eval_043",
+    "id": "eval_039",
     "question": "What is the role of claims in determining patent scope?",
     "ground_truth": "Claims define the legal boundaries of patent protection. Each claim must be read as a whole to determine coverage. Independent claims stand alone, while dependent claims reference and further limit independent claims. Broader claims cover more variations but are more vulnerable to prior art. Narrower claims are harder to invalidate but offer less protection.",
     "category": "patent_drafting",
     "expected_sources": ["Patent-Specification-Claims-Drafting.pdf"],
-    "metadata": {
-      "difficulty": "hard",
-      "domain": "claims_interpretation"
-    }
+    "metadata": {"difficulty": "hard", "domain": "claims_interpretation"}
   },
   {
-    "id": "eval_044",
+    "id": "eval_040",
     "question": "What is a technology utilization plan?",
     "ground_truth": "A technology utilization plan is a strategic document outlining how a technology will be developed, protected, and commercialized. It includes market analysis, IP protection strategy, licensing approach, revenue projections, and implementation timeline. TPCO helps researchers prepare these plans to maximize the impact of their innovations.",
     "category": "tech_transfer",
     "expected_sources": ["Technology_Utilization_Plan_Template.docx"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "utilization_plan"
-    }
+    "metadata": {"difficulty": "medium", "domain": "utilization_plan"}
+  },
+  {
+    "id": "eval_041",
+    "question": "How can researchers benefit from IP protection?",
+    "ground_truth": "Researchers benefit from IP protection through: (1) Recognition and credit for innovations, (2) Revenue from licensing agreements, (3) Startup opportunities based on patented technology, (4) Enhanced research funding and partnerships, (5) Technology transfer opportunities, and (6) Career advancement through documented innovation portfolio.",
+    "category": "services",
+    "expected_sources": ["Technology-Transfer-June-25_2024.pdf"],
+    "metadata": {"difficulty": "easy", "domain": "researcher_benefits"}
+  },
+  {
+    "id": "eval_042",
+    "question": "What is the patent grace period?",
+    "ground_truth": "The patent grace period allows inventors to file a patent application within a specified time (typically 6-12 months) after public disclosure without losing novelty. In the Philippines, a 12-month grace period applies for disclosures made by the inventor or derived from them. However, relying on the grace period is risky as rules vary by country.",
+    "category": "patent_process",
+    "expected_sources": ["Patentability-Requirements-June-25.pdf"],
+    "metadata": {"difficulty": "medium", "domain": "grace_period"}
+  },
+  {
+    "id": "eval_043",
+    "question": "What documentation is needed for copyright registration?",
+    "ground_truth": "Copyright registration requires: (1) Completed IPOPHL Form 300, (2) Two copies of the work (for published works) or deposit copy (for unpublished), (3) Affidavit of ownership or deed of assignment, (4) Proof of publication if applicable, (5) Power of attorney if filed through representative, and (6) Payment of required fees.",
+    "category": "procedures",
+    "expected_sources": ["IPOPHLFillableForm300.pdf", "Copyright Registry Enrollment Form 2025.pdf"],
+    "metadata": {"difficulty": "medium", "domain": "copyright_docs"}
+  },
+  {
+    "id": "eval_044",
+    "question": "What services does the ITSOS provide?",
+    "ground_truth": "The Intellectual Property and Technology Support Office (ITSOS) provides services including IP consultations, technology assessment, patent drafting assistance, prior art searches, technology transfer facilitation, and training programs. ITSOS operates under TPCO and serves as the primary contact for researchers seeking IP protection and commercialization support.",
+    "category": "services",
+    "expected_sources": ["DPM-USTP-TPCO-001-ITSU.pdf", "ITSOS REQUEST FORM.docx"],
+    "metadata": {"difficulty": "easy", "domain": "itsos_services"}
   },
   {
     "id": "eval_045",
@@ -489,64 +357,446 @@
     "ground_truth": "Copyright protects the specific code and expression of software as a literary work, preventing copying but not independent development. Patent protects the underlying technical innovation or method, covering any implementation of the invention. Copyright arises automatically while patents require examination. Patents offer stronger protection but are harder to obtain for software.",
     "category": "ip_basics",
     "expected_sources": ["IP-System-June-25_2024.pdf", "1.-Abstract_Nalupa_Sample Software.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "software_ip"
-    }
+    "metadata": {"difficulty": "medium", "domain": "software_ip"}
   },
   {
     "id": "eval_046",
-    "question": "How can researchers benefit from IP protection?",
-    "ground_truth": "Researchers benefit from IP protection through: (1) Recognition and credit for innovations, (2) Revenue from licensing agreements, (3) Startup opportunities based on patented technology, (4) Enhanced research funding and partnerships, (5) Technology transfer opportunities, and (6) Career advancement through documented innovation portfolio.",
-    "category": "services",
-    "expected_sources": ["Technology-Transfer-June-25_2024.pdf"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "researcher_benefits"
-    }
+    "question": "What is the mission of USTP TPCO?",
+    "ground_truth": "The mission of USTP TPCO is to create and nurture a working innovation ecosystem that promotes entrepreneurship and commercialization of technologies to contribute to the economic and social development of the community it services.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "easy", "domain": "mission_vision"}
   },
   {
     "id": "eval_047",
-    "question": "What is the Nice Classification system for trademarks?",
-    "ground_truth": "The Nice Classification system categorizes goods and services into 45 classes for trademark registration. Classes 1-34 cover goods and classes 35-45 cover services.",
-    "category": "procedures",
-    "expected_sources": ["TRADEMARK CLASSIFICATION.pdf", "IP-System-June-25_2024.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "trademark_classification"
-    }
+    "question": "What is the vision of USTP TPCO?",
+    "ground_truth": "The vision of USTP TPCO is to be on the innovation map, visibly interfacing with stakeholders and creating a significant mark in fostering innovations not just in the academe but in the whole innovation community.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "easy", "domain": "mission_vision"}
   },
   {
     "id": "eval_048",
-    "question": "What is the patent grace period?",
-    "ground_truth": "The patent grace period allows inventors to file a patent application within a specified time (typically 6-12 months) after public disclosure without losing novelty. In the Philippines, a 12-month grace period applies for disclosures made by the inventor or derived from them. However, relying on the grace period is risky as rules vary by country.",
-    "category": "patent_process",
-    "expected_sources": ["Patentability-Requirements-June-25.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "grace_period"
-    }
+    "question": "What are the core values of TPCO?",
+    "ground_truth": "The core values of TPCO are: (1) Innovation - Fostering creativity and breakthrough thinking, (2) Integrity - Ethical practices in all partnerships, (3) Excellence - Commitment to quality and continuous improvement, and (4) Collaboration - Building meaningful partnerships.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "easy", "domain": "mission_vision"}
   },
   {
     "id": "eval_049",
-    "question": "What documentation is needed for copyright registration?",
-    "ground_truth": "Copyright registration requires: (1) Completed IPOPHL Form 300, (2) Two copies of the work (for published works) or deposit copy (for unpublished), (3) Affidavit of ownership or deed of assignment, (4) Proof of publication if applicable, (5) Power of attorney if filed through representative, and (6) Payment of required fees.",
-    "category": "procedures",
-    "expected_sources": ["IPOPHLFillableForm300.pdf", "Copyright Registry Enrollment Form 2025.pdf"],
-    "metadata": {
-      "difficulty": "medium",
-      "domain": "copyright_docs"
-    }
+    "question": "When was TPCO established?",
+    "ground_truth": "TPCO was established and approved by the Board of Regents in May 2020 amidst the challenges of the COVID-19 pandemic in the country. The office was officially launched to the public in August 2020. However, the journey began in 2018 when TPCO was founded as USTP's dedicated technology transfer office.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "easy", "domain": "milestones"}
   },
   {
     "id": "eval_050",
-    "question": "What services does the ITSOS provide?",
-    "ground_truth": "The Intellectual Property and Technology Support Office (ITSOS) provides services including IP consultations, technology assessment, patent drafting assistance, prior art searches, technology transfer facilitation, and training programs. ITSOS operates under TPCO and serves as the primary contact for researchers seeking IP protection and commercialization support.",
+    "question": "Who manages the Innovation and Technology Support Unit (ITSU)?",
+    "ground_truth": "Engr. Gladdy Christie Compasan is the Manager of TPCO - Innovation and Technology Support Unit (ITSU). ITSU handles IP protection, patent applications, and technology assessment.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "easy", "domain": "team_info"}
+  },
+  {
+    "id": "eval_051",
+    "question": "What are the organizational units of TPCO?",
+    "ground_truth": "TPCO has three organizational units: (1) ITSU (Innovation and Technology Support Unit) - handles IP protection, patent applications, and technology assessment, (2) PMU (Promotions Management Unit) - handles technology promotions, marketing, and events, and (3) BDU (Business Development Unit) - handles business partnerships, licensing, and commercialization.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "easy", "domain": "organization"}
+  },
+  {
+    "id": "eval_052",
+    "question": "Who manages the Business Development Unit?",
+    "ground_truth": "Ms. Rhea Suzette Haguisan is the Manager of TPCO - Business Development Unit (BDU). The BDU handles business partnerships, licensing, and commercialization.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "easy", "domain": "team_info"}
+  },
+  {
+    "id": "eval_053",
+    "question": "What is the Technology Licensing service offered by TPCO?",
+    "ground_truth": "Technology Licensing is a core service that connects researchers with industry partners for technology commercialization and licensing opportunities. Features include Licensing Negotiations, Technology Valuation, Market Analysis, Partnership Facilitation, Due Diligence Support, Contract Management, Royalty Management, and Post-License Support. Timeline is 2-4 months with success-based fees.",
     "category": "services",
-    "expected_sources": ["DPM-USTP-TPCO-001-ITSU.pdf", "ITSOS REQUEST FORM.docx"],
-    "metadata": {
-      "difficulty": "easy",
-      "domain": "itsos_services"
-    }
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "licensing_service"}
+  },
+  {
+    "id": "eval_054",
+    "question": "What is the Industry-Academe Matching service?",
+    "ground_truth": "Industry-Academe Matching is a core service that bridges the gap between academic research and industry needs through strategic partnerships. Features include Collaboration Matching, Joint Research Projects, Consulting Services, Technology Transfer, Technical Consulting, Innovation Challenges, Expert Networks, and Partnership Development. Timeline is 1-3 months with project-based pricing.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "matching_service"}
+  },
+  {
+    "id": "eval_055",
+    "question": "What is the Startup Incubation program?",
+    "ground_truth": "Startup Incubation is a core service that supports researchers in launching startups through the CDO b.i.t.e.s. incubation program. Features include Business Development, Mentorship Programs, Funding Assistance, Market Entry Support, Product Development, Regulatory Guidance, Investor Connections, and Scale-up Support. Timeline is 6-12 months with equity participation pricing.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "incubation_service"}
+  },
+  {
+    "id": "eval_056",
+    "question": "What is the 4-step service process at TPCO?",
+    "ground_truth": "TPCO follows a 4-step service process: (1) Initial Consultation, (2) Documentation & Filing, (3) Review & Processing, and (4) Commercialization.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "service_process"}
+  },
+  {
+    "id": "eval_057",
+    "question": "How much does IP Training & Workshops cost?",
+    "ground_truth": "IP Training & Workshops costs ₱15,000 - ₱45,000 and runs for 1-3 days. Features include Patent Application Workshop, IP Strategy Development, Technology Commercialization, Prior Art Search Training, IP Portfolio Management, Licensing Negotiations, Market Analysis Techniques, and Legal Compliance Guidelines.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "additional_services"}
+  },
+  {
+    "id": "eval_058",
+    "question": "What does the Technology Assessment service include?",
+    "ground_truth": "Technology Assessment is a 2-4 week service costing ₱25,000 - ₱75,000. It includes TRL Assessment, Market Potential Analysis, Competitive Landscape Mapping, IP Position Evaluation, Commercial Viability Study, Risk Assessment & Mitigation, Scalability Analysis, and Investment Requirements Estimation. The process follows: Technology Documentation Review → Market Research & Analysis → Expert Evaluation & Testing → Comprehensive Report Delivery.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "medium", "domain": "additional_services"}
+  },
+  {
+    "id": "eval_059",
+    "question": "How much does Market Research service cost and what does it cover?",
+    "ground_truth": "Market Research costs ₱35,000 - ₱100,000 and takes 3-6 weeks. It covers Market Size & Growth Analysis, Customer Needs Assessment, Competitive Intelligence, Industry Trend Analysis, Pricing Strategy Research, Distribution Channel Analysis, Regulatory Environment Study, and Go-to-Market Strategy Development.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "medium", "domain": "additional_services"}
+  },
+  {
+    "id": "eval_060",
+    "question": "What are the success stories of TPCO partnerships?",
+    "ground_truth": "TPCO has 3 success stories: (1) AgriTech Soil Enhancement with GreenGrow Solutions - Bio-Organic Fertilizer System achieving 35% yield increase and ₱2M annual revenue, transforming 500 hectares of farmland; (2) Smart Construction Materials with BuildSmart Inc. - Concrete Additive Technology achieving 20% cost reduction across 15 projects; (3) Food Preservation Innovation with FreshPack Solutions - Natural Packaging Technology achieving 50% shelf life extension and export to 3 ASEAN countries.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "medium", "domain": "success_stories"}
+  },
+  {
+    "id": "eval_061",
+    "question": "Where can I find the IP Portfolio on the website?",
+    "ground_truth": "The IP Portfolio can be accessed by clicking 'Our IP' in the navigation bar, or by going to /ip-portfolio. It features a comprehensive collection of patents, technologies, and innovations available for licensing and commercialization, with full-text search, filters by Field and Status, and portfolio analytics including status distribution and patent type charts.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "website_navigation"}
+  },
+  {
+    "id": "eval_062",
+    "question": "What technology fields are available in the IP Portfolio?",
+    "ground_truth": "The IP Portfolio covers 6 technology fields: Agriculture, Materials Science, Food Technology, Environmental Technology, Energy Technology, and Information Technology. Patents can also be filtered by status: Filed, Registered, Commercialized, Licensed, Pending, Available, and IP in Application.",
+    "category": "portfolio",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "portfolio_fields"}
+  },
+  {
+    "id": "eval_063",
+    "question": "How do I license a technology from USTP?",
+    "ground_truth": "To license a technology from USTP, follow the 3-step guide: (1) Identify Technology - Browse the IP Portfolio at /ip-portfolio to find technologies that align with your business needs, (2) Contact Us - Reach out to the licensing team to discuss your interest and requirements, (3) Negotiate Terms - Work with the team to establish licensing terms that benefit both parties.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "licensing_process"}
+  },
+  {
+    "id": "eval_064",
+    "question": "What is on the homepage of the TPCO website?",
+    "ground_truth": "The homepage includes: Hero section with dynamic title and 3 stats counters (Patents Granted, Industry Partners, Technologies Developed), Featured Technologies showing recommended patents from the IP Portfolio, Services Overview with 4 core services and a 4-Step Process infographic, Impact Statistics showing 6 key metrics (Patents Granted, Startups Incubated, Industry Partners, Technologies Developed, Regional Economic Impact, Success Rate), Latest News showing 3 most recent articles, and Quick Actions with 'Explore Our IP Portfolio' and 'Partner With Us' buttons.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "website_navigation"}
+  },
+  {
+    "id": "eval_065",
+    "question": "What impact statistics are displayed on the homepage?",
+    "ground_truth": "The homepage displays 6 impact statistics loaded from the admin panel: (1) Patents Granted - 24+ (+6 this year), (2) Startups Incubated - 12 (+4 this year), (3) Industry Partners - 50+ (+15 this year), (4) Technologies Developed - 8+ (+25 this year), (5) Regional Economic Impact - ₱15M (+₱5M this year), (6) Success Rate - 85% (Industry partnerships). These values are editable by admin through the admin panel.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "statistics"}
+  },
+  {
+    "id": "eval_066",
+    "question": "Who are the strategic partners of USTP TPCO?",
+    "ground_truth": "USTP TPCO collaborates with 15 strategic partners including: Oro Chamber of Commerce and Industry, Ateneo Innovation and Patent Office (IPO), DOST Region X, DTI Misamis Oriental, CDO b.i.t.e.s., IPOPhil, USAID, RTI International, Food Innovation Center (Northern Mindanao), OROBEST Innovation, DOST-PCIEERD, Best Friend Goodies, Bukidnon State University, European Chamber of Commerce of the Philippines (ECCP), and Asian Development Bank.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "medium", "domain": "partners"}
+  },
+  {
+    "id": "eval_067",
+    "question": "What is CDO b.i.t.e.s.?",
+    "ground_truth": "CDO b.i.t.e.s. stands for Cagayan de Oro business innovation technology e-startup. It is a premier startup incubator and innovation hub in Cagayan de Oro, and a strategic partner of USTP TPCO. The partnership was established in 2021. TPCO's Startup Incubation program operates through CDO b.i.t.e.s., offering Business Development, Mentorship Programs, Funding Assistance, Market Entry Support, and more.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "easy", "domain": "partners"}
+  },
+  {
+    "id": "eval_068",
+    "question": "What are the company milestones of TPCO?",
+    "ground_truth": "TPCO's key milestones: 2018 - TPCO Establishment as USTP's dedicated technology transfer office; 2019 - First Patent Grant for USTP innovation; 2020 - Industry Partnership Program launched; 2021 - CDO b.i.t.e.s. Partnership established; 2022 - IP Portfolio Milestone of 15 patents granted; 2023 - Regional Recognition as Outstanding Technology Transfer Office in Mindanao; 2024 - Innovation Hub Launch for technology commercialization.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "medium", "domain": "milestones"}
+  },
+  {
+    "id": "eval_069",
+    "question": "How do I register for a TPCO event?",
+    "ground_truth": "To register for a TPCO event, go to the Resources page and scroll to the 'Workshops & Events' section, or go to /events. Click 'Register Now' on any event with open registration. Fill out the registration form with: Full Name (required), Email (required), Phone, Organization, Position, Dietary Requirements, and Special Requests. Duplicate registrations are prevented (same email for same event).",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "event_registration"}
+  },
+  {
+    "id": "eval_070",
+    "question": "What types of events does TPCO organize?",
+    "ground_truth": "TPCO organizes several types of events including Workshops, Seminars, Training sessions, Networking events, and IP awareness programs. Events are loaded from the admin_events table in Supabase. Only published upcoming events with open registration are shown on the Resources page.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "events"}
+  },
+  {
+    "id": "eval_071",
+    "question": "What are the quick stats on the About page?",
+    "ground_truth": "The About page displays 4 quick stats: 6 Years of Excellence, 12 Expert Team Members, 95% Success Rate, and 24/7 Support Available.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "easy", "domain": "statistics"}
+  },
+  {
+    "id": "eval_072",
+    "question": "What is the Faculty IP Portal?",
+    "ground_truth": "The Faculty IP Portal at /faculty is a dashboard for faculty members to manage IP applications after logging in with a faculty role. Features include creating/editing IP applications, tracking application status through the IPOPHL filing process, and viewing notifications. Applications go through statuses from Draft to Granted/Rejected.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "medium", "domain": "faculty_portal"}
+  },
+  {
+    "id": "eval_073",
+    "question": "What are the statuses for IP applications in the Faculty Portal?",
+    "ground_truth": "IP applications go through these statuses: (1) Draft, (2) Submitted for Internal Review, (3) Under Internal Review, (4) Needs Revision, (5) Approved for IPOPHL Filing, (6) Filed to IPOPHL, (7) Under IPOPHL Examination, (8) Published, (9) Granted, (10) Rejected.",
+    "category": "procedures",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "medium", "domain": "faculty_portal"}
+  },
+  {
+    "id": "eval_074",
+    "question": "What information is needed for a new IP application?",
+    "ground_truth": "A new IP application requires: IP Type (Patent, Utility Model, Industrial Design, Copyright), Title, Applicant Information (name, address, nationality, phone, email), Abstract, Detailed Description, Field of Technology, Background of Invention, Summary of Invention, and Co-Inventors. The form is available at /faculty/applications/new.",
+    "category": "procedures",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "medium", "domain": "ip_application"}
+  },
+  {
+    "id": "eval_075",
+    "question": "What is the AI chat assistant on the TPCO website?",
+    "ground_truth": "The website features an AI chat assistant named Tepee (the TPCO mascot), available on all pages in the bottom-right corner. It greets users with 'Hi, I'm Tepee!' and helps navigate the website and answer questions about USTP TPCO. It is powered by a MISTRAL RAG Pipeline (Python FastAPI backend) using Retrieval-Augmented Generation with Mistral AI and ChromaDB vector database.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "chat_assistant"}
+  },
+  {
+    "id": "eval_076",
+    "question": "What is Tepee?",
+    "ground_truth": "Tepee is the AI chat mascot of USTP TPCO. It is available on all pages of the website in the bottom-right corner and greets users with 'Hi, I'm Tepee!'. Tepee helps users navigate the website and answer common questions about USTP TPCO. It is powered by a MISTRAL RAG Pipeline using Retrieval-Augmented Generation technology.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "chat_assistant"}
+  },
+  {
+    "id": "eval_077",
+    "question": "What are the news categories on the TPCO website?",
+    "ground_truth": "News articles on the website can be categorized as: Patent, Innovation, Research, Licensing, Copyright, Events, Partnerships, Education, and Announcements. Each category has a different colored badge. Articles are loaded from admin_news table, showing only published articles, and the homepage displays 3 latest articles with featured/regular card layout.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "news"}
+  },
+  {
+    "id": "eval_078",
+    "question": "How do I access guidelines on the Resources page?",
+    "ground_truth": "To access guidelines, go to the Resources page and click on the 'Guidelines' tab. You can also navigate directly to /resources?tab=guidelines. The Guidelines tab contains Research Guidelines & Best Practices that are downloadable, loaded dynamically from the resources table (category: Guidelines). Each resource shows title, description, and last updated date.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "website_navigation"}
+  },
+  {
+    "id": "eval_079",
+    "question": "What is the AgriTech Soil Enhancement success story?",
+    "ground_truth": "The AgriTech Soil Enhancement success story features GreenGrow Solutions with their Bio-Organic Fertilizer System. The technology achieved a 35% yield increase and ₱2M annual revenue. The challenge was traditional fertilizers degrading soil quality and becoming expensive. The solution was a bio-organic fertilizer system using locally-sourced agricultural waste that enriches soil while reducing costs by 40%. It transformed 500 hectares of farmland and created sustainable revenue for farming communities.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "medium", "domain": "success_stories"}
+  },
+  {
+    "id": "eval_080",
+    "question": "What is the Smart Construction Materials success story?",
+    "ground_truth": "The Smart Construction Materials success story features BuildSmart Inc. with their Concrete Additive Technology. It achieved a 20% cost reduction across 15 projects implemented. The challenge was high construction costs and environmental concerns with traditional concrete. The solution used volcanic ash-based concrete additive that improves strength while reducing costs. The outcome was 15 major construction projects completed with improved safety standards.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "medium", "domain": "success_stories"}
+  },
+  {
+    "id": "eval_081",
+    "question": "What is the Food Preservation Innovation success story?",
+    "ground_truth": "The Food Preservation Innovation success story features FreshPack Solutions with their Natural Packaging Technology. It achieved a 50% shelf life extension and enabled export market entry. The challenge was limited shelf life preventing export market expansion. The solution was plant-based antimicrobial packaging that naturally preserves food. The outcome was successful entry into international markets, exports to 3 ASEAN countries, and 50 new jobs created.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "medium", "domain": "success_stories"}
+  },
+  {
+    "id": "eval_082",
+    "question": "What is the Shared Service Facility at USTP?",
+    "ground_truth": "The Shared Service Facility (SSF) at USTP includes the Advanced Materials Testing Lab with state-of-the-art equipment for materials characterization and testing. It has a capacity of 10 researchers and an hourly rate of ₱500. The facility can be booked at /facility-booking, accessible from the Resources page.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "facilities"}
+  },
+  {
+    "id": "eval_083",
+    "question": "Who is the Promotions Management Unit manager?",
+    "ground_truth": "Ms. Flora Monica Mabaylan is the Manager of TPCO - Promotions Management Unit (PMU). The PMU handles technology promotions, marketing, and events.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "easy", "domain": "team_info"}
+  },
+  {
+    "id": "eval_084",
+    "question": "Who are the technical experts in the ITSU?",
+    "ground_truth": "The ITSU (Innovation and Technology Support Unit) has two Technical Experts: Engr. Clark Darwin Gozon and Engr. Mark Lister Nalupa. Both provide technical expertise for innovation support. The unit is managed by Engr. Gladdy Christie Compasan, with Noreza P. Aleno serving as Administrative Staff.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "medium", "domain": "team_info"}
+  },
+  {
+    "id": "eval_085",
+    "question": "What is the Technology Promotions Officer's role?",
+    "ground_truth": "Engr. Jodie Rey Fernandez serves as the Technology Promotions Officer in the TPCO - Promotions Management Unit (PMU). His role involves handling technology promotions activities.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "easy", "domain": "team_info"}
+  },
+  {
+    "id": "eval_086",
+    "question": "What is the contact email of TPCO?",
+    "ground_truth": "The primary contact email of TPCO is tpco@ustp.edu.ph, with a response time within 24 hours. An alternative email is info@ustp.edu.ph.",
+    "category": "about",
+    "expected_sources": ["ustp-tpco-about-and-contact.txt", "USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "contact"}
+  },
+  {
+    "id": "eval_087",
+    "question": "What is the phone number of TPCO?",
+    "ground_truth": "The primary phone number of TPCO is +63 (088) 856-1738, available Monday to Friday, 8:00 AM - 5:00 PM. There is also a secondary number: +63 (088) 856-1739.",
+    "category": "about",
+    "expected_sources": ["ustp-tpco-about-and-contact.txt", "USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "contact"}
+  },
+  {
+    "id": "eval_088",
+    "question": "Where is the USTP TPCO office located?",
+    "ground_truth": "The USTP TPCO office is located at the University of Science and Technology of Southern Philippines, Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan, Cagayan de Oro City, 9000 Misamis Oriental, Philippines. The Google Maps location is available at https://maps.app.goo.gl/QADDEJs8reyJs9959",
+    "category": "about",
+    "expected_sources": ["ustp-tpco-about-and-contact.txt", "USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "contact"}
+  },
+  {
+    "id": "eval_089",
+    "question": "What are the office hours of TPCO?",
+    "ground_truth": "TPCO office hours are Monday through Friday, 8:00 AM - 5:00 PM. Walk-in consultations are welcome, though appointments are recommended.",
+    "category": "about",
+    "expected_sources": ["ustp-tpco-about-and-contact.txt", "USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "contact"}
+  },
+  {
+    "id": "eval_090",
+    "question": "What IP types can be applied for through the Faculty Portal?",
+    "ground_truth": "Through the Faculty IP Portal, faculty can apply for four IP types: Patent, Utility Model, Industrial Design, and Copyright. The application form is available at /faculty/applications/new.",
+    "category": "procedures",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "ip_application"}
+  },
+  {
+    "id": "eval_091",
+    "question": "What portfolio analytics are available on the IP Portfolio page?",
+    "ground_truth": "The IP Portfolio page includes a Portfolio Overview analytics section with: 6 Statistics Cards (Filed, Registered, Commercialized, Licensed, Licensed Revenue in ₱, IP in Application), Total Patents in Portfolio count, Status Distribution pie chart (Filed, Registered, Commercialized, Licensed, IP in Application), and Patent Types pie chart (breakdown by technology field/category). Data is sourced from admin_patents and ip_applications tables in Supabase.",
+    "category": "portfolio",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "medium", "domain": "portfolio_analytics"}
+  },
+  {
+    "id": "eval_092",
+    "question": "How many items are shown per page in the IP Portfolio?",
+    "ground_truth": "The IP Portfolio page displays 10 items per page with page navigation for browsing through the full collection of patents and technologies.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "website_navigation"}
+  },
+  {
+    "id": "eval_093",
+    "question": "What is DOST-PCIEERD and how is it related to TPCO?",
+    "ground_truth": "DOST-PCIEERD stands for Department of Science and Technology - Philippine Council for Industry, Energy and Emerging Technology Research and Development. It is a government agency and strategic partner of USTP TPCO that supports research funding and technology development.",
+    "category": "about",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
+    "metadata": {"difficulty": "medium", "domain": "partners"}
+  },
+  {
+    "id": "eval_094",
+    "question": "What is the Additional Services page on the website?",
+    "ground_truth": "The Additional Services page at /additional-services provides detailed information on 3 additional services: IP Training & Workshops (1-3 days, ₱15,000-₱45,000), Technology Assessment (2-4 weeks, ₱25,000-₱75,000), and Market Research (3-6 weeks, ₱35,000-₱100,000). Each service has 4 tabs: Overview, Features, Process, Benefits. The page also includes service request forms and an FAQ section.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "website_navigation"}
+  },
+  {
+    "id": "eval_095",
+    "question": "How do I access the admin panel?",
+    "ground_truth": "The admin panel can be accessed at /admin by clicking the 'Login' button in the navigation bar. It requires authentication and allows managing patents, services, news, events, resources, homepage content, dashboard stats, and service requests.",
+    "category": "navigation",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "website_navigation"}
+  },
+  {
+    "id": "eval_096",
+    "question": "What service request form fields are required?",
+    "ground_truth": "The service request form has these fields: Full Name (required), Email (required), Phone (optional), Organization (optional), Specific Needs & Requirements (optional), and Preferred Contact Method (Email, Phone Call, Video Meeting, In-person Meeting). Submissions are saved to the admin_service_requests table in Supabase.",
+    "category": "procedures",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "service_request"}
+  },
+  {
+    "id": "eval_097",
+    "question": "What patent statuses are hidden from public view in the IP Portfolio?",
+    "ground_truth": "Draft and Under Review patents are hidden from public view in the IP Portfolio. The data source is the admin_patents table in Supabase, which serves as the single source of truth. Only non-Draft patents are shown to the public.",
+    "category": "portfolio",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "medium", "domain": "portfolio_data"}
+  },
+  {
+    "id": "eval_098",
+    "question": "What is the GreenGrow Solutions partnership about?",
+    "ground_truth": "GreenGrow Solutions is a TPCO industry partner in the AgriTech Soil Enhancement success story. They developed a Bio-Organic Fertilizer System that uses locally-sourced agricultural waste to enrich soil while reducing costs by 40%. The technology achieved a 35% yield increase and ₱2M annual revenue, transforming 500 hectares of farmland and creating sustainable revenue for farming communities. The timeline was 6 months from licensing to market.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "medium", "domain": "success_stories"}
+  },
+  {
+    "id": "eval_099",
+    "question": "What technology does the Advanced Materials Testing Lab have?",
+    "ground_truth": "The Advanced Materials Testing Lab at USTP has state-of-the-art equipment for materials characterization and testing. It is a Shared Service Facility (SSF) with a capacity of 10 researchers and an hourly rate of ₱500. The facility can be booked through /facility-booking on the website.",
+    "category": "services",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "facilities"}
+  },
+  {
+    "id": "eval_100",
+    "question": "What is the IPOPHL and what is its role in IP protection?",
+    "ground_truth": "IPOPHL (Intellectual Property Office of the Philippines) is the official government agency responsible for IP registration and protection in the country. It is also a strategic partner of USTP TPCO. IPOPHL handles the filing, examination, and registration of patent, trademark, copyright, and industrial design applications. They provide the official forms (Form 100 for patents, Form 300 for copyright, Form 400 for trademarks) and process all IP applications in the Philippines.",
+    "category": "ip_basics",
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "IP-System-June-25_2024.pdf"],
+    "metadata": {"difficulty": "medium", "domain": "ipophl"}
   }
 ]

@@ -260,11 +260,12 @@ def query_rag_api(question: str, rag_url: str) -> dict:
         return {"answer": f"Error: {e}", "sources": [], "was_filtered": True}
 
 
-def get_contexts_from_vector_store(question: str) -> list[str]:
+def get_contexts_from_vector_store(question: str, store=None) -> list[str]:
     """Get contexts from vector store."""
     try:
-        from vector_store import VectorStore
-        store = VectorStore()
+        if store is None:
+            from vector_store import VectorStore
+            store = VectorStore()
         results = store.search(question)
         return [r["text"] for r in results]
     except Exception:
@@ -411,9 +412,18 @@ def main():
     contexts = []
     ground_truths = []
     
-    # Use all samples for full evaluation
-    test_samples = samples[:50]
+    # Use all 100 samples for full evaluation
+    test_samples = samples[:100]
     
+    # Initialize vector store once (avoid reloading embedding model per query)
+    vector_store = None
+    try:
+        from vector_store import VectorStore
+        vector_store = VectorStore()
+        print("Vector store loaded.")
+    except Exception as e:
+        print(f"Warning: Could not load vector store: {e}")
+
     print(f"\nCollecting RAG responses (testing with {len(test_samples)} samples)...")
     for sample in tqdm(test_samples, desc="Querying RAG"):
         questions.append(sample["question"])
@@ -423,7 +433,7 @@ def main():
         try:
             rag_response = query_rag_api(sample["question"], rag_url)
             answers.append(rag_response.get("answer", ""))
-            ctx = get_contexts_from_vector_store(sample["question"])
+            ctx = get_contexts_from_vector_store(sample["question"], store=vector_store)
             contexts.append(ctx if ctx else ["Context not available"])
         except Exception:
             # Use ground truth as fallback for testing
