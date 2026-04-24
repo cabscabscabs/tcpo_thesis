@@ -68,7 +68,7 @@ const App = () => (
         <ChatWidget 
           appName="USTP TPCO" 
           position="bottom-right"
-          apiEndpoint="http://localhost:8000/query"
+          apiEndpoint="/api/rag/query"
         />
       </TooltipProvider>
     </ThemeProvider>

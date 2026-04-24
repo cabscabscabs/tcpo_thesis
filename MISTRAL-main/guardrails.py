@@ -49,6 +49,9 @@ OFFICE_KEYWORDS = {
     "where", "how to", "how do i", "navigate", "find", "access", "page",
     "contact", "about", "our ip", "ip portfolio", "services", "resources",
     "menu", "link", "button", "click", "go to", "location",
+    # Tepee and mascot references (users may ask about the chatbot itself)
+    "tepee", "mascot", "chatbot", "chat bot", "ai assistant", "virtual assistant",
+    "teepee",
 }
 
 # Topics that should be explicitly rejected

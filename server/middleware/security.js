@@ -141,10 +141,14 @@ const csrfProtection = (req, res, next) => {
  */
 const generateCSRFToken = (req, res, next) => {
   const token = SecurityUtils.generateCSRFToken();
+  
+  // Detect if request comes through ngrok
+  const isNgrok = (req.headers['x-forwarded-host'] || req.headers.host || '').includes('ngrok');
+  
   res.cookie('XSRF-TOKEN', token, {
     httpOnly: false, // Must be accessible to JavaScript
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production' || isNgrok,
+    sameSite: isNgrok ? 'none' : 'strict',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   });
   req.csrfToken = token;
@@ -197,13 +201,17 @@ const validateInput = (req, res, next) => {
  * Content Security Policy middleware
  */
 const cspMiddleware = (req, res, next) => {
+  // Detect if request comes through ngrok
+  const isNgrok = (req.headers['x-forwarded-host'] || req.headers.host || '').includes('ngrok');
+  
   const cspDirectives = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
-    "connect-src 'self' https://api.mistral.ai https://pwtmtnvedemabvwamllq.supabase.co",
+    // Allow connections to Supabase, and also ngrok tunnel URLs
+    `connect-src 'self' https://api.mistral.ai https://pwtmtnvedemabvwamllq.supabase.co ${isNgrok ? 'https://*.ngrok-free.app https://*.ngrok.io' : ''}`,
     "frame-ancestors 'none'",
     "form-action 'self'",
     "base-uri 'self'",

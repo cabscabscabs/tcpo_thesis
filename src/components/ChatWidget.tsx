@@ -359,7 +359,7 @@ Our team is available Monday-Friday, 8:00 AM - 5:00 PM.`;
 
 export const ChatWidget: React.FC<ChatWidgetProps> = ({
   className,
-  apiEndpoint = 'http://localhost:8000/query',
+  apiEndpoint = '/api/rag/query',
   openAIKey,
   appName = 'USTP TPCO',
   position = 'bottom-right'

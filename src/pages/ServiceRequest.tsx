@@ -22,18 +22,45 @@ import {
   Handshake,
   BookOpen,
   Rocket,
+  Wrench,
+  Lightbulb,
   CheckCircle2
 } from "lucide-react";
 import servicesImage from "@/assets/services-bg.jpg";
 import { supabase } from "@/integrations/supabase/client";
 
+// Icon mapping from string to component
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const iconMap: Record<string, any> = {
+  Shield,
+  Handshake,
+  BookOpen,
+  Rocket,
+  Wrench,
+  Lightbulb,
+};
+
+interface ServiceData {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  icon: string;
+  features: string[];
+  process_steps: string[];
+  timeline: string;
+  pricing: string;
+}
+
 const ServiceRequest = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const serviceType = searchParams.get('service') || 'ip-protection';
+  const serviceSlug = searchParams.get('service') || '';
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [submittedRequestId, setSubmittedRequestId] = useState('');
+  const [currentService, setCurrentService] = useState<ServiceData | null>(null);
+  const [loading, setLoading] = useState(true);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -44,86 +71,52 @@ const ServiceRequest = () => {
     preferredContact: ""
   });
 
-  const services = {
-    'ip-protection': {
-      id: 'ip-protection',
-      title: 'IP Protection Services',
-      icon: Shield,
-      description: 'Comprehensive intellectual property protection and management services',
-      features: [
-        'Patent Application Assistance',
-        'Trademark Registration',
-        'Copyright Protection',
-        'Prior Art Search & Analysis',
-        'IP Portfolio Management',
-        'Freedom to Operate Analysis',
-        'Patent Landscape Studies',
-        'IP Strategy Development'
-      ],
-      timeline: '3-6 months',
-      pricing: 'Consultation fees apply'
-    },
-    'technology-licensing': {
-      id: 'technology-licensing',
-      title: 'Technology Licensing',
-      icon: Handshake,
-      description: 'Facilitate technology transfer and commercialization opportunities',
-      features: [
-        'Technology Valuation',
-        'Licensing Negotiations',
-        'Due Diligence Support',
-        'Royalty Management',
-        'Market Analysis',
-        'Partnership Facilitation',
-        'Contract Management',
-        'Post-License Support'
-      ],
-      timeline: '2-4 months',
-      pricing: 'Success-based fees'
-    },
-    'industry-matching': {
-      id: 'industry-matching',
-      title: 'Industry-Academe Matching',
-      icon: BookOpen,
-      description: 'Bridge academic research with industry innovation needs',
-      features: [
-        'Collaboration Matching',
-        'Technical Consulting',
-        'Innovation Challenges',
-        'Technology Scouting',
-        'Joint Research Projects',
-        'Research Partnerships',
-        'Expert Networks',
-        'Partnership Development'
-      ],
-      timeline: '1-3 months',
-      pricing: 'Project-based'
-    },
-    'startup-incubation': {
-      id: 'startup-incubation',
-      title: 'Startup Incubation',
-      icon: Rocket,
-      description: 'Support researchers in launching technology-based startups',
-      features: [
-        'Business Model Development',
-        'Funding Assistance',
-        'Product Development',
-        'Investor Connections',
-        'Mentorship Programs',
-        'Market Entry Support',
-        'Regulatory Guidance',
-        'Scale-up Support'
-      ],
-      timeline: '6-12 months',
-      pricing: 'Equity participation'
-    }
-  };
+  // Fetch service data from database based on slug
+  useEffect(() => {
+    const fetchService = async () => {
+      try {
+        if (!serviceSlug) {
+          setLoading(false);
+          return;
+        }
 
-  const currentService = services[serviceType as keyof typeof services] || services['ip-protection'];
+        const { data, error } = await supabase
+          .from('services')
+          .select('*')
+          .eq('slug', serviceSlug)
+          .eq('published', true)
+          .single();
+
+        if (error) {
+          console.error('Error fetching service:', error);
+        } else if (data) {
+          setCurrentService({
+            id: data.id,
+            name: data.name,
+            slug: data.slug,
+            description: data.description || '',
+            icon: data.icon || 'Wrench',
+            features: data.features || [],
+            process_steps: data.process_steps || [],
+            timeline: data.timeline || '',
+            pricing: data.pricing || '',
+          });
+        }
+      } catch (err) {
+        console.error('Unexpected error fetching service:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchService();
+  }, [serviceSlug]);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!currentService) return;
+
     // Validate required fields
     if (!formData.name || !formData.email) {
       toast({
@@ -141,8 +134,8 @@ const ServiceRequest = () => {
       email: formData.email,
       phone: formData.phone,
       organization: formData.organization,
-      service: currentService.id,
-      serviceTitle: currentService.title,
+      service: currentService.slug,
+      serviceTitle: currentService.name,
       preferredDate: '',
       participants: '1',
       specificNeeds: `Specific Needs: ${formData.specificNeeds}
@@ -196,6 +189,34 @@ Preferred Contact: ${formData.preferredContact}`,
     });
   };
 
+  // Show loading or not-found state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="flex items-center justify-center py-40">
+          <p className="text-gray-500">Loading service details...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!currentService) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="flex flex-col items-center justify-center py-40">
+          <p className="text-gray-500 mb-4">Service not found.</p>
+          <Button variant="gold" onClick={() => navigate('/services')}>Back to Services</Button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const IconComponent = iconMap[currentService.icon] || Wrench;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
@@ -218,10 +239,10 @@ Preferred Contact: ${formData.preferredContact}`,
           <div className="text-center">
             <div className="flex items-center justify-center mb-4">
               <div className="p-3 bg-secondary rounded-full mr-4">
-                <currentService.icon className="text-primary" size={32} />
+                <IconComponent className="text-primary" size={32} />
               </div>
               <h1 className="text-4xl md:text-5xl font-roboto font-bold text-white">
-                Request {currentService.title}
+                Request {currentService.name}
               </h1>
             </div>
             <p className="text-xl text-gray-200 max-w-3xl mx-auto mb-8">
@@ -247,7 +268,7 @@ Preferred Contact: ${formData.preferredContact}`,
                     Service Overview
                   </CardTitle>
                   <CardDescription>
-                    What's included in {currentService.title}
+                    What's included in {currentService.name}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -426,7 +447,7 @@ Preferred Contact: ${formData.preferredContact}`,
           <div className="space-y-3 rounded-lg bg-gray-50 p-4">
             <div className="flex justify-between">
               <span className="text-sm text-gray-500">Service</span>
-              <span className="text-sm font-medium">{currentService.title}</span>
+              <span className="text-sm font-medium">{currentService.name}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-gray-500">Email</span>

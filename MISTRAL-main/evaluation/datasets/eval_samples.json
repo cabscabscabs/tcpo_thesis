@@ -10,7 +10,7 @@
   {
     "id": "eval_002",
     "question": "How do I file a trademark application?",
-    "ground_truth": "To file a trademark application, you need to submit IPOPHL Form 400 (Trademark Application Form) along with the required fees and supporting documents. The process involves classification of goods/services using the Nice Classification system (45 classes), examination, publication, and registration. TPCO can assist with the preparation and filing process.",
+    "ground_truth": "To file a trademark application through TPCO, you can submit a service request for IP Protection assistance. TPCO will help you prepare and file the application with IPOPHL. The trademark application requires IPOPHL Form 400 (Trademark Application Form), required fees, and supporting documents. The process involves classification of goods/services using the Nice Classification system (45 classes), examination, publication, and registration. You can access the service request form at /service-request?service=ip-protection.",
     "category": "procedures",
     "expected_sources": ["IPOPHLFillableForm400.pdf", "TRADEMARK CLASSIFICATION.pdf"],
     "metadata": {"difficulty": "medium", "domain": "trademark"}
@@ -98,7 +98,7 @@
   {
     "id": "eval_013",
     "question": "What documents are needed for a patent application?",
-    "ground_truth": "A patent application requires: (1) IPOPHL Form 100 (Patent Application Form), (2) Patent specification (title, abstract, description, claims), (3) Drawings if applicable, (4) Abstract, (5) Power of Attorney if filed through an agent, (6) Deed of Assignment if inventor is different from applicant, and (7) Proof of small entity status if claiming reduced fees.",
+    "ground_truth": "For a patent application through TPCO, you need to email ustp.itso@ustp.edu.ph with the subject line \"Patent / UM_Title of the work\" and include the following documents: Technology Disclosure Form, Patent Search Report, Patent Draft (Abstract, Description, Claims, Drawings), IPOPHL Application Forms (Form 100, Form 110), Technology Utilization Plan, Accomplished TRL Assessment Form, Letter of Intent or Commitment from each industry partner, and Supporting Documents (if applicable). You can also submit an IP application through the Faculty Portal at /faculty/applications/new.",
     "category": "procedures",
     "expected_sources": ["IPOPHLFillableForm100.pdf", "Patent_Specification_Template_with_Guide.docx"],
     "metadata": {"difficulty": "medium", "domain": "patent_filing"}
@@ -162,7 +162,7 @@
   {
     "id": "eval_021",
     "question": "What is copyright registration and how do I apply?",
-    "ground_truth": "Copyright registration is the process of formally recording ownership of original works like literary, artistic, musical, and software works. To apply, submit IPOPHL Form 300 (Copyright Application Form) along with copies of the work, affidavit of ownership, and required fees. Registration provides legal evidence of ownership and enables enforcement against infringement.",
+    "ground_truth": "Copyright registration is the process of formally recording ownership of original works like literary, artistic, musical, and software works. To apply through TPCO, you can submit a service request for IP Protection assistance and TPCO will help prepare and file the application with IPOPHL. The application requires IPOPHL Form 300 (Copyright Application Form), copies of the work, affidavit of ownership, and required fees. Registration provides legal evidence of ownership and enables enforcement against infringement. You can access the service request form at /service-request?service=ip-protection.",
     "category": "procedures",
     "expected_sources": ["IPOPHLFillableForm300.pdf", "Copyright Registry Enrollment Form 2025.pdf"],
     "metadata": {"difficulty": "medium", "domain": "copyright"}
@@ -210,7 +210,7 @@
   {
     "id": "eval_027",
     "question": "How do I protect my invention before filing a patent?",
-    "ground_truth": "Before filing a patent, protect your invention by: (1) keeping it confidential through NDAs, (2) documenting the invention process with dated records, (3) avoiding public disclosure which can destroy novelty, (4) conducting a prior art search, and (5) filing a provisional application if available to secure priority date.",
+    "ground_truth": "Before filing a patent through TPCO, protect your invention by: (1) consulting with TPCO/ITSOS for guidance on IP protection strategy, (2) keeping it confidential through NDAs, (3) documenting the invention process with dated records, (4) avoiding public disclosure which can destroy novelty, and (5) conducting a prior art search with TPCO's assistance. You can reach TPCO by emailing ustp.itso@ustp.edu.ph or submitting a service request at /service-request?service=ip-protection.",
     "category": "procedures",
     "expected_sources": ["Patentability-Requirements-June-25.pdf", "Patent-Search-Strategies-UPDATED.pdf"],
     "metadata": {"difficulty": "medium", "domain": "confidentiality"}
@@ -338,7 +338,7 @@
   {
     "id": "eval_043",
     "question": "What documentation is needed for copyright registration?",
-    "ground_truth": "Copyright registration requires: (1) Completed IPOPHL Form 300, (2) Two copies of the work (for published works) or deposit copy (for unpublished), (3) Affidavit of ownership or deed of assignment, (4) Proof of publication if applicable, (5) Power of attorney if filed through representative, and (6) Payment of required fees.",
+    "ground_truth": "For copyright registration through TPCO, you need: (1) Completed IPOPHL Form 300, (2) Two copies of the work (for published works) or deposit copy (for unpublished), (3) Affidavit of ownership or deed of assignment, (4) Proof of publication if applicable, (5) Power of attorney if filed through representative, and (6) Payment of required fees. TPCO assists with the preparation and filing of the copyright application with IPOPHL.",
     "category": "procedures",
     "expected_sources": ["IPOPHLFillableForm300.pdf", "Copyright Registry Enrollment Form 2025.pdf"],
     "metadata": {"difficulty": "medium", "domain": "copyright_docs"}

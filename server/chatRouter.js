@@ -243,6 +243,41 @@ router.get('/health', (req, res) => {
   });
 });
 
+// RAG Proxy: Forward /api/rag/* to the Python RAG server (localhost:8000)
+// This allows the frontend to use a relative URL that works with ngrok
+router.use('/rag', async (req, res) => {
+  const RAG_SERVER_URL = process.env.RAG_SERVER_URL || 'http://localhost:8000';
+  
+  try {
+    const targetUrl = `${RAG_SERVER_URL}${req.originalUrl.replace('/api/rag', '')}`;
+    
+    const fetchOptions = {
+      method: req.method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+    
+    if (req.method !== 'GET' && req.body) {
+      fetchOptions.body = JSON.stringify(req.body);
+    }
+    
+    const ragResponse = await fetch(targetUrl, fetchOptions);
+    const data = await ragResponse.json();
+    
+    res.status(ragResponse.status).json(data);
+  } catch (error) {
+    console.error('RAG proxy error:', error.message);
+    
+    // If RAG server is down, return a friendly message instead of crashing
+    res.status(503).json({
+      error: 'RAG service unavailable',
+      message: 'The AI chat service is currently offline. Please try again later.',
+      detail: error.message
+    });
+  }
+});
+
 // Error handling middleware
 router.use((error, req, res, next) => {
   console.error('Unhandled error:', error);

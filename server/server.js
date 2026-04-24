@@ -69,6 +69,11 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
     
+    // Allow ngrok URLs dynamically (for testing)
+    if (origin.includes('ngrok-free.app') || origin.includes('ngrok.io')) {
+      return callback(null, true);
+    }
+    
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
