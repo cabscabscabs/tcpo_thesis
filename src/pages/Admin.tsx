@@ -7914,6 +7914,14 @@ const Admin = () => {
                           <p className="text-sm font-medium truncate">{att.file_name}</p>
                           <p className="text-xs text-gray-500">{att.document_type || att.file_type}</p>
                         </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(att.file_path, '_blank')}
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
                       </div>
                     ))}
                   </div>

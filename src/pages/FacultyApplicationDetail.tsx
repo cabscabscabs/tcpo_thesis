@@ -513,7 +513,21 @@ export default function FacultyApplicationDetail() {
                                 )}
                               </div>
                             </div>
-                            <Button variant="outline" size="sm">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (attachment.file_url) {
+                                  window.open(attachment.file_url, '_blank');
+                                } else {
+                                  toast({
+                                    title: "Error",
+                                    description: "File URL not available.",
+                                    variant: "destructive"
+                                  });
+                                }
+                              }}
+                            >
                               <Download className="h-4 w-4 mr-2" />
                               Download
                             </Button>
