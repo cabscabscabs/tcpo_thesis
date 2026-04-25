@@ -16,7 +16,7 @@ export interface DocumentRequirement {
 }
 
 export interface ValidatedFile {
-  file: File;
+  file?: File;
   fileName: string;
   fileSize: number;
   fileType: string;
@@ -387,7 +387,20 @@ export function useDocumentValidation(ipType: IPType | undefined, formState: For
           else if (filename.includes('representation')) docType = 'representations';
         }
 
-        return validateFile(attachment.file || attachment, docType || 'unknown');
+        // Handle existing DB attachments (no file object)
+        if (attachment.isExisting || !attachment.file) {
+          return {
+            file: undefined,
+            fileName: attachment.file_name || 'Unknown',
+            fileSize: attachment.file_size || 0,
+            fileType: attachment.file_type || 'application/octet-stream',
+            documentType: docType || attachment.document_type || attachment.attachment_type || 'unknown',
+            isValid: true,
+            errors: []
+          };
+        }
+
+        return validateFile(attachment.file, docType || 'unknown');
       });
 
     setValidatedFiles(validated);

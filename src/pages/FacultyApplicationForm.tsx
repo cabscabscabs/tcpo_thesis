@@ -80,8 +80,10 @@ async function uploadAndCreateAttachments(
     try {
       const file = attachment.file as File;
       if (!file) {
-        console.warn('Attachment missing file object, skipping:', attachment.file_name);
-        failed++;
+        if (!attachment.isExisting) {
+          console.warn('Attachment missing file object, skipping:', attachment.file_name);
+          failed++;
+        }
         continue;
       }
 
@@ -158,6 +160,7 @@ export default function FacultyApplicationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingExisting, setIsLoadingExisting] = useState(false);
+  const [originalAttachments, setOriginalAttachments] = useState<any[]>([]);
 
   const methods = useForm({
     defaultValues: {
@@ -207,6 +210,25 @@ export default function FacultyApplicationForm() {
           return;
         }
 
+        // Fetch existing attachments
+        const { data: attachmentsData } = await (supabase as any)
+          .from('ip_application_attachments')
+          .select('*')
+          .eq('application_id', editId);
+
+        const mappedAttachments = (attachmentsData || []).map((att: any) => ({
+          id: att.id,
+          file_name: att.file_name,
+          file_size: att.file_size,
+          file_type: att.mime_type || att.file_type,
+          attachment_type: att.file_type === 'drawing' ? 'drawing' : 'document',
+          document_type: att.document_type,
+          isExisting: true,
+          file_path: att.file_path,
+        }));
+
+        setOriginalAttachments(mappedAttachments);
+
         // Populate form with existing data
         methods.reset({
           applicant_name: data.applicant_full_name || '',
@@ -223,7 +245,7 @@ export default function FacultyApplicationForm() {
           summary_of_invention: data.summary_of_invention || '',
           detailed_description: data.detailed_description || '',
           claims: [],
-          attachments: [],
+          attachments: mappedAttachments,
           declaration_ownership: data.declaration_confirmed || false,
           declaration_accuracy: data.declaration_confirmed || false,
           declaration_ustp: data.declaration_confirmed || false,
@@ -376,10 +398,23 @@ export default function FacultyApplicationForm() {
           return;
         }
 
-        // Upload new attachments if any
+        // Delete removed existing attachments
         const attachments = formData.attachments || [];
-        if (attachments.length > 0) {
-          const uploadResult = await uploadAndCreateAttachments(attachments, editId, session.user.id);
+        const currentIds = new Set(
+          attachments.filter((a: any) => a.isExisting && a.id).map((a: any) => a.id)
+        );
+        const removed = originalAttachments.filter((a: any) => !currentIds.has(a.id));
+        if (removed.length > 0) {
+          await (supabase as any)
+            .from('ip_application_attachments')
+            .delete()
+            .in('id', removed.map((a: any) => a.id));
+        }
+
+        // Upload new attachments if any
+        const newAttachments = attachments.filter((a: any) => !a.isExisting);
+        if (newAttachments.length > 0) {
+          const uploadResult = await uploadAndCreateAttachments(newAttachments, editId, session.user.id);
           if (uploadResult.failed > 0) {
             toast({ title: "Draft Saved with Issues", description: `${uploadResult.success} file(s) uploaded, ${uploadResult.failed} failed.`, variant: "destructive" });
           } else {
@@ -498,6 +533,19 @@ export default function FacultyApplicationForm() {
           toast({ title: "Error", description: "Failed to submit application. " + error.message, variant: "destructive" });
           return;
         }
+
+        // Delete removed existing attachments
+        const attachments = data.attachments || [];
+        const currentIds = new Set(
+          attachments.filter((a: any) => a.isExisting && a.id).map((a: any) => a.id)
+        );
+        const removed = originalAttachments.filter((a: any) => !currentIds.has(a.id));
+        if (removed.length > 0) {
+          await (supabase as any)
+            .from('ip_application_attachments')
+            .delete()
+            .in('id', removed.map((a: any) => a.id));
+        }
       } else {
         // Insert new submitted application
         const { data: application, error } = await (supabase as any)
@@ -516,8 +564,9 @@ export default function FacultyApplicationForm() {
 
       // Upload attachments
       const attachments = data.attachments || [];
-      if (attachments.length > 0 && applicationId) {
-        const uploadResult = await uploadAndCreateAttachments(attachments, applicationId, session.user.id);
+      const newAttachments = attachments.filter((a: any) => !a.isExisting);
+      if (newAttachments.length > 0 && applicationId) {
+        const uploadResult = await uploadAndCreateAttachments(newAttachments, applicationId, session.user.id);
 
         if (uploadResult.failed > 0) {
           toast({
