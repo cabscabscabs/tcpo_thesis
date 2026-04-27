@@ -267,9 +267,15 @@ export default function FacultyApplicationForm() {
 
   const { handleSubmit, trigger, formState: { errors }, watch } = methods;
   
-  // Watch form values for document validation
-  const formValues = watch();
-  const ipType = formValues.ip_type as IPType;
+  // Watch only the specific fields needed for document validation
+  // (watching individual fields avoids creating a new object on every render)
+  const ipType = watch('ip_type') as IPType;
+  const claimsPriority = watch('claimsPriority');
+  const isAgentFiling = watch('isAgentFiling');
+  const isSmallEntity = watch('isSmallEntity');
+  const isApplicantInventor = watch('isApplicantInventor');
+  const isOwnerAuthor = watch('isOwnerAuthor');
+  const attachments = watch('attachments');
   
   // Document validation
   const {
@@ -279,12 +285,12 @@ export default function FacultyApplicationForm() {
     getErrorMessages
   } = useDocumentValidation(ipType, {
     ip_type: ipType,
-    claimsPriority: formValues.claimsPriority,
-    isAgentFiling: formValues.isAgentFiling,
-    isSmallEntity: formValues.isSmallEntity,
-    isApplicantInventor: formValues.isApplicantInventor,
-    isOwnerAuthor: formValues.isOwnerAuthor,
-    attachments: formValues.attachments
+    claimsPriority,
+    isAgentFiling,
+    isSmallEntity,
+    isApplicantInventor,
+    isOwnerAuthor,
+    attachments
   });
 
   const validateStep = async (step: number) => {

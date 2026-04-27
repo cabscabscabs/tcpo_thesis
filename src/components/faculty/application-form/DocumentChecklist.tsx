@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 import { 
   CheckCircle, 
   XCircle, 
@@ -55,6 +56,7 @@ const FORMAT_LABELS: Record<string, string> = {
 };
 
 export function DocumentChecklist({ onValidationChange }: DocumentChecklistProps) {
+  const { toast } = useToast();
   const { watch, setValue } = useFormContext();
   const ipType = watch('ip_type') as IPType;
   const claimsPriority = watch('claimsPriority');
@@ -122,6 +124,13 @@ export function DocumentChecklist({ onValidationChange }: DocumentChecklistProps
       }
       
       setValue('attachments', newAttachments);
+    } else {
+      // Show validation errors to the user
+      toast({
+        title: `Upload Failed: ${file.name}`,
+        description: validated.errors.join('. '),
+        variant: 'destructive',
+      });
     }
     
     setUploadingDocId(null);

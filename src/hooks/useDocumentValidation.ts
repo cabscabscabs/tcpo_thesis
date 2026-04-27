@@ -291,14 +291,30 @@ export function useDocumentValidation(ipType: IPType | undefined, formState: For
     return DOCUMENT_REQUIREMENTS[ipType] || [];
   }, [ipType]);
 
+  // Memoize individual form state values to avoid object reference instability
+  const claimsPriority = formState.claimsPriority;
+  const isAgentFiling = formState.isAgentFiling;
+  const isSmallEntity = formState.isSmallEntity;
+  const isApplicantInventor = formState.isApplicantInventor;
+  const isOwnerAuthor = formState.isOwnerAuthor;
+  const attachments = formState.attachments;
+
   // Filter requirements based on conditional fields
   const activeRequirements = useMemo(() => {
     return requirements.filter(req => {
       if (!req.conditional) return true;
-      const fieldValue = formState[req.conditional.field as keyof FormState];
+      // Use the stable local references instead of the formState object
+      const fieldMap: Record<string, boolean | undefined> = {
+        claimsPriority,
+        isAgentFiling,
+        isSmallEntity,
+        isApplicantInventor,
+        isOwnerAuthor,
+      };
+      const fieldValue = fieldMap[req.conditional.field];
       return fieldValue === req.conditional.value;
     });
-  }, [requirements, formState]);
+  }, [requirements, claimsPriority, isAgentFiling, isSmallEntity, isApplicantInventor, isOwnerAuthor]);
 
   // Validate a single file
   const validateFile = useCallback((file: File, documentType: string): ValidatedFile => {
@@ -348,12 +364,12 @@ export function useDocumentValidation(ipType: IPType | undefined, formState: For
 
   // Validate all uploaded files
   useEffect(() => {
-    if (!formState.attachments) {
+    if (!attachments) {
       setValidatedFiles([]);
       return;
     }
 
-    const validated = formState.attachments
+    const validated = attachments
       .filter((attachment: any) => {
         // Only validate files that are part of the document checklist.
         // Files from "Additional Attachments" have attachment_type 'document' or 'drawing'
@@ -397,14 +413,14 @@ export function useDocumentValidation(ipType: IPType | undefined, formState: For
             documentType: docType || attachment.document_type || attachment.attachment_type || 'unknown',
             isValid: true,
             errors: []
-          };
+          } as ValidatedFile;
         }
 
         return validateFile(attachment.file, docType || 'unknown');
       });
 
     setValidatedFiles(validated);
-  }, [formState.attachments, validateFile]);
+  }, [attachments, validateFile]);
 
   // Calculate validation result
   const validationResult: ValidationResult = useMemo(() => {
@@ -466,7 +482,14 @@ export function useDocumentValidation(ipType: IPType | undefined, formState: For
     // Conditional requirements
     activeRequirements.forEach(req => {
       if (req.conditional && req.required) {
-        const fieldValue = formState[req.conditional.field as keyof FormState];
+        const fieldMap: Record<string, boolean | undefined> = {
+          claimsPriority,
+          isAgentFiling,
+          isSmallEntity,
+          isApplicantInventor,
+          isOwnerAuthor,
+        };
+        const fieldValue = fieldMap[req.conditional.field];
         if (fieldValue === req.conditional.value) {
           const hasDoc = validatedFiles.some(f => f.documentType === req.id && f.isValid);
           if (!hasDoc) {
@@ -477,7 +500,7 @@ export function useDocumentValidation(ipType: IPType | undefined, formState: For
     });
 
     return messages;
-  }, [validationResult, activeRequirements, formState, validatedFiles]);
+  }, [validationResult, activeRequirements, claimsPriority, isAgentFiling, isSmallEntity, isApplicantInventor, isOwnerAuthor, validatedFiles]);
 
   return {
     ...validationResult,
