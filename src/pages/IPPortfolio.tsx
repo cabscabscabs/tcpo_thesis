@@ -218,7 +218,8 @@ const IPPortfolio = () => {
     try {
       const { data, error } = await supabase
         .from('admin_dashboard_stats')
-        .select('*')
+        .select('licensed_revenue')
+        .order('id', { ascending: true })
         .limit(1);
       
       if (error) {

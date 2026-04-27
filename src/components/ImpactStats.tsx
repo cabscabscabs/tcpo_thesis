@@ -23,6 +23,7 @@ const ImpactStats = () => {
         const { data, error } = await supabase
           .from('admin_homepage_content')
           .select('patents_count, partners_count, startups_count, technologies_count, regional_impact, success_rate')
+          .order('updated_at', { ascending: false })
           .limit(1)
           .single();
 

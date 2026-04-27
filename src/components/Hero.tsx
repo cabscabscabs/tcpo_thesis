@@ -23,6 +23,7 @@ const Hero = () => {
         const { data, error } = await supabase
           .from('admin_homepage_content' as any)
           .select('*')
+          .order('updated_at', { ascending: false })
           .limit(1)
           .single();
         

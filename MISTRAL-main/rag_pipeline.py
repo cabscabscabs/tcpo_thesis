@@ -4,6 +4,8 @@ Orchestrates retrieval, prompt construction, and Mistral generation
 via Mistral Cloud API for office-related questions.
 """
 
+import re
+
 from mistralai.client import Mistral
 
 from config import settings
@@ -33,8 +35,8 @@ When greeting users or introducing yourself, you may say "Hi, I'm Tepee!" to est
 ## 1. CONTEXT USAGE:
 - You are provided with CONTEXT FROM OFFICE DOCUMENTS above
 - You MUST base your answer ENTIRELY on the provided context
-- If the context contains the answer, use it and cite the source
-- If the context does NOT contain the answer, say: "I don't have that specific information in my knowledge base. Please contact TPCO directly for assistance."
+- If the context contains relevant information that addresses the question — even partially — answer based on that information
+- If the context is completely unrelated to the question or contains absolutely no relevant information, say: "I don't have that specific information in my knowledge base. Please contact TPCO directly for assistance."
 - NEVER make up information or use outside knowledge
 - NEVER hallucinate details not present in the context
 
@@ -107,6 +109,29 @@ Resources page has tabs for specific content. Use these links:
 """
 
 
+def rewrite_query_for_retrieval(question: str) -> str:
+    """Rewrite common question patterns into retrieval-friendly queries.
+
+    Transforms definitional questions (e.g., 'What is a patent?') into
+    forms that match better against document embeddings.
+    """
+    q_lower = question.lower().strip()
+
+    # Definitional patterns: "What is a/an/the X?" → "X definition"
+    what_is_match = re.match(r"^what\s+is\s+(a|an|the)?\s*(.+?)\??$", q_lower)
+    if what_is_match:
+        topic = what_is_match.group(2).strip()
+        return f"{topic} definition meaning"
+
+    # "What are X?" → "X definition"
+    what_are_match = re.match(r"^what\s+are\s+(the)?\s*(.+?)\??$", q_lower)
+    if what_are_match:
+        topic = what_are_match.group(2).strip()
+        return f"{topic} definition meaning"
+
+    return question
+
+
 def build_context(chunks: list[dict], max_tokens: int | None = None) -> str:
     """Format retrieved chunks into a context string for the prompt.
 
@@ -154,8 +179,9 @@ def build_prompt(context: str, question: str, conversation_history: list[dict] |
 INSTRUCTIONS:
 1. Answer the question using ONLY the context provided above.
 2. Do NOT include source citations or [Source: ...] references in your answer.
-3. If the answer is not in the context, say exactly: "I don't have that specific information in my knowledge base. Please contact TPCO directly for assistance."
-4. Do not use any outside knowledge.
+3. If the context contains relevant information that addresses the question — even partially — provide an answer based on that information.
+4. Only say "I don't have that specific information in my knowledge base. Please contact TPCO directly for assistance." if the context is completely unrelated or contains no relevant information at all.
+5. Do not use any outside knowledge.
 
 YOUR ANSWER:"""
 
@@ -264,16 +290,19 @@ class RAGPipeline:
         # Step 2: Retrieve relevant chunks
         # For follow-up questions, enrich the search query with context from the
         # last user message so the vector search finds relevant documents.
+        # Rewrite query for better retrieval (e.g., "What is a patent?" → "patent definition meaning")
+        rewritten_question = rewrite_query_for_retrieval(question)
+
         if has_history:
             last_user_msgs = [m["content"] for m in conversation_history if m["role"] == "user"]
             if last_user_msgs:
                 last_topic = last_user_msgs[-1]
                 # Combine the previous topic with the current follow-up for better retrieval
-                enhanced_query = f"office information: {last_topic} {question}"
+                enhanced_query = f"office information: {last_topic} {rewritten_question}"
             else:
-                enhanced_query = f"office information: {question}"
+                enhanced_query = f"office information: {rewritten_question}"
         else:
-            enhanced_query = f"office information: {question}"
+            enhanced_query = f"office information: {rewritten_question}"
 
         chunks = self.vector_store.search(enhanced_query)
 

@@ -1124,6 +1124,7 @@ const Admin = () => {
 
   // Homepage content management
   const [homepageContent, setHomepageContent] = useState({
+    id: null as string | null,
     heroTitle: "Accelerating Innovation Through Technology Transfer",
     heroSubtitle: "Bridging the gap between research and commercialization...",
     heroImage: null as string | null,
@@ -1202,12 +1203,14 @@ const Admin = () => {
       const { data, error } = await supabase
         .from('admin_homepage_content')
         .select('*')
+        .order('updated_at', { ascending: false })
         .limit(1)
         .single();
       
       if (data && !error) {
         const content = data as any;
         setHomepageContent({
+          id: content.id,
           heroTitle: content.hero_title,
           heroSubtitle: content.hero_subtitle,
           heroImage: content.hero_image_url,
@@ -1307,8 +1310,8 @@ const Admin = () => {
         const { data: staticData, error: staticError } = await supabase
           .from('admin_dashboard_stats')
           .select('*')
-          .limit(1)
-          .single();
+          .order('id', { ascending: true })
+          .limit(1);
         
         if (staticData && !staticError) {
           const stats = staticData as any;
@@ -1692,6 +1695,7 @@ const Admin = () => {
           heroImageUrl = e.target?.result as string;
           
           const updatedContent = {
+            ...(homepageContent.id ? { id: homepageContent.id } : {}),
             hero_title: heroTitle,
             hero_subtitle: heroSubtitle,
             hero_image_url: heroImageUrl,
@@ -1724,6 +1728,7 @@ const Admin = () => {
         reader.readAsDataURL(file);
       } else {
         const updatedContent = {
+          ...(homepageContent.id ? { id: homepageContent.id } : {}),
           hero_title: heroTitle,
           hero_subtitle: heroSubtitle,
           hero_image_url: heroImageUrl,
@@ -1773,6 +1778,7 @@ const Admin = () => {
     const technologiesCount = parseInt(technologiesValue.replace(/[^0-9]/g, '')) || homepageContent.technologiesCount;
     
     const updatedContent = {
+      ...(homepageContent.id ? { id: homepageContent.id } : {}),
       hero_title: homepageContent.heroTitle,
       hero_subtitle: homepageContent.heroSubtitle,
       hero_image_url: homepageContent.heroImage,
@@ -1866,21 +1872,40 @@ const Admin = () => {
     const updatedStats = { ...dashboardStats, ...updates };
     setDashboardStats(updatedStats);
     
-    const { error } = await supabase
-      .from('admin_dashboard_stats')
-      .upsert({
-        total_patents: updatedStats.totalPatents,
-        patents_this_month: updatedStats.patentsThisMonth,
-        published_news: updatedStats.publishedNews,
-        news_this_week: updatedStats.newsThisWeek,
-        upcoming_events: updatedStats.upcomingEvents,
-        next_event_date: updatedStats.nextEventDate,
-        service_requests_count: updatedStats.serviceRequests,
-        pending_requests: updatedStats.pendingRequests,
-      });
-    
-    if (error) {
-      console.error('Error updating dashboard stats:', error);
+    try {
+      // Get the existing row ID to prevent creating duplicates
+      const { data: rowData, error: rowError } = await supabase
+        .from('admin_dashboard_stats')
+        .select('id')
+        .order('id', { ascending: true })
+        .limit(1);
+      
+      if (rowError || !rowData || rowData.length === 0) {
+        console.error('No dashboard stats row found for update');
+        return;
+      }
+      
+      const rowId = (rowData[0] as any).id;
+      
+      const { error } = await supabase
+        .from('admin_dashboard_stats')
+        .update({
+          total_patents: updatedStats.totalPatents,
+          patents_this_month: updatedStats.patentsThisMonth,
+          published_news: updatedStats.publishedNews,
+          news_this_week: updatedStats.newsThisWeek,
+          upcoming_events: updatedStats.upcomingEvents,
+          next_event_date: updatedStats.nextEventDate,
+          service_requests_count: updatedStats.serviceRequests,
+          pending_requests: updatedStats.pendingRequests,
+        })
+        .eq('id', rowId);
+      
+      if (error) {
+        console.error('Error updating dashboard stats:', error);
+      }
+    } catch (err) {
+      console.error('Error in updateDashboardStats:', err);
     }
   };
 
@@ -2430,9 +2455,25 @@ const Admin = () => {
     }
     setSavingRevenue(true);
     try {
-      // Use RPC function to update licensed_revenue
+      // Get the first row's ID to ensure we update the correct row
+      const { data: rowData, error: rowError } = await supabase
+        .from('admin_dashboard_stats')
+        .select('id, licensed_revenue')
+        .order('id', { ascending: true })
+        .limit(1);
+      
+      if (rowError || !rowData || rowData.length === 0) {
+        toast({ title: 'Error', description: 'No dashboard stats row found. Please ensure dashboard data is seeded.', variant: 'destructive' });
+        return;
+      }
+      
+      const rowId = (rowData[0] as any).id;
+      
+      // Update licensed_revenue directly on the specific row
       const { error } = await supabase
-        .rpc('update_licensed_revenue' as any, { new_revenue: revenue });
+        .from('admin_dashboard_stats')
+        .update({ licensed_revenue: revenue })
+        .eq('id', rowId);
       
       if (error) {
         console.error('Error updating revenue:', error);
@@ -2440,14 +2481,15 @@ const Admin = () => {
         return;
       }
       
-      // Verify the save by re-reading the value
+      // Verify the save by re-reading the value from the same row
       const { data: verifyData, error: verifyError } = await supabase
         .from('admin_dashboard_stats')
         .select('licensed_revenue')
-        .limit(1);
+        .eq('id', rowId)
+        .single();
       
-      if (!verifyError && verifyData && verifyData.length > 0) {
-        const saved = Number((verifyData[0] as any).licensed_revenue);
+      if (!verifyError && verifyData) {
+        const saved = Number((verifyData as any).licensed_revenue);
         setLicensedRevenue(String(saved));
         if (saved !== revenue) {
           toast({ title: 'Warning', description: `Value may not have saved correctly. Database shows ₱${saved.toLocaleString()} instead of ₱${revenue.toLocaleString()}.`, variant: 'destructive' });
@@ -3958,13 +4000,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="content" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Content Management</h2>
-              <Button variant="ustp">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Content
-              </Button>
-            </div>
+            <h2 className="text-2xl font-bold">Content Management</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
