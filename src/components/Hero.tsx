@@ -11,7 +11,7 @@ const Hero = () => {
     heroTitle: "Accelerating Innovation Through Technology Transfer",
     heroSubtitle: "USTP Technology Promotions and Commercialization Office — your gateway to cutting-edge research, intellectual property protection, and industry collaboration in Northern Mindanao.",
     heroImage: null as string | null,
-    patentsCount: 24,
+    patentsCount: 0,
     partnersCount: 50,
     technologiesCount: 8
   });
@@ -20,23 +20,47 @@ const Hero = () => {
   useEffect(() => {
     const loadHomepageContent = async () => {
       try {
+        // 1) Fetch hero copy + non-patent counters from admin_homepage_content.
         const { data, error } = await supabase
           .from('admin_homepage_content' as any)
           .select('*')
           .order('updated_at', { ascending: false })
           .limit(1)
           .single();
-        
+
+        // 2) Patents Granted is now derived live from admin_patents so the
+        //    homepage stays in sync with the IP Portfolio "Total Patents in
+        //    Portfolio" banner (published=true, status != 'Draft').
+        let livePatentsCount: number | null = null;
+        try {
+          const { count } = await supabase
+            .from('admin_patents' as any)
+            .select('*', { count: 'exact', head: true })
+            .eq('published', true)
+            .neq('status', 'Draft');
+          if (typeof count === 'number') {
+            livePatentsCount = count;
+          }
+        } catch (patentErr) {
+          console.error('Failed to derive live patents count:', patentErr);
+        }
+
         if (data && !error) {
           const content = data as any;
           setHeroContent({
             heroTitle: content.hero_title || heroContent.heroTitle,
             heroSubtitle: content.hero_subtitle || heroContent.heroSubtitle,
             heroImage: content.hero_image_url || heroContent.heroImage,
-            patentsCount: content.patents_count || heroContent.patentsCount,
+            patentsCount:
+              livePatentsCount !== null
+                ? livePatentsCount
+                : content.patents_count || heroContent.patentsCount,
             partnersCount: content.partners_count || heroContent.partnersCount,
             technologiesCount: content.technologies_count || heroContent.technologiesCount
           });
+        } else if (livePatentsCount !== null) {
+          // No homepage-content row yet; still reflect the live patent count.
+          setHeroContent((prev) => ({ ...prev, patentsCount: livePatentsCount as number }));
         }
       } catch (error) {
         console.error('Failed to load homepage content:', error);

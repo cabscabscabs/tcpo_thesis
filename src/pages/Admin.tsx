@@ -1853,12 +1853,12 @@ const Admin = () => {
 
   // Handle impact statistics update
   const handleImpactStatsUpdate = async () => {
-    const patentsValue = (document.getElementById('stat-patents') as HTMLInputElement)?.value || homepageContent.patentsCount + '+';
+    // Patents Granted is now auto-computed from the IP Portfolio
+    // (admin_patents table) and is no longer manually editable here.
     const partnersValue = (document.getElementById('stat-partners') as HTMLInputElement)?.value || homepageContent.partnersCount + '+';
     const technologiesValue = (document.getElementById('stat-technologies') as HTMLInputElement)?.value || homepageContent.technologiesCount + '+';
 
     // Parse numeric values (remove + and currency symbols for storage)
-    const patentsCount = parseInt(patentsValue.replace(/[^0-9]/g, '')) || homepageContent.patentsCount;
     const partnersCount = parseInt(partnersValue.replace(/[^0-9]/g, '')) || homepageContent.partnersCount;
     const technologiesCount = parseInt(technologiesValue.replace(/[^0-9]/g, '')) || homepageContent.technologiesCount;
 
@@ -1867,7 +1867,6 @@ const Admin = () => {
       hero_title: homepageContent.heroTitle,
       hero_subtitle: homepageContent.heroSubtitle,
       hero_image_url: homepageContent.heroImage,
-      patents_count: patentsCount,
       partners_count: partnersCount,
       technologies_count: technologiesCount,
     };
@@ -1884,7 +1883,6 @@ const Admin = () => {
 
     setHomepageContent({
       ...homepageContent,
-      patentsCount,
       partnersCount,
       technologiesCount,
     });
@@ -4163,10 +4161,6 @@ const Admin = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="stat-patents">Patents Granted</Label>
-                      <Input id="stat-patents" type="text" placeholder="e.g. 24+" defaultValue={homepageContent.patentsCount + '+'} />
-                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="stat-partners">Industry Partners</Label>
                       <Input id="stat-partners" type="text" placeholder="e.g. 6+" defaultValue={homepageContent.partnersCount + '+'} />

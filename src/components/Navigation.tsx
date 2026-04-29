@@ -21,13 +21,13 @@ const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo and Title */}
-          <div className="flex items-center mr-12">
+          <div className="flex items-center mr-12 m-2">
             <img
               src="/images/tpco-logo.png"
               alt="USTP TPCO Logo"
               className="h-9 w-9 object-contain mr-2 bg-white rounded-md p-0.5"
             />
-            <div className="flex-shrink-0 text-white">
+            <div className="flex-shrink-0 text-white ">
               <h1 className="text-xl font-roboto font-bold">USTP TPCO</h1>
               <p className="text-xs text-secondary/90">Technology Transfer Office</p>
             </div>

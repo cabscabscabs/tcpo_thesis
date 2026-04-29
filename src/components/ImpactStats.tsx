@@ -19,7 +19,25 @@ const ImpactStats = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
+      // Patents Granted is derived live from admin_patents so this stat
+      // mirrors the IP Portfolio "Total Patents in Portfolio" banner
+      // (published=true, status != 'Draft'). Partners and Technologies
+      // still come from the admin-editable homepage content row.
+      let livePatentsCount: number | null = null;
       try {
+        try {
+          const { count } = await supabase
+            .from('admin_patents' as any)
+            .select('*', { count: 'exact', head: true })
+            .eq('published', true)
+            .neq('status', 'Draft');
+          if (typeof count === 'number') {
+            livePatentsCount = count;
+          }
+        } catch (patentErr) {
+          console.error('Failed to derive live patents count:', patentErr);
+        }
+
         const { data, error } = await supabase
           .from('admin_homepage_content')
           .select('patents_count, partners_count, technologies_count')
@@ -29,10 +47,12 @@ const ImpactStats = () => {
 
         if (data && !error) {
           const content = data as any;
+          const patentsDisplay =
+            livePatentsCount !== null ? livePatentsCount : content.patents_count;
           setStats([
             {
               icon: Award,
-              value: `${content.patents_count}+`,
+              value: `${patentsDisplay}+`,
               label: "Patents Granted",
               trend: "+6 this year",
               color: "text-green-600",
@@ -63,7 +83,7 @@ const ImpactStats = () => {
 
       // Fallback to defaults if fetch fails
       setStats([
-        { icon: Award, value: "24+", label: "Patents Granted", trend: "+6 this year", color: "text-green-600", link: "/ip-portfolio" },
+        { icon: Award, value: `${livePatentsCount !== null ? livePatentsCount : 0}+`, label: "Patents Granted", trend: "+6 this year", color: "text-green-600", link: "/ip-portfolio" },
         { icon: Users, value: "6+", label: "Industry Partners", trend: "+15 this year", color: "text-purple-600", link: "/about#strategic-partners" },
         { icon: Lightbulb, value: "8+", label: "Technologies Developed", trend: "+25 this year", color: "text-primary", link: "/ip-portfolio" }
       ]);

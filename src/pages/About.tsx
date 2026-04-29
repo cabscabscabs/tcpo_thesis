@@ -98,29 +98,9 @@ const About = () => {
 
   const milestones = [
     {
-      year: "2018",
-      title: "TPCO Establishment",
-      description: "Founded as USTP's dedicated technology transfer office"
-    },
-    {
-      year: "2019",
-      title: "First Patent Grant",
-      description: "Achieved first successful patent registration for USTP innovation"
-    },
-    {
-      year: "2020",
-      title: "Industry Partnership Program",
-      description: "Launched formal industry-academe collaboration framework"
-    },
-    {
-      year: "2021",
-      title: "CDO b.i.t.e.s. Partnership",
-      description: "Established strategic alliance for startup incubation"
-    },
-    {
-      year: "2022",
-      title: "IP Portfolio Milestone",
-      description: "Reached 15 patents granted with active licensing program"
+      year: "2024",
+      title: "Innovation Hub Launch",
+      description: "Opened state-of-the-art facility for technology commercialization"
     },
     {
       year: "2023",
@@ -128,9 +108,29 @@ const About = () => {
       description: "Awarded Outstanding Technology Transfer Office in Mindanao"
     },
     {
-      year: "2024",
-      title: "Innovation Hub Launch",
-      description: "Opened state-of-the-art facility for technology commercialization"
+      year: "2022",
+      title: "IP Portfolio Milestone",
+      description: "Reached 15 patents granted with active licensing program"
+    },
+    {
+      year: "2021",
+      title: "CDO b.i.t.e.s. Partnership",
+      description: "Established strategic alliance for startup incubation"
+    },
+    {
+      year: "2020",
+      title: "Industry Partnership Program",
+      description: "Launched formal industry-academe collaboration framework"
+    },
+    {
+      year: "2019",
+      title: "First Patent Grant",
+      description: "Achieved first successful patent registration for USTP innovation"
+    },
+    {
+      year: "2018",
+      title: "TPCO Establishment",
+      description: "Founded as USTP's dedicated technology transfer office"
     }
   ];
 
@@ -344,7 +344,7 @@ const About = () => {
             </p>
           </div>
 
-          <div className="max-w-6xl mx-auto lg:translate-x-16 xl:translate-x-24">
+          <div className="max-w-6xl mx-auto xl:translate-x-24">
             {/* ===== Director + Admin Assistant sidecar ===== */}
             <div className="relative">
               <div className="flex justify-center">
@@ -374,7 +374,7 @@ const About = () => {
                 </div>
 
                 {/* Geoffrey sidecar — broken side link to Director (desktop) */}
-                <div className="hidden lg:flex absolute top-1/2 -translate-y-1/2 left-[calc(50%+15.5rem)] items-center">
+                <div className="hidden xl:flex absolute top-1/2 -translate-y-1/2 left-[calc(50%+15.5rem)] items-center">
                   <div className="w-10 border-t-2 border-dashed border-slate-400"></div>
                   <div className="bg-white rounded-lg border border-dashed border-slate-300 shadow-sm px-3 py-3 flex items-center gap-3 w-60">
                     <div className="w-14 h-[4.5rem] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border flex-shrink-0">
@@ -389,7 +389,7 @@ const About = () => {
               </div>
 
               {/* Mobile / tablet fallback for Geoffrey */}
-              <div className="lg:hidden mt-6 flex justify-center">
+              <div className="xl:hidden mt-6 flex justify-center">
                 <div className="bg-white rounded-lg border border-dashed border-slate-300 shadow-sm px-3 py-3 flex items-center gap-3 w-full max-w-sm">
                   <div className="w-14 h-[4.5rem] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border flex-shrink-0">
                     <img src="/images/team/tpco-team/Carl.png" alt="Geoffrey Carlo P. Delada" className="w-full h-full object-cover" loading="lazy" />
@@ -461,7 +461,7 @@ const About = () => {
                     </div>
                   </div>
                   {/* Noreza sidecar — broken side link to ITSU Manager (desktop lg+, left side) */}
-                  <div className="hidden lg:flex absolute top-1/2 -translate-y-1/2 right-[calc(100%+0.25rem)] items-center z-20">
+                  <div className="hidden xl:flex absolute top-1/2 -translate-y-1/2 right-[calc(100%+0.25rem)] items-center z-20">
                     <div className="bg-white rounded-lg border border-dashed border-slate-300 shadow-sm px-3 py-3 flex items-center gap-3 w-56">
                       <div className="w-14 aspect-[3/4] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border flex-shrink-0">
                         <img src="/images/team/tpco-team/Nor.png" alt="Noreza P. Aleño" className="w-full h-full object-cover" loading="lazy" />
@@ -489,10 +489,10 @@ const About = () => {
                   </div>
                 </div>
                 {/* Noreza — mobile/tablet fallback (stacked below, dashed connector) */}
-                <div className="lg:hidden flex justify-center">
+                <div className="xl:hidden flex justify-center">
                   <div className="h-5 border-l-2 border-dashed border-slate-400"></div>
                 </div>
-                <div className="lg:hidden bg-white rounded-lg border border-dashed border-slate-300 shadow-sm px-3 py-3 flex items-center gap-3">
+                <div className="xl:hidden bg-white rounded-lg border border-dashed border-slate-300 shadow-sm px-3 py-3 flex items-center gap-3">
                   <div className="w-14 aspect-[3/4] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border flex-shrink-0">
                     <img src="/images/team/tpco-team/Nor.png" alt="Noreza P. Aleño" className="w-full h-full object-cover" loading="lazy" />
                   </div>
