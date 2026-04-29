@@ -207,12 +207,10 @@ Cagayan de Oro Campus
 Cagayan de Oro City, Philippines 9000
 
 📞 Phone:
-+63 (088) 856-1738
-+63 (088) 856-1739
+(088) 856-1738 Local 1145
 
 📧 Email:
-tpco@ustp.edu.ph
-info@ustp.edu.ph
+ustp.tpco@ustp.edu.ph
 
 ⏰ Office Hours:
 Monday - Friday, 8:00 AM - 5:00 PM
@@ -320,14 +318,14 @@ Visit the [Success Stories section](/services#success-stories) to see how TPCO h
 4. Check your email for reset instructions
 5. Click the reset link and create a new password
 
-If you're still having trouble, you can contact support at tpco@ustp.edu.ph.`;
+If you're still having trouble, you can contact support at ustp.tpco@ustp.edu.ph.`;
   }
   
   if (lowerMessage.includes('contact support') || lowerMessage.includes('help')) {
     return `Here are your support options:
 
-📧 Email: tpco@ustp.edu.ph
-📞 Phone: +63 (088) 856-1738
+📧 Email: ustp.tpco@ustp.edu.ph
+📞 Phone: (088) 856-1738 Local 1145
 💬 Live Chat: Available during office hours
 ⏰ Hours: Monday-Friday 8AM-5PM
 
@@ -342,14 +340,14 @@ What specific issue are you experiencing?`;
 3. Are you seeing any error messages?
 4. What browser/device are you using?
 
-You can also try refreshing the page or clearing your browser cache. If the issue persists, contact us at tpco@ustp.edu.ph.`;
+You can also try refreshing the page or clearing your browser cache. If the issue persists, contact us at ustp.tpco@ustp.edu.ph.`;
   }
   
   if (lowerMessage.includes('agent') || lowerMessage.includes('human')) {
     return `For immediate assistance, please contact us directly:
 
-📧 Email: tpco@ustp.edu.ph
-📞 Phone: +63 (088) 856-1738
+📧 Email: ustp.tpco@ustp.edu.ph
+📞 Phone: (088) 856-1738 Local 1145
 
 Our team is available Monday-Friday, 8:00 AM - 5:00 PM.`;
   }

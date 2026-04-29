@@ -9,10 +9,6 @@ export interface DocumentRequirement {
   required: boolean;
   formats: string[];
   maxSizeMB: number;
-  conditional?: {
-    field: string;
-    value: boolean;
-  };
 }
 
 export interface ValidatedFile {
@@ -39,7 +35,7 @@ export interface ValidationResult {
   };
 }
 
-// IPOPHL Document Requirements
+// Simplified IPOPHL document requirements for TPCO internal submission
 const DOCUMENT_REQUIREMENTS: Record<IPType, DocumentRequirement[]> = {
   'Patent': [
     {
@@ -47,68 +43,8 @@ const DOCUMENT_REQUIREMENTS: Record<IPType, DocumentRequirement[]> = {
       name: 'Specification',
       description: 'Complete patent specification document',
       required: true,
-      formats: ['.pdf'],
+      formats: ['.pdf', '.doc', '.docx'],
       maxSizeMB: 20
-    },
-    {
-      id: 'claims',
-      name: 'Claims',
-      description: 'Patent claims document',
-      required: true,
-      formats: ['.pdf'],
-      maxSizeMB: 20
-    },
-    {
-      id: 'drawings',
-      name: 'Drawings',
-      description: 'Technical drawings (if applicable)',
-      required: false,
-      formats: ['.pdf'],
-      maxSizeMB: 20
-    },
-    {
-      id: 'abstract',
-      name: 'Abstract',
-      description: 'Patent abstract document',
-      required: true,
-      formats: ['.pdf'],
-      maxSizeMB: 20
-    },
-    {
-      id: 'priority_documents',
-      name: 'Priority Documents',
-      description: 'Priority claim documents',
-      required: false,
-      formats: ['.pdf'],
-      maxSizeMB: 20,
-      conditional: { field: 'claimsPriority', value: true }
-    },
-    {
-      id: 'deed_of_assignment',
-      name: 'Deed of Assignment',
-      description: 'Required if applicant is not the inventor',
-      required: false,
-      formats: ['.pdf'],
-      maxSizeMB: 20,
-      conditional: { field: 'isApplicantInventor', value: false }
-    },
-    {
-      id: 'spa',
-      name: 'Special Power of Attorney',
-      description: 'Required if filing through an agent',
-      required: false,
-      formats: ['.pdf'],
-      maxSizeMB: 20,
-      conditional: { field: 'isAgentFiling', value: true }
-    },
-    {
-      id: 'small_entity',
-      name: 'Small Entity Declaration',
-      description: 'Small entity status declaration',
-      required: false,
-      formats: ['.pdf'],
-      maxSizeMB: 20,
-      conditional: { field: 'isSmallEntity', value: true }
     }
   ],
   'Utility Model': [
@@ -117,50 +53,16 @@ const DOCUMENT_REQUIREMENTS: Record<IPType, DocumentRequirement[]> = {
       name: 'Specification',
       description: 'Complete utility model specification',
       required: true,
-      formats: ['.pdf'],
-      maxSizeMB: 20
-    },
-    {
-      id: 'claims',
-      name: 'Claims (Max 5)',
-      description: 'Utility model claims (maximum 5 claims)',
-      required: true,
-      formats: ['.pdf'],
+      formats: ['.pdf', '.doc', '.docx'],
       maxSizeMB: 20
     },
     {
       id: 'drawings',
-      name: 'Drawings',
-      description: 'Technical drawings',
-      required: true,
-      formats: ['.pdf'],
-      maxSizeMB: 20
-    },
-    {
-      id: 'abstract',
-      name: 'Abstract',
-      description: 'Utility model abstract',
-      required: true,
-      formats: ['.pdf'],
-      maxSizeMB: 20
-    },
-    {
-      id: 'priority_documents',
-      name: 'Priority Documents',
-      description: 'Priority claim documents',
+      name: 'Drawing',
+      description: 'Technical drawings (optional)',
       required: false,
-      formats: ['.pdf'],
-      maxSizeMB: 20,
-      conditional: { field: 'claimsPriority', value: true }
-    },
-    {
-      id: 'small_entity',
-      name: 'Small Entity Declaration',
-      description: 'Small entity status declaration',
-      required: false,
-      formats: ['.pdf'],
-      maxSizeMB: 20,
-      conditional: { field: 'isSmallEntity', value: true }
+      formats: ['.pdf', '.jpg', '.jpeg', '.png'],
+      maxSizeMB: 100
     }
   ],
   'Industrial Design': [
@@ -177,72 +79,13 @@ const DOCUMENT_REQUIREMENTS: Record<IPType, DocumentRequirement[]> = {
       name: 'Brief Description',
       description: 'Brief description of the design',
       required: true,
-      formats: ['.pdf'],
+      formats: ['.pdf', '.doc', '.docx'],
       maxSizeMB: 20
-    },
-    {
-      id: 'priority_documents',
-      name: 'Priority Documents',
-      description: 'Priority claim documents',
-      required: false,
-      formats: ['.pdf'],
-      maxSizeMB: 20,
-      conditional: { field: 'claimsPriority', value: true }
-    },
-    {
-      id: 'deed_of_assignment',
-      name: 'Deed of Assignment / Declaration',
-      description: 'Ownership declaration',
-      required: true,
-      formats: ['.pdf'],
-      maxSizeMB: 20
-    },
-    {
-      id: 'small_entity',
-      name: 'Small Entity Declaration',
-      description: 'Small entity status declaration',
-      required: false,
-      formats: ['.pdf'],
-      maxSizeMB: 20,
-      conditional: { field: 'isSmallEntity', value: true }
     }
   ],
-  'Trademark': [
-    {
-      id: 'mark_representation',
-      name: 'Mark Representation',
-      description: 'Clear image of the trademark',
-      required: true,
-      formats: ['.jpg', '.jpeg', '.png'],
-      maxSizeMB: 10
-    },
-    {
-      id: 'goods_services',
-      name: 'List of Goods/Services',
-      description: 'Nice Classification list',
-      required: true,
-      formats: ['.pdf', '.txt', '.doc', '.docx'],
-      maxSizeMB: 20
-    },
-    {
-      id: 'spa',
-      name: 'Special Power of Attorney',
-      description: 'Required if filing through an agent',
-      required: false,
-      formats: ['.pdf'],
-      maxSizeMB: 20,
-      conditional: { field: 'isAgentFiling', value: true }
-    },
-    {
-      id: 'priority_documents',
-      name: 'Priority Documents',
-      description: 'Priority claim documents',
-      required: false,
-      formats: ['.pdf'],
-      maxSizeMB: 20,
-      conditional: { field: 'claimsPriority', value: true }
-    }
-  ],
+  // Trademark required inputs are captured as text fields in the form,
+  // not as file uploads, so the checklist is intentionally empty.
+  'Trademark': [],
   'Copyright': [
     {
       id: 'work_copy',
@@ -251,15 +94,6 @@ const DOCUMENT_REQUIREMENTS: Record<IPType, DocumentRequirement[]> = {
       required: true,
       formats: ['.pdf', '.jpg', '.jpeg', '.png', '.mp3', '.mp4', '.doc', '.docx'],
       maxSizeMB: 50
-    },
-    {
-      id: 'affidavit_ownership',
-      name: 'Affidavit of Ownership',
-      description: 'Required if owner is not the author',
-      required: false,
-      formats: ['.pdf'],
-      maxSizeMB: 20,
-      conditional: { field: 'isOwnerAuthor', value: false }
     },
     {
       id: 'government_id',
@@ -274,11 +108,6 @@ const DOCUMENT_REQUIREMENTS: Record<IPType, DocumentRequirement[]> = {
 
 interface FormState {
   ip_type?: IPType;
-  claimsPriority?: boolean;
-  isAgentFiling?: boolean;
-  isSmallEntity?: boolean;
-  isApplicantInventor?: boolean;
-  isOwnerAuthor?: boolean;
   attachments?: any[];
 }
 
@@ -291,30 +120,10 @@ export function useDocumentValidation(ipType: IPType | undefined, formState: For
     return DOCUMENT_REQUIREMENTS[ipType] || [];
   }, [ipType]);
 
-  // Memoize individual form state values to avoid object reference instability
-  const claimsPriority = formState.claimsPriority;
-  const isAgentFiling = formState.isAgentFiling;
-  const isSmallEntity = formState.isSmallEntity;
-  const isApplicantInventor = formState.isApplicantInventor;
-  const isOwnerAuthor = formState.isOwnerAuthor;
-  const attachments = formState.attachments;
+  // No conditional filtering anymore — all requirements are static per IP type
+  const activeRequirements = requirements;
 
-  // Filter requirements based on conditional fields
-  const activeRequirements = useMemo(() => {
-    return requirements.filter(req => {
-      if (!req.conditional) return true;
-      // Use the stable local references instead of the formState object
-      const fieldMap: Record<string, boolean | undefined> = {
-        claimsPriority,
-        isAgentFiling,
-        isSmallEntity,
-        isApplicantInventor,
-        isOwnerAuthor,
-      };
-      const fieldValue = fieldMap[req.conditional.field];
-      return fieldValue === req.conditional.value;
-    });
-  }, [requirements, claimsPriority, isAgentFiling, isSmallEntity, isApplicantInventor, isOwnerAuthor]);
+  const attachments = formState.attachments;
 
   // Validate a single file
   const validateFile = useCallback((file: File, documentType: string): ValidatedFile => {
@@ -371,33 +180,29 @@ export function useDocumentValidation(ipType: IPType | undefined, formState: For
 
     const validated = attachments
       .filter((attachment: any) => {
+        // Joint Affidavit is handled independently in the Declaration section and
+        // is NOT part of the per-IP-type document checklist — skip it here so it
+        // doesn't get flagged as an "Unknown document type".
+        if (attachment.document_type === 'joint_affidavit' || attachment.attachment_type === 'joint_affidavit') {
+          return false;
+        }
         // Only validate files that are part of the document checklist.
         // Files from "Additional Attachments" have attachment_type 'document' or 'drawing'
         // without a specific document_type — these are supplementary and always valid.
         const hasDocType = !!attachment.document_type;
         const isGenericAttachment = attachment.attachment_type === 'document' || attachment.attachment_type === 'drawing';
-        // Keep files that have a specific document_type OR that might match a checklist item by filename
         return hasDocType || !isGenericAttachment;
       })
       .map((attachment: any) => {
         // Try to determine document type from document_type or attachment_type
         let docType = attachment.document_type || attachment.attachment_type;
-        
+
         // If no document type is set, try to infer from filename
         if (!docType || docType === 'document' || docType === 'drawing') {
           const filename = attachment.file_name?.toLowerCase() || '';
           if (filename.includes('specification')) docType = 'specification';
-          else if (filename.includes('claim')) docType = 'claims';
           else if (filename.includes('drawing') || filename.includes('figure')) docType = 'drawings';
-          else if (filename.includes('abstract')) docType = 'abstract';
-          else if (filename.includes('priority')) docType = 'priority_documents';
-          else if (filename.includes('assignment') || filename.includes('deed')) docType = 'deed_of_assignment';
-          else if (filename.includes('spa') || filename.includes('attorney')) docType = 'spa';
-          else if (filename.includes('small') || filename.includes('entity')) docType = 'small_entity';
-          else if (filename.includes('mark') || filename.includes('logo')) docType = 'mark_representation';
-          else if (filename.includes('goods') || filename.includes('services')) docType = 'goods_services';
           else if (filename.includes('work') || filename.includes('copy')) docType = 'work_copy';
-          else if (filename.includes('affidavit') || filename.includes('ownership')) docType = 'affidavit_ownership';
           else if (filename.includes('id') || filename.includes('passport')) docType = 'government_id';
           else if (filename.includes('description')) docType = 'description';
           else if (filename.includes('representation')) docType = 'representations';
@@ -426,13 +231,13 @@ export function useDocumentValidation(ipType: IPType | undefined, formState: For
   const validationResult: ValidationResult = useMemo(() => {
     const requiredDocs = activeRequirements.filter(r => r.required);
     const uploadedDocTypes = new Set(validatedFiles.filter(f => f.isValid).map(f => f.documentType));
-    
+
     const missingDocs = requiredDocs
       .filter(req => !uploadedDocTypes.has(req.id))
       .map(req => req.name);
 
     const invalidFiles = validatedFiles.filter(f => !f.isValid);
-    
+
     const completedDocs = requiredDocs.filter(req => uploadedDocTypes.has(req.id)).length;
     const totalRequired = requiredDocs.length;
 
@@ -467,40 +272,18 @@ export function useDocumentValidation(ipType: IPType | undefined, formState: For
   const getErrorMessages = useCallback((): string[] => {
     const messages: string[] = [];
 
-    // Missing required documents
     if (validationResult.missingDocs.length > 0) {
       messages.push(`Missing required documents: ${validationResult.missingDocs.join(', ')}`);
     }
 
-    // Invalid files
     validationResult.invalidFiles.forEach(file => {
       file.errors.forEach(error => {
         messages.push(`${file.fileName}: ${error}`);
       });
     });
 
-    // Conditional requirements
-    activeRequirements.forEach(req => {
-      if (req.conditional && req.required) {
-        const fieldMap: Record<string, boolean | undefined> = {
-          claimsPriority,
-          isAgentFiling,
-          isSmallEntity,
-          isApplicantInventor,
-          isOwnerAuthor,
-        };
-        const fieldValue = fieldMap[req.conditional.field];
-        if (fieldValue === req.conditional.value) {
-          const hasDoc = validatedFiles.some(f => f.documentType === req.id && f.isValid);
-          if (!hasDoc) {
-            messages.push(`${req.name} is required because ${req.conditional.field} is selected`);
-          }
-        }
-      }
-    });
-
     return messages;
-  }, [validationResult, activeRequirements, claimsPriority, isAgentFiling, isSmallEntity, isApplicantInventor, isOwnerAuthor, validatedFiles]);
+  }, [validationResult]);
 
   return {
     ...validationResult,

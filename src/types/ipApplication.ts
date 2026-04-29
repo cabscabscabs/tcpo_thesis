@@ -39,7 +39,15 @@ export interface IPApplication {
   
   // Co-inventors
   co_inventors: CoInventor[];
-  
+
+  // Classification (Utility Model and Copyright)
+  classification?: string | null;
+  classification_other?: string | null;
+
+  // Trademark text fields (replace file uploads)
+  trademark_goods_services?: string | null;
+  trademark_mark_description?: string | null;
+
   // Version control
   version: number;
   is_current_version: boolean;
@@ -62,6 +70,8 @@ export interface CoInventor {
   address: string;
   nationality: string;
   contribution: string;
+  email?: string;
+  contact_number?: string;
 }
 
 export interface IPClaim {
@@ -143,7 +153,13 @@ export interface IPApplicationFormData {
   summary_of_invention: string;
   detailed_description: string;
   co_inventors: CoInventor[];
-  
+
+  // Classification / Trademark text fields
+  classification?: string;
+  classification_other?: string;
+  trademark_goods_services?: string;
+  trademark_mark_description?: string;
+
   // Step 3: Claims & Drawings
   claims: IPClaim[];
   attachments: File[];

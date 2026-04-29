@@ -10,43 +10,28 @@ import {
   XCircle, 
   AlertCircle,
   TrendingUp,
-  TrendingDown,
-  ArrowUpRight,
   ArrowDownRight,
-  Minus,
   Building2,
-  Lightbulb,
   Award,
   BarChart3,
-  Filter,
-  LineChart,
-  BarChart,
   Activity,
   Download,
-  FileDown
+  FileDown,
 } from "lucide-react";
 import { useState, useMemo } from "react";
+import { BrochurePieCharts } from "@/components/BrochurePieCharts";
 
 interface PatentAnalyticsProps {
   patents: any[];
   ipApplications?: any[];
 }
 
-type TrendFilter = 'all' | 'field' | 'status';
-type ChartType = 'bar' | 'line' | 'combo';
-
-type ExportSection = 'overview' | 'status' | 'field' | 'trends' | 'summary';
+type ExportSection = 'overview' | 'status' | 'field' | 'lifecycle' | 'summary';
 
 export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnalyticsProps) {
-  // State for filing trends
-  const [trendFilter, setTrendFilter] = useState<TrendFilter>('all');
-  const [selectedField, setSelectedField] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [chartType, setChartType] = useState<ChartType>('combo');
-  
   // State for export dialog
   const [showExportDialog, setShowExportDialog] = useState(false);
-  const [exportSections, setExportSections] = useState<ExportSection[]>(['overview', 'status', 'field', 'trends', 'summary']);
+  const [exportSections, setExportSections] = useState<ExportSection[]>(['overview', 'status', 'field', 'lifecycle', 'summary']);
 
   // Calculate metrics
   const totalPatents = patents.length;
@@ -65,17 +50,6 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
     return acc;
   }, {} as Record<string, number>);
 
-  // Year distribution
-  const yearCounts = patents.reduce((acc, patent) => {
-    const year = patent.year || new Date().getFullYear().toString();
-    acc[year] = (acc[year] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  // Sort years for trend
-  const sortedYears = Object.keys(yearCounts).sort();
-  const maxYearCount = Math.max(...Object.values(yearCounts).map(v => v as number), 1);
-
   // Top fields
   const topFields = Object.entries(fieldCounts)
     .sort(([,a], [,b]) => (b as number) - (a as number))
@@ -84,6 +58,11 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
   // Status colors
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
+      // Patent statuses (mirror Existing Patents pill colors)
+      'Filed': 'bg-indigo-500',
+      'Registered': 'bg-teal-500',
+      'Commercialized': 'bg-fuchsia-500',
+      // IP application / legacy statuses
       'Granted': 'bg-green-500',
       'Approved': 'bg-green-500',
       'Approved for IPOPHL Filing': 'bg-green-500',
@@ -101,6 +80,11 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
 
   const getStatusTextColor = (status: string) => {
     const colors: Record<string, string> = {
+      // Patent statuses (mirror Existing Patents pill colors)
+      'Filed': 'text-indigo-600',
+      'Registered': 'text-teal-600',
+      'Commercialized': 'text-fuchsia-600',
+      // IP application / legacy statuses
       'Granted': 'text-green-600',
       'Approved': 'text-green-600',
       'Approved for IPOPHL Filing': 'text-green-600',
@@ -161,13 +145,14 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
         app.status === 'Filed to IPOPHL' ||
         app.status === 'Granted'
       ).length || (statusCounts['Approved'] || statusCounts['Granted'] || statusCounts['Approved for IPOPHL Filing'] || statusCounts['Available'] || 0);
-      const underReviewCount = (statusCounts['Under Review'] || 0) + 
-        (statusCounts['Pending'] || 0) + 
-        (statusCounts['Submitted for Internal Review'] || 0) +
-        (statusCounts['Under IPOPHL Examination'] || 0);
+      const pendingReviewCount = ipApplications.filter((app: any) =>
+        app.status === 'Submitted for Internal Review' ||
+        app.status === 'Under Internal Review' ||
+        app.status === 'Needs Revision'
+      ).length;
       rows.push(`Total Applications,${totalPatents},100%`);
       rows.push(`Approved,${approvedCount},${totalPatents > 0 ? ((approvedCount / totalPatents) * 100).toFixed(1) : 0}%`);
-      rows.push(`Under Review,${underReviewCount},${totalPatents > 0 ? ((underReviewCount / totalPatents) * 100).toFixed(1) : 0}%`);
+      rows.push(`Pending Review,${pendingReviewCount},${totalPatents > 0 ? ((pendingReviewCount / totalPatents) * 100).toFixed(1) : 0}%`);
       rows.push('');
     }
 
@@ -197,33 +182,48 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
       rows.push('');
     }
 
-    // Year Trends Section
-    if (exportSections.includes('trends')) {
-      rows.push('=== FILING TRENDS BY YEAR ===');
-      rows.push('Year,Count');
-      Object.entries(yearCounts)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .forEach(([year, count]) => {
-          rows.push(`${year},${count}`);
-        });
+    // Lifecycle Funnel Section
+    if (exportSections.includes('lifecycle')) {
+      const filed = (statusCounts['Filed'] || 0);
+      const registered = (statusCounts['Registered'] || 0);
+      const commercialized = (statusCounts['Commercialized'] || 0);
+      const totalPipeline = filed + registered + commercialized;
+      const reachedRegistered = registered + commercialized;
+      const reachedCommercialized = commercialized;
+      const filedToReg = totalPipeline > 0 ? ((reachedRegistered / totalPipeline) * 100).toFixed(1) : '0';
+      const regToComm = reachedRegistered > 0 ? ((reachedCommercialized / reachedRegistered) * 100).toFixed(1) : '0';
+      const overall = totalPipeline > 0 ? ((reachedCommercialized / totalPipeline) * 100).toFixed(1) : '0';
+      rows.push('=== PATENT LIFECYCLE FUNNEL ===');
+      rows.push('Stage,Reached,Conversion %');
+      rows.push(`Filed (entered pipeline),${totalPipeline},100.0%`);
+      rows.push(`Registered (cumulative),${reachedRegistered},${filedToReg}%`);
+      rows.push(`Commercialized (cumulative),${reachedCommercialized},${overall}%`);
+      rows.push('');
+      rows.push('Conversion Rates,,');
+      rows.push(`Filed → Registered,${filedToReg}%,`);
+      rows.push(`Registered → Commercialized,${regToComm}%,`);
+      rows.push(`Overall (Filed → Commercialized),${overall}%,`);
       rows.push('');
     }
 
     // Summary Stats Section
     if (exportSections.includes('summary')) {
-      const sortedYears = Object.keys(yearCounts).sort();
-      const values = sortedYears.map(year => yearCounts[year]);
-      const avgPerYear = values.length > 0 ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1) : '0';
-      const peakYear = values.length > 0 ? Math.max(...values) : 0;
-      
+      const filed = (statusCounts['Filed'] || 0);
+      const registered = (statusCounts['Registered'] || 0);
+      const commercialized = (statusCounts['Commercialized'] || 0);
+      const totalPipeline = filed + registered + commercialized;
+      const topField = topFields[0];
+
       rows.push('=== SUMMARY STATISTICS ===');
       rows.push('Statistic,Value');
       rows.push(`Total Patents,${totalPatents}`);
-      rows.push(`Years Covered,${sortedYears.length}`);
-      rows.push(`Average per Year,${avgPerYear}`);
-      rows.push(`Peak Year Count,${peakYear}`);
-      rows.push(`Earliest Year,${sortedYears[0] || 'N/A'}`);
-      rows.push(`Latest Year,${sortedYears[sortedYears.length - 1] || 'N/A'}`);
+      rows.push(`Patents in Lifecycle,${totalPipeline}`);
+      rows.push(`Currently Filed,${filed}`);
+      rows.push(`Currently Registered,${registered}`);
+      rows.push(`Currently Commercialized,${commercialized}`);
+      rows.push(`Top Field,${topField ? formatFieldName(topField[0]) : 'N/A'}`);
+      rows.push(`Top Field Count,${topField ? topField[1] : 0}`);
+      rows.push(`Distinct Fields,${Object.keys(fieldCounts).length}`);
     }
 
     // Create and download CSV
@@ -308,19 +308,22 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
             <div className="text-xs opacity-80 mt-1">Ready for filing</div>
           </div>
 
-          {/* Under Review */}
+          {/* Pending Review — IP applications awaiting admin action.
+              Replaces the legacy 'Under Review' tile, which counted patent
+              statuses that no longer exist (Under Review / Pending). */}
           <div className="bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl p-4 text-white">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="h-4 w-4 opacity-80" />
-              <span className="text-sm opacity-90">Under Review</span>
+              <span className="text-sm opacity-90">Pending Review</span>
             </div>
             <div className="text-3xl font-bold">
-              {(statusCounts['Under Review'] || 0) + 
-               (statusCounts['Pending'] || 0) + 
-               (statusCounts['Submitted for Internal Review'] || 0) +
-               (statusCounts['Under IPOPHL Examination'] || 0)}
+              {ipApplications.filter((app: any) =>
+                app.status === 'Submitted for Internal Review' ||
+                app.status === 'Under Internal Review' ||
+                app.status === 'Needs Revision'
+              ).length}
             </div>
-            <div className="text-xs opacity-80 mt-1">In progress</div>
+            <div className="text-xs opacity-80 mt-1">Awaiting admin action</div>
           </div>
         </div>
 
@@ -371,7 +374,7 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
           <div className="space-y-3">
             <h4 className="font-semibold text-gray-900 flex items-center gap-2">
               <Building2 className="h-4 w-4 text-blue-600" />
-              Top Fields / Colleges
+              Top Fields
             </h4>
             <div className="space-y-2">
               {topFields.map(([field, count], index) => {
@@ -408,18 +411,13 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
           </div>
         </div>
 
-        {/* Enhanced Filing Trends with Filters */}
-        <EnhancedFilingTrends 
-          patents={patents}
-          trendFilter={trendFilter}
-          setTrendFilter={setTrendFilter}
-          selectedField={selectedField}
-          setSelectedField={setSelectedField}
-          selectedStatus={selectedStatus}
-          setSelectedStatus={setSelectedStatus}
-          chartType={chartType}
-          setChartType={setChartType}
-        />
+        {/* Brochure-style IP Distribution pie charts (shared component) */}
+        <div className="pt-4 border-t">
+          <BrochurePieCharts patents={patents} ipApplications={ipApplications} />
+        </div>
+
+        {/* Patent Lifecycle Funnel */}
+        <PatentLifecycleFunnel patents={patents} />
       </CardContent>
 
       {/* Export Dialog */}
@@ -442,11 +440,11 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
               
               <div className="space-y-2">
                 {[
-                  { key: 'overview', label: 'Overview (KPI Summary)', desc: 'Total, Approved, Under Review' },
+                  { key: 'overview', label: 'Overview (KPI Summary)', desc: 'Total, Approved, Pending Review' },
                   { key: 'status', label: 'Status Distribution', desc: 'Breakdown by patent status' },
                   { key: 'field', label: 'Field Distribution', desc: 'Breakdown by field/college' },
-                  { key: 'trends', label: 'Filing Trends by Year', desc: 'Year-over-year filing counts' },
-                  { key: 'summary', label: 'Summary Statistics', desc: 'Avg per year, peak year, date range' },
+                  { key: 'lifecycle', label: 'Patent Lifecycle Funnel', desc: 'Filed → Registered → Commercialized conversion' },
+                  { key: 'summary', label: 'Summary Statistics', desc: 'Pipeline counts, top field, totals' },
                 ].map((section) => (
                   <div key={section.key} className="flex items-start gap-3 p-2 rounded hover:bg-gray-50">
                     <input
@@ -484,433 +482,226 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
   );
 }
 
-// Enhanced Filing Trends Component
-interface EnhancedFilingTrendsProps {
+// =============================================================================
+// Patent Lifecycle Funnel
+// -----------------------------------------------------------------------------
+// Replaces the old year-based 'Filing Trends Analysis' which depended on a
+// `year` field that admin_patents records don't reliably carry.
+// This shows the real lifecycle: Filed → Registered → Commercialized,
+// with cumulative counts and conversion rates between stages.
+// =============================================================================
+interface PatentLifecycleFunnelProps {
   patents: any[];
-  trendFilter: TrendFilter;
-  setTrendFilter: (filter: TrendFilter) => void;
-  selectedField: string;
-  setSelectedField: (field: string) => void;
-  selectedStatus: string;
-  setSelectedStatus: (status: string) => void;
-  chartType: ChartType;
-  setChartType: (type: ChartType) => void;
 }
 
-function EnhancedFilingTrends({
-  patents,
-  trendFilter,
-  setTrendFilter,
-  selectedField,
-  setSelectedField,
-  selectedStatus,
-  setSelectedStatus,
-  chartType,
-  setChartType
-}: EnhancedFilingTrendsProps) {
-  
-  // Get unique fields and statuses for filters
-  const uniqueFields = useMemo(() => {
-    const fields = new Set(patents.map(p => p.field).filter(Boolean));
-    return Array.from(fields).sort();
+function PatentLifecycleFunnel({ patents }: PatentLifecycleFunnelProps) {
+  const lifecycle = useMemo(() => {
+    const filed = patents.filter(p => p.status === 'Filed').length;
+    const registered = patents.filter(p => p.status === 'Registered').length;
+    const commercialized = patents.filter(p => p.status === 'Commercialized').length;
+
+    // Cumulative funnel: every Registered patent passed through Filed,
+    // every Commercialized passed through Registered.
+    const totalEnteredPipeline = filed + registered + commercialized;
+    const reachedRegistered = registered + commercialized;
+    const reachedCommercialized = commercialized;
+
+    const filedToRegisteredRate = totalEnteredPipeline > 0
+      ? (reachedRegistered / totalEnteredPipeline) * 100 : 0;
+    const registeredToCommercializedRate = reachedRegistered > 0
+      ? (reachedCommercialized / reachedRegistered) * 100 : 0;
+    const overallConversion = totalEnteredPipeline > 0
+      ? (reachedCommercialized / totalEnteredPipeline) * 100 : 0;
+
+    // Identify the largest drop-off stage (where patents get stuck).
+    const filedDropoff = totalEnteredPipeline - reachedRegistered;
+    const registeredDropoff = reachedRegistered - reachedCommercialized;
+    const bottleneck = filedDropoff >= registeredDropoff
+      ? { stage: 'Filed → Registered', stuck: filedDropoff }
+      : { stage: 'Registered → Commercialized', stuck: registeredDropoff };
+
+    return {
+      filed, registered, commercialized,
+      totalEnteredPipeline, reachedRegistered, reachedCommercialized,
+      filedToRegisteredRate, registeredToCommercializedRate, overallConversion,
+      bottleneck,
+    };
   }, [patents]);
 
-  const uniqueStatuses = useMemo(() => {
-    const statuses = new Set(patents.map(p => p.status).filter(Boolean));
-    return Array.from(statuses).sort();
-  }, [patents]);
+  const {
+    filed, registered, commercialized,
+    totalEnteredPipeline, reachedRegistered, reachedCommercialized,
+    filedToRegisteredRate, registeredToCommercializedRate, overallConversion,
+    bottleneck,
+  } = lifecycle;
 
-  // Calculate filtered year data
-  const yearData = useMemo(() => {
-    const filtered = patents.filter(patent => {
-      if (trendFilter === 'field' && selectedField !== 'all') {
-        return patent.field === selectedField;
-      }
-      if (trendFilter === 'status' && selectedStatus !== 'all') {
-        return patent.status === selectedStatus;
-      }
-      return true;
-    });
-
-    const counts = filtered.reduce((acc, patent) => {
-      const year = patent.year || new Date().getFullYear().toString();
-      acc[year] = (acc[year] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    const years = Object.keys(counts).sort();
-    const values = years.map(year => counts[year]);
-    
-    // Calculate cumulative trend line - starts from first year's value
-    const cumulative = values.reduce((acc, val, i) => {
-      if (i === 0) {
-        acc.push(val);
-      } else {
-        acc.push(acc[i - 1] + val);
-      }
-      return acc;
-    }, [] as number[]);
-
-    // Calculate moving average (3-year window)
-    const movingAvg = values.map((_, i) => {
-      const start = Math.max(0, i - 1);
-      const end = Math.min(values.length, i + 2);
-      const slice = values.slice(start, end);
-      return slice.reduce((a, b) => a + b, 0) / slice.length;
-    });
-
-    // Year-over-year growth rates
-    const yoyGrowth = values.map((val, i) => {
-      if (i === 0) return null;
-      const prev = values[i - 1];
-      if (prev === 0) return val > 0 ? 100 : 0;
-      return ((val - prev) / prev) * 100;
-    });
-
-    // Find fastest growing year
-    let fastestGrowthYear = years[0];
-    let fastestGrowthRate = 0;
-    yoyGrowth.forEach((rate, i) => {
-      if (rate !== null && rate > fastestGrowthRate) {
-        fastestGrowthRate = rate;
-        fastestGrowthYear = years[i];
-      }
-    });
-
-    // Most active year
-    const maxVal = Math.max(...values, 0);
-    const mostActiveYear = years[values.indexOf(maxVal)] || years[0];
-
-    // Latest YoY trend
-    const latestYoY = yoyGrowth[yoyGrowth.length - 1];
-    const trendDirection = latestYoY === null ? 'flat' : latestYoY > 5 ? 'up' : latestYoY < -5 ? 'down' : 'flat';
-
-    return { years, values, cumulative, movingAvg, counts, yoyGrowth, fastestGrowthYear, fastestGrowthRate, mostActiveYear, trendDirection, latestYoY };
-  }, [patents, trendFilter, selectedField, selectedStatus]);
-
-  const { years, values, cumulative, movingAvg, yoyGrowth, fastestGrowthYear, fastestGrowthRate, mostActiveYear, trendDirection, latestYoY } = yearData;
-  const maxValue = Math.max(...values, 1);
-  const maxCumulative = Math.max(...cumulative, 1);
-
-  if (years.length === 0) {
+  if (totalEnteredPipeline === 0) {
     return (
       <div className="space-y-3 pt-4 border-t">
         <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-          <Activity className="h-4 w-4 text-blue-600" />
-          Filing Trends Analysis
+          <Activity className="h-4 w-4 text-indigo-600" />
+          Patent Lifecycle Funnel
         </h4>
-        <p className="text-sm text-gray-500 text-center py-4">No year data available</p>
+        <p className="text-sm text-gray-500 text-center py-4">No patents in the lifecycle yet</p>
       </div>
     );
   }
 
+  // Stage widths — funnel narrows from Filed (100%) downstream.
+  const filedWidth = 100;
+  const registeredWidth = (reachedRegistered / totalEnteredPipeline) * 100;
+  const commercializedWidth = (reachedCommercialized / totalEnteredPipeline) * 100;
+
   return (
     <div className="space-y-4 pt-4 border-t">
-      {/* Header with Filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-          <Activity className="h-4 w-4 text-blue-600" />
-          Filing Trends Analysis
-        </h4>
-        
-        {/* Chart Type Toggle */}
-        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-          <Button
-            variant={chartType === 'bar' ? 'default' : 'ghost'}
-            size="sm"
-            className="h-7 px-2"
-            onClick={() => setChartType('bar')}
-          >
-            <BarChart className="h-3.5 w-3.5 mr-1" />
-            Bar
-          </Button>
-          <Button
-            variant={chartType === 'line' ? 'default' : 'ghost'}
-            size="sm"
-            className="h-7 px-2"
-            onClick={() => setChartType('line')}
-          >
-            <LineChart className="h-3.5 w-3.5 mr-1" />
-            Line
-          </Button>
-          <Button
-            variant={chartType === 'combo' ? 'default' : 'ghost'}
-            size="sm"
-            className="h-7 px-2"
-            onClick={() => setChartType('combo')}
-          >
-            <Activity className="h-3.5 w-3.5 mr-1" />
-            Combo
-          </Button>
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+            <Activity className="h-4 w-4 text-indigo-600" />
+            Patent Lifecycle Funnel
+          </h4>
+          <p className="text-xs text-gray-500 mt-1">
+            How patents progress from filing to commercialization.
+          </p>
+        </div>
+        <Badge variant="outline" className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200">
+          {totalEnteredPipeline} patents in pipeline
+        </Badge>
+      </div>
+
+      {/* Funnel Stages */}
+      <div className="space-y-2">
+        <FunnelStage
+          label="Filed"
+          count={totalEnteredPipeline}
+          colorClass="from-indigo-500 to-indigo-600"
+          textColor="text-indigo-700"
+          widthPct={filedWidth}
+        />
+        <ConversionArrow
+          rate={filedToRegisteredRate}
+          label={`${reachedRegistered} of ${totalEnteredPipeline} progressed`}
+        />
+        <FunnelStage
+          label="Registered"
+          count={reachedRegistered}
+          colorClass="from-teal-500 to-teal-600"
+          textColor="text-teal-700"
+          widthPct={registeredWidth}
+        />
+        <ConversionArrow
+          rate={registeredToCommercializedRate}
+          label={`${reachedCommercialized} of ${reachedRegistered} progressed`}
+        />
+        <FunnelStage
+          label="Commercialized"
+          count={reachedCommercialized}
+          colorClass="from-fuchsia-500 to-fuchsia-600"
+          textColor="text-fuchsia-700"
+          widthPct={commercializedWidth}
+        />
+      </div>
+
+      {/* Insight Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+        <div className="bg-indigo-50 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Award className="h-3.5 w-3.5 text-indigo-600" />
+            <div className="text-xs text-gray-500">Overall Conversion</div>
+          </div>
+          <div className="text-lg font-bold text-indigo-700">
+            {overallConversion.toFixed(1)}%
+          </div>
+          <div className="text-xs text-gray-500 mt-0.5">Filed → Commercialized</div>
+        </div>
+        <div className="bg-teal-50 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <TrendingUp className="h-3.5 w-3.5 text-teal-600" />
+            <div className="text-xs text-gray-500">Registration Rate</div>
+          </div>
+          <div className="text-lg font-bold text-teal-700">
+            {filedToRegisteredRate.toFixed(1)}%
+          </div>
+          <div className="text-xs text-gray-500 mt-0.5">of filed reach IPOPHL grant</div>
+        </div>
+        <div className="bg-amber-50 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <ArrowDownRight className="h-3.5 w-3.5 text-amber-600" />
+            <div className="text-xs text-gray-500">Biggest Drop-off</div>
+          </div>
+          <div className="text-lg font-bold text-amber-700">
+            {bottleneck.stuck} {bottleneck.stuck === 1 ? 'patent' : 'patents'}
+          </div>
+          <div className="text-xs text-gray-500 mt-0.5">stuck at {bottleneck.stage}</div>
         </div>
       </div>
 
-      {/* Filter Controls */}
-      <div className="flex flex-wrap items-center gap-3 p-3 bg-gray-50 rounded-lg">
-        <Filter className="h-4 w-4 text-gray-500" />
-        
-        {/* Filter Type */}
-        <div className="flex items-center gap-1">
-          <Button
-            variant={trendFilter === 'all' ? 'default' : 'outline'}
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => setTrendFilter('all')}
-          >
-            All Data
-          </Button>
-          <Button
-            variant={trendFilter === 'field' ? 'default' : 'outline'}
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => setTrendFilter('field')}
-          >
-            By Field
-          </Button>
-          <Button
-            variant={trendFilter === 'status' ? 'default' : 'outline'}
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => setTrendFilter('status')}
-          >
-            By Status
-          </Button>
+      {/* Current Snapshot */}
+      <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+        <div className="text-xs font-semibold text-gray-700">Current snapshot (by status)</div>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+            <span className="text-gray-600">Filed:</span>
+            <span className="font-semibold text-gray-900">{filed}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-teal-500" />
+            <span className="text-gray-600">Registered:</span>
+            <span className="font-semibold text-gray-900">{registered}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-fuchsia-500" />
+            <span className="text-gray-600">Commercialized:</span>
+            <span className="font-semibold text-gray-900">{commercialized}</span>
+          </div>
         </div>
+      </div>
+    </div>
+  );
+}
 
-        {/* Field Selector */}
-        {trendFilter === 'field' && (
-          <select
-            value={selectedField}
-            onChange={(e) => setSelectedField(e.target.value)}
-            className="h-7 px-2 text-xs border rounded-md bg-white"
-          >
-            <option value="all">All Fields</option>
-            {uniqueFields.map(field => (
-              <option key={field} value={field}>
-                {field.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-              </option>
-            ))}
-          </select>
+// Funnel stage row — horizontal bar with label and count.
+interface FunnelStageProps {
+  label: string;
+  count: number;
+  colorClass: string;
+  textColor: string;
+  widthPct: number;
+}
+
+function FunnelStage({ label, count, colorClass, textColor, widthPct }: FunnelStageProps) {
+  // Always show at least a sliver if count > 0 so the bar is visible.
+  const renderedWidth = count > 0 ? Math.max(widthPct, 8) : 0;
+  return (
+    <div className="flex items-center gap-3">
+      <div className={`w-32 text-right text-sm font-semibold ${textColor}`}>{label}</div>
+      <div className="flex-1 h-10 bg-gray-100 rounded-md overflow-hidden">
+        <div
+          className={`h-full bg-gradient-to-r ${colorClass} flex items-center justify-end px-3 transition-all duration-500`}
+          style={{ width: `${renderedWidth}%` }}
+        >
+          {count > 0 && <span className="text-white text-sm font-bold">{count}</span>}
+        </div>
+        {count === 0 && (
+          <div className="-mt-10 h-10 flex items-center justify-center text-xs text-gray-400">
+            0 patents
+          </div>
         )}
-
-        {/* Status Selector */}
-        {trendFilter === 'status' && (
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="h-7 px-2 text-xs border rounded-md bg-white"
-          >
-            <option value="all">All Statuses</option>
-            {uniqueStatuses.map(status => (
-              <option key={status} value={status}>{status}</option>
-            ))}
-          </select>
-        )}
       </div>
+    </div>
+  );
+}
 
-      {/* Trend Insights */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-blue-50 rounded-lg p-3 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-            <Award className="h-4 w-4 text-blue-600" />
-          </div>
-          <div>
-            <div className="text-xs text-gray-500">Most Active Year</div>
-            <div className="text-sm font-semibold text-gray-900">{mostActiveYear} <span className="text-blue-600">({Math.max(...values, 0)} patents)</span></div>
-          </div>
-        </div>
-        <div className="bg-green-50 rounded-lg p-3 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </div>
-          <div>
-            <div className="text-xs text-gray-500">Fastest Growth</div>
-            <div className="text-sm font-semibold text-gray-900">{fastestGrowthYear} <span className="text-green-600">(+{fastestGrowthRate.toFixed(0)}%)</span></div>
-          </div>
-        </div>
-        <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-            {trendDirection === 'up' && <ArrowUpRight className="h-4 w-4 text-green-600" />}
-            {trendDirection === 'down' && <ArrowDownRight className="h-4 w-4 text-red-600" />}
-            {trendDirection === 'flat' && <Minus className="h-4 w-4 text-gray-500" />}
-          </div>
-          <div>
-            <div className="text-xs text-gray-500">Latest Trend</div>
-            <div className="text-sm font-semibold text-gray-900">
-              {latestYoY === null ? 'N/A' : (
-                <span className={latestYoY > 0 ? 'text-green-600' : latestYoY < 0 ? 'text-red-600' : 'text-gray-600'}>
-                  {latestYoY > 0 ? '+' : ''}{latestYoY.toFixed(0)}% vs last year
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Chart Area */}
-      <div className="relative">
-        {/* Y-axis labels */}
-        <div className="flex items-end gap-2">
-          <div className="flex flex-col justify-between h-40 text-xs text-gray-500 pr-2 text-right w-8">
-            <span>{maxValue}</span>
-            <span>{Math.round(maxValue / 2)}</span>
-            <span>0</span>
-          </div>
-          
-          {/* Chart */}
-          <div className="flex-1 flex items-end gap-1 h-40 relative">
-            {/* Grid lines */}
-            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-              <div className="border-t border-gray-200" />
-              <div className="border-t border-gray-200" />
-              <div className="border-t border-gray-200" />
-            </div>
-
-            {years.map((year, index) => {
-              const value = values[index];
-              const cumValue = cumulative[index];
-              const avgValue = movingAvg[index];
-              const barHeight = maxValue > 0 ? (value / maxValue) * 100 : 0;
-
-              return (
-                <div key={year} className="flex-1 flex flex-col items-center gap-1 relative group">
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs rounded px-2 py-1.5 whitespace-nowrap z-10 shadow-lg">
-                    <div className="font-medium text-sm mb-1">{year}</div>
-                    <div className="flex items-center gap-1"><div className="w-2 h-2 bg-blue-400 rounded-sm" /> Count: <span className="font-semibold">{value}</span></div>
-                    {chartType !== 'bar' && <div className="flex items-center gap-1"><div className="w-2 h-2 bg-green-400 rounded-full" /> Cumulative: <span className="font-semibold">{cumValue}</span></div>}
-                    <div className="flex items-center gap-1"><div className="w-2 h-2 bg-yellow-400 rounded-full" /> 3yr Avg: <span className="font-semibold">{avgValue.toFixed(1)}</span></div>
-                    {yoyGrowth[index] !== null && (
-                      <div className={`flex items-center gap-1 mt-1 pt-1 border-t border-gray-700 ${(yoyGrowth[index] as number) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {(yoyGrowth[index] as number) >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                        YoY: <span className="font-semibold">{(yoyGrowth[index] as number) > 0 ? '+' : ''}{(yoyGrowth[index] as number).toFixed(0)}%</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Bar */}
-                  {(chartType === 'bar' || chartType === 'combo') && (
-                    <div 
-                      className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-sm transition-all duration-500 hover:from-blue-600 hover:to-blue-500 min-h-[4px]"
-                      style={{ height: `${Math.max(barHeight, 4)}%` }}
-                    />
-                  )}
-
-                  {/* Line point for moving average */}
-                  {(chartType === 'line' || chartType === 'combo') && (
-                    <>
-                      {/* Moving average dot - positioned relative to chart height */}
-                      <div 
-                        className="absolute w-2 h-2 bg-yellow-500 rounded-full border-2 border-white shadow-sm z-10"
-                        style={{ 
-                          bottom: `${Math.max(0, Math.min(100, (avgValue / maxValue) * 100))}%`,
-                          left: '50%',
-                          transform: 'translate(-50%, 50%)'
-                        }}
-                      />
-                      {/* Cumulative line dot - positioned on secondary scale */}
-                      <div 
-                        className="absolute w-2 h-2 bg-green-500 rounded-full border-2 border-white shadow-sm z-10"
-                        style={{ 
-                          bottom: `${Math.max(0, Math.min(100, (cumValue / maxCumulative) * 100))}%`,
-                          left: '50%',
-                          transform: 'translate(-50%, 50%)'
-                        }}
-                      />
-                    </>
-                  )}
-
-                  {/* Year label */}
-                  <div className="text-xs text-gray-500 mt-1">{year}</div>
-                </div>
-              );
-            })}
-
-            {/* Connecting lines */}
-            {(chartType === 'line' || chartType === 'combo') && years.length > 1 && (
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 100">
-                {/* Moving average line */}
-                <polyline
-                  fill="none"
-                  stroke="#eab308"
-                  strokeWidth="1"
-                  points={years.map((_, i) => {
-                    const x = ((i + 0.5) / years.length) * 100;
-                    const y = 100 - (movingAvg[i] / maxValue) * 100;
-                    return `${x},${y}`;
-                  }).join(' ')}
-                />
-                {/* Cumulative line */}
-                <polyline
-                  fill="none"
-                  stroke="#22c55e"
-                  strokeWidth="1"
-                  strokeDasharray="2,2"
-                  points={years.map((_, i) => {
-                    const x = ((i + 0.5) / years.length) * 100;
-                    const y = 100 - (cumulative[i] / maxCumulative) * 100;
-                    return `${x},${y}`;
-                  }).join(' ')}
-                />
-              </svg>
-            )}
-          </div>
-        </div>
-
-        {/* Legend */}
-        <div className="flex flex-wrap items-center justify-center gap-4 mt-4 text-xs">
-          {(chartType === 'bar' || chartType === 'combo') && (
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-blue-500 rounded-sm" />
-              <span className="text-gray-600">Annual Count</span>
-            </div>
-          )}
-          {(chartType === 'line' || chartType === 'combo') && (
-            <>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-                <span className="text-gray-600">3-Year Moving Average</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-green-500 rounded-full" />
-                <span className="text-gray-600">Cumulative Total</span>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
-        <div className="bg-blue-50 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-blue-600">
-            {values.reduce((a, b) => a + b, 0)}
-          </div>
-          <div className="text-xs text-gray-500 mt-1">Total (Filtered)</div>
-        </div>
-        <div className="bg-yellow-50 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-yellow-600">
-            {(values.reduce((a, b) => a + b, 0) / years.length).toFixed(1)}
-          </div>
-          <div className="text-xs text-gray-500 mt-1">Avg per Year</div>
-        </div>
-        <div className="bg-green-50 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-green-600">
-            {Math.max(...values)}
-          </div>
-          <div className="text-xs text-gray-500 mt-1">Peak Year Count</div>
-        </div>
-        <div className="bg-gray-50 rounded-lg p-3 text-center">
-          <div className="flex items-center justify-center gap-1">
-            {trendDirection === 'up' && <TrendingUp className="h-5 w-5 text-green-600" />}
-            {trendDirection === 'down' && <TrendingDown className="h-5 w-5 text-red-600" />}
-            {trendDirection === 'flat' && <Minus className="h-5 w-5 text-gray-500" />}
-            <div className={`text-2xl font-bold ${trendDirection === 'up' ? 'text-green-600' : trendDirection === 'down' ? 'text-red-600' : 'text-gray-600'}`}>
-              {latestYoY === null ? '—' : `${latestYoY > 0 ? '+' : ''}${latestYoY.toFixed(0)}%`}
-            </div>
-          </div>
-          <div className="text-xs text-gray-500 mt-1">Latest YoY Growth</div>
-        </div>
+// Conversion arrow between stages with rate label.
+function ConversionArrow({ rate, label }: { rate: number; label: string }) {
+  return (
+    <div className="flex items-center gap-3 pl-32">
+      <div className="flex-1 flex items-center gap-2 text-xs text-gray-500">
+        <ArrowDownRight className="h-3 w-3" />
+        <span>{label}</span>
+        <span className="font-semibold text-gray-700">({rate.toFixed(1)}% conversion)</span>
       </div>
     </div>
   );

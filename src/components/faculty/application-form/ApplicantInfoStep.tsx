@@ -3,7 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, MapPin, Globe, Phone, Mail } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { User, Info } from "lucide-react";
 
 export function ApplicantInfoStep() {
   const { register, formState: { errors } } = useFormContext();
@@ -115,6 +116,15 @@ export function ApplicantInfoStep() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <Alert className="mb-4 bg-blue-50 border-blue-200">
+            <Info className="h-4 w-4 text-blue-600" />
+            <AlertTitle className="text-blue-800">Tagging Co-Inventors</AlertTitle>
+            <AlertDescription className="text-blue-700">
+              Co-inventors can be tagged using their <span className="font-medium">@ustp.edu.ph</span> email.
+              In-app notifications for tagged faculty will activate once USTP institutional
+              accounts are fully enabled.
+            </AlertDescription>
+          </Alert>
           <p className="text-sm text-gray-600 mb-4">
             Add co-inventors who contributed to this invention. You can add multiple co-inventors.
           </p>
@@ -126,13 +136,13 @@ export function ApplicantInfoStep() {
 }
 
 function CoInventorsList() {
-  const { register, watch, setValue } = useFormContext();
+  const { register, watch, setValue, formState: { errors } } = useFormContext();
   const coInventors = watch("co_inventors") || [];
 
   const addCoInventor = () => {
     setValue("co_inventors", [
       ...coInventors,
-      { name: "", address: "", nationality: "", contribution: "" }
+      { name: "", email: "", contact_number: "", address: "", nationality: "", contribution: "" }
     ]);
   };
 
@@ -142,44 +152,70 @@ function CoInventorsList() {
     setValue("co_inventors", updated);
   };
 
+  const coInventorErrors = (errors.co_inventors || []) as any[];
+
   return (
     <div className="space-y-4">
-      {coInventors.map((_: unknown, index: number) => (
-        <div key={index} className="p-4 border rounded-lg bg-gray-50">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="font-medium text-gray-700">Co-Inventor #{index + 1}</h4>
-            <button
-              type="button"
-              onClick={() => removeCoInventor(index)}
-              className="text-red-500 text-sm hover:text-red-700"
-            >
-              Remove
-            </button>
+      {coInventors.map((_: unknown, index: number) => {
+        const emailError = coInventorErrors?.[index]?.email?.message as string | undefined;
+        return (
+          <div key={index} className="p-4 border rounded-lg bg-gray-50">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-medium text-gray-700">Co-Inventor #{index + 1}</h4>
+              <button
+                type="button"
+                onClick={() => removeCoInventor(index)}
+                className="text-red-500 text-sm hover:text-red-700"
+              >
+                Remove
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                {...register(`co_inventors.${index}.name`)}
+                placeholder="Full Name"
+              />
+              <Input
+                {...register(`co_inventors.${index}.nationality`)}
+                placeholder="Nationality"
+              />
+              <div className="space-y-1">
+                <Input
+                  type="email"
+                  {...register(`co_inventors.${index}.email`, {
+                    validate: (value: string) => {
+                      if (!value) return true; // optional at field level; form-level handles requirement
+                      return /@ustp\.edu\.ph$/i.test(value.trim()) ||
+                        "Must be a valid @ustp.edu.ph email";
+                    }
+                  })}
+                  placeholder="USTP Email (e.g., jane.doe@ustp.edu.ph)"
+                  className={emailError ? "border-red-500" : ""}
+                />
+                {emailError && (
+                  <p className="text-xs text-red-500">{emailError}</p>
+                )}
+              </div>
+              <Input
+                {...register(`co_inventors.${index}.contact_number`)}
+                placeholder="Contact Number (optional)"
+              />
+              <Input
+                {...register(`co_inventors.${index}.address`)}
+                placeholder="Address"
+                className="md:col-span-2"
+              />
+              <Textarea
+                {...register(`co_inventors.${index}.contribution`)}
+                placeholder="Contribution to the invention"
+                className="md:col-span-2"
+                rows={2}
+              />
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              {...register(`co_inventors.${index}.name`)}
-              placeholder="Full Name"
-            />
-            <Input
-              {...register(`co_inventors.${index}.nationality`)}
-              placeholder="Nationality"
-            />
-            <Input
-              {...register(`co_inventors.${index}.address`)}
-              placeholder="Address"
-              className="md:col-span-2"
-            />
-            <Textarea
-              {...register(`co_inventors.${index}.contribution`)}
-              placeholder="Contribution to the invention"
-              className="md:col-span-2"
-              rows={2}
-            />
-          </div>
-        </div>
-      ))}
-      
+        );
+      })}
+
       <button
         type="button"
         onClick={addCoInventor}

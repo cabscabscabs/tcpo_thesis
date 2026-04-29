@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2, Search, Filter, X, Bell, Check, BellOff, FileUp, FileDown, EyeIcon, MessageSquare, AlertCircle, ChevronRight, Send, DollarSign } from "lucide-react";
+import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2, Search, Filter, X, Bell, Check, BellOff, FileUp, FileDown, EyeIcon, MessageSquare, AlertCircle, ChevronRight, Send, DollarSign, Award } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -44,6 +44,30 @@ const Admin = () => {
   const [patentExportMode, setPatentExportMode] = useState<'all' | 'selected'>('all');
   const [isUploading, setIsUploading] = useState(false);
   const [csvUploadKey, setCsvUploadKey] = useState(0); // Key to reset file input
+
+  // Track patents recently added via Bulk Upload CSV.
+  // Bulk-uploaded patents start as Filed + unpublished, so they don't appear
+  // on the public IP Portfolio until admin opens each one and edits it.
+  // We persist the IDs to localStorage so the indicator survives page reloads.
+  const BULK_UPLOAD_STORAGE_KEY = 'tpco-recent-bulk-patents';
+  const [recentBulkPatentIds, setRecentBulkPatentIds] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const raw = window.localStorage.getItem(BULK_UPLOAD_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Persist whenever the set changes.
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(BULK_UPLOAD_STORAGE_KEY, JSON.stringify(recentBulkPatentIds));
+    } catch {
+      /* localStorage may be unavailable in some browsers */
+    }
+  }, [recentBulkPatentIds]);
   
   // Patent pagination state
   const [patentCurrentPage, setPatentCurrentPage] = useState(1);
@@ -136,7 +160,9 @@ const Admin = () => {
   const [showIpAppDetailModal, setShowIpAppDetailModal] = useState(false);
   const [showIpAppReviewModal, setShowIpAppReviewModal] = useState(false);
   const [ipAppReviewNotes, setIpAppReviewNotes] = useState('');
-  const [ipAppReviewAction, setIpAppReviewAction] = useState<'approve' | 'return' | 'reject' | null>('approve');
+  const [ipAppReviewAction, setIpAppReviewAction] = useState<'approve' | 'return' | 'reject' | 'granted' | null>('approve');
+  const [ipAppReviewFiles, setIpAppReviewFiles] = useState<File[]>([]);
+  const [isUploadingReviewFiles, setIsUploadingReviewFiles] = useState(false);
   const [ipAppCurrentPage, setIpAppCurrentPage] = useState(1);
   const ipAppsPerPage = 10;
   const [ipAppDetailComments, setIpAppDetailComments] = useState<any[]>([]);
@@ -604,7 +630,7 @@ const Admin = () => {
     }
   };
 
-  const handleIpAppStatusUpdate = async (appId: string, newStatus: string, notes?: string) => {
+  const handleIpAppStatusUpdate = async (appId: string, newStatus: string, notes?: string, reviewFiles?: File[], reviewFileDocType?: string) => {
     try {
       const adminId = (await supabase.auth.getUser()).data.user?.id;
       
@@ -614,7 +640,11 @@ const Admin = () => {
           status: newStatus,
           admin_notes: notes || null,
           status_updated_at: new Date().toISOString(),
-          status_updated_by: adminId
+          status_updated_by: adminId,
+          // Granted is a milestone status — always surface it by auto-restoring
+          // the application if it was archived, so it appears in the faculty's
+          // Granted tab (and matches the Granted stat card count).
+          ...(newStatus === 'Granted' ? { is_archived: false } : {})
         })
         .eq('id', appId);
 
@@ -622,6 +652,52 @@ const Admin = () => {
         console.error('Error updating IP application status:', error);
         alert('Failed to update status. Please try again.');
         return false;
+      }
+
+      // Upload admin review files if any. Tagged so the faculty detail page
+      // can show them in a dedicated "Admin-Provided Files" section.
+      if (reviewFiles && reviewFiles.length > 0 && adminId) {
+        for (const file of reviewFiles) {
+          try {
+            const timestamp = Date.now();
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const docType = reviewFileDocType || 'admin_feedback';
+            const storagePath = `applications/${adminId}/${appId}/${docType}_${timestamp}_${safeName}`;
+
+            const { error: uploadError } = await supabase.storage
+              .from('application-files')
+              .upload(storagePath, file, { cacheControl: '3600', upsert: false });
+
+            if (uploadError) {
+              console.error('Error uploading admin review file:', uploadError);
+              continue;
+            }
+
+            const { data: urlData } = supabase.storage
+              .from('application-files')
+              .getPublicUrl(storagePath);
+
+            const { error: attachErr } = await (supabase as any)
+              .from('ip_application_attachments')
+              .insert([{
+                application_id: appId,
+                file_name: file.name,
+                file_type: 'supporting',
+                file_path: urlData.publicUrl,
+                file_size: file.size,
+                mime_type: file.type || 'application/octet-stream',
+                document_type: docType,
+                description: docType === 'certification' ? 'Certification from admin' : 'Admin-provided file',
+                uploaded_by: adminId,
+              }]);
+
+            if (attachErr) {
+              console.error('Error creating admin attachment record:', attachErr);
+            }
+          } catch (fileErr) {
+            console.error('Error processing admin review file:', fileErr);
+          }
+        }
       }
 
       // Try to insert status history record
@@ -722,7 +798,8 @@ const Admin = () => {
     const statusMap: Record<string, string> = {
       'approve': 'Approved for IPOPHL Filing',
       'return': 'Needs Revision',
-      'reject': 'Rejected'
+      'reject': 'Rejected',
+      'granted': 'Granted'
     };
 
     // Validate comment required for revision/rejection
@@ -731,17 +808,29 @@ const Admin = () => {
       return;
     }
 
+    // Granted action requires at least one certification file
+    if (ipAppReviewAction === 'granted' && ipAppReviewFiles.length === 0) {
+      toast({ title: "Certification Required", description: "Please attach at least one certification file before marking as Granted.", variant: "destructive" });
+      return;
+    }
+
+    setIsUploadingReviewFiles(true);
+    const reviewDocType = ipAppReviewAction === 'granted' ? 'certification' : 'admin_feedback';
     const success = await handleIpAppStatusUpdate(
       selectedIpApp.id,
       statusMap[ipAppReviewAction],
-      ipAppReviewNotes
+      ipAppReviewNotes,
+      ipAppReviewFiles,
+      reviewDocType
     );
+    setIsUploadingReviewFiles(false);
 
     if (success) {
       const actionLabels: Record<string, string> = {
         'approve': 'Approved',
         'return': 'Flagged for Revision',
-        'reject': 'Rejected'
+        'reject': 'Rejected',
+        'granted': 'Granted'
       };
       toast({ 
         title: `Application ${actionLabels[ipAppReviewAction]}`, 
@@ -749,6 +838,7 @@ const Admin = () => {
       });
       setShowIpAppReviewModal(false);
       setIpAppReviewNotes('');
+      setIpAppReviewFiles([]);
       setSelectedIpApp(null);
     }
   };
@@ -894,8 +984,7 @@ const Admin = () => {
       const matchesSearch = 
         app.title?.toLowerCase().includes(ipAppSearchTerm.toLowerCase()) ||
         app.applicant_full_name?.toLowerCase().includes(ipAppSearchTerm.toLowerCase()) ||
-        app.faculty?.email?.toLowerCase().includes(ipAppSearchTerm.toLowerCase()) ||
-        app.field_of_technology?.toLowerCase().includes(ipAppSearchTerm.toLowerCase());
+        app.faculty?.email?.toLowerCase().includes(ipAppSearchTerm.toLowerCase());
       
       const matchesStatus = ipAppStatusFilter === 'all' || app.status === ipAppStatusFilter;
       const matchesType = ipAppTypeFilter === 'all' || app.ip_type === ipAppTypeFilter;
@@ -1765,18 +1854,14 @@ const Admin = () => {
   // Handle impact statistics update
   const handleImpactStatsUpdate = async () => {
     const patentsValue = (document.getElementById('stat-patents') as HTMLInputElement)?.value || homepageContent.patentsCount + '+';
-    const startupsValue = (document.getElementById('stat-startups') as HTMLInputElement)?.value || String(homepageContent.startupsCount);
     const partnersValue = (document.getElementById('stat-partners') as HTMLInputElement)?.value || homepageContent.partnersCount + '+';
     const technologiesValue = (document.getElementById('stat-technologies') as HTMLInputElement)?.value || homepageContent.technologiesCount + '+';
-    const regionalImpact = (document.getElementById('stat-impact') as HTMLInputElement)?.value || homepageContent.regionalImpact;
-    const successRate = (document.getElementById('stat-success') as HTMLInputElement)?.value || homepageContent.successRate;
-    
+
     // Parse numeric values (remove + and currency symbols for storage)
     const patentsCount = parseInt(patentsValue.replace(/[^0-9]/g, '')) || homepageContent.patentsCount;
     const partnersCount = parseInt(partnersValue.replace(/[^0-9]/g, '')) || homepageContent.partnersCount;
-    const startupsCount = parseInt(startupsValue.replace(/[^0-9]/g, '')) || homepageContent.startupsCount;
     const technologiesCount = parseInt(technologiesValue.replace(/[^0-9]/g, '')) || homepageContent.technologiesCount;
-    
+
     const updatedContent = {
       ...(homepageContent.id ? { id: homepageContent.id } : {}),
       hero_title: homepageContent.heroTitle,
@@ -1784,32 +1869,26 @@ const Admin = () => {
       hero_image_url: homepageContent.heroImage,
       patents_count: patentsCount,
       partners_count: partnersCount,
-      startups_count: startupsCount,
       technologies_count: technologiesCount,
-      regional_impact: regionalImpact,
-      success_rate: successRate,
     };
-    
+
     const { error } = await supabase
       .from('admin_homepage_content')
       .upsert(updatedContent);
-    
+
     if (error) {
       console.error('Error updating statistics:', error);
       toast({ title: 'Error', description: 'Error updating statistics', variant: 'destructive' })
       return;
     }
-    
+
     setHomepageContent({
       ...homepageContent,
       patentsCount,
       partnersCount,
-      startupsCount,
       technologiesCount,
-      regionalImpact,
-      successRate
     });
-    
+
     window.dispatchEvent(new Event('storage'));
     toast({ title: 'Success', description: 'Impact statistics updated successfully!' });
   };
@@ -2400,6 +2479,11 @@ const Admin = () => {
         abstract: patentEditForm.abstract,
         status: patentEditForm.status,
         year: patentEditForm.year,
+        // Publish on save. Bulk-uploaded patents start with published=false;
+        // saving the edit form is the admin's explicit acknowledgement that
+        // the record is ready for the public IP Portfolio. This also matches
+        // the single-patent create flow, which always inserts published=true.
+        published: true,
         file_url: primaryFile?.url || null,
         file_name: primaryFile?.name || null,
         files: updatedFiles.length > 0 ? updatedFiles : null,
@@ -2415,6 +2499,10 @@ const Admin = () => {
         toast({ title: 'Error', description: 'Error updating patent', variant: 'destructive' })
         return;
       }
+
+      // Saving counts as the admin acknowledging the bulk-uploaded patent.
+      // Drop it from the "needs review" set so the indicator goes away.
+      setRecentBulkPatentIds(prev => prev.filter(id => id !== editingPatent.id));
 
       loadPatents();
       window.dispatchEvent(new Event('storage'));
@@ -2773,9 +2861,10 @@ const Admin = () => {
       // Insert patents
       let successCount = 0;
       let errorCount = 0;
+      const newlyInsertedIds: string[] = [];
 
       for (const patent of patentsToInsert) {
-        const { error } = await supabase
+        const { data: insertedRows, error } = await supabase
           .from('admin_patents')
           .insert([{
             title: patent.title,
@@ -2787,14 +2876,24 @@ const Admin = () => {
             status: patent.status,
             year: patent.year,
             published: false
-          }]);
+          }])
+          .select('id');
 
         if (error) {
           console.error('Error inserting patent:', error);
           errorCount++;
         } else {
           successCount++;
+          // Capture the new id so we can flag it as a bulk-upload draft
+          // until the admin opens & saves the edit modal.
+          const newId = insertedRows?.[0]?.id;
+          if (newId) newlyInsertedIds.push(newId);
         }
+      }
+
+      // Mark every successfully inserted bulk patent as needing review.
+      if (newlyInsertedIds.length > 0) {
+        setRecentBulkPatentIds(prev => Array.from(new Set([...prev, ...newlyInsertedIds])));
       }
 
       loadPatents();
@@ -4048,24 +4147,12 @@ const Admin = () => {
                       <Input id="stat-patents" type="text" placeholder="e.g. 24+" defaultValue={homepageContent.patentsCount + '+'} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="stat-startups">Startups Incubated</Label>
-                      <Input id="stat-startups" type="text" placeholder="e.g. 12" defaultValue={homepageContent.startupsCount} />
-                    </div>
-                    <div className="space-y-2">
                       <Label htmlFor="stat-partners">Industry Partners</Label>
                       <Input id="stat-partners" type="text" placeholder="e.g. 6+" defaultValue={homepageContent.partnersCount + '+'} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="stat-technologies">Technologies Developed</Label>
                       <Input id="stat-technologies" type="text" placeholder="e.g. 8+" defaultValue={homepageContent.technologiesCount + '+'} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="stat-impact">Regional Economic Impact</Label>
-                      <Input id="stat-impact" type="text" placeholder="e.g. ₱15M" defaultValue={homepageContent.regionalImpact} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="stat-success">Success Rate</Label>
-                      <Input id="stat-success" type="text" placeholder="e.g. 85%" defaultValue={homepageContent.successRate} />
                     </div>
                   </div>
                   <Button variant="ustp" onClick={handleImpactStatsUpdate}>Update Statistics</Button>
@@ -4736,12 +4823,52 @@ const Admin = () => {
 
                     return (
                       <>
+                        {/* Bulk-upload review banner: shown only when there are
+                            recently bulk-uploaded patents that the admin hasn't
+                            opened/saved yet. These rows start as Filed +
+                            unpublished, so they don't appear on /ip-portfolio
+                            until the admin reviews them and publishes. */}
+                        {(() => {
+                          // Only count IDs that still exist in the current list
+                          // (deleted ones are silently ignored).
+                          const existingIds = new Set(patents.map((p: any) => p.id));
+                          const liveBulkIds = recentBulkPatentIds.filter(id => existingIds.has(id));
+                          if (liveBulkIds.length === 0) return null;
+                          return (
+                            <div className="mb-4 flex items-start gap-3 p-4 border border-amber-300 bg-amber-50 rounded-lg">
+                              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                              <div className="flex-1">
+                                <p className="font-semibold text-amber-900">
+                                  {liveBulkIds.length} patent{liveBulkIds.length === 1 ? '' : 's'} added via Bulk Upload need{liveBulkIds.length === 1 ? 's' : ''} review
+                                </p>
+                                <p className="text-sm text-amber-800 mt-1">
+                                  These patents won't appear on the public IP Portfolio until you open each one, complete the missing details, and set the status to <span className="font-semibold">Registered</span> or <span className="font-semibold">Commercialized</span>. Saving the edit form clears the indicator.
+                                </p>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-amber-300 text-amber-800 hover:bg-amber-100"
+                                onClick={() => setRecentBulkPatentIds([])}
+                              >
+                                Dismiss all
+                              </Button>
+                            </div>
+                          );
+                        })()}
+
                         {/* Patent List */}
                         <div className="space-y-4">
-                          {paginatedPatents.map((patent) => (
+                          {paginatedPatents.map((patent) => {
+                            const isBulkPending = recentBulkPatentIds.includes(patent.id);
+                            return (
                             <div
                               key={patent.id}
-                              className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                              className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
+                                isBulkPending
+                                  ? 'border-amber-300 bg-amber-50/60 hover:bg-amber-50'
+                                  : 'hover:bg-gray-50'
+                              }`}
                               onClick={() => {
                                 setSelectedPatentForDetail(patent);
                                 setShowPatentDetailModal(true);
@@ -4749,11 +4876,40 @@ const Admin = () => {
                             >
                               <div>
                                 <h3 className="font-semibold">{patent.title}</h3>
-                                <div className="flex gap-2 mt-2">
-                                  <Badge variant={patent.status === "Granted" ? "default" : "secondary"}>
-                                    {patent.status}
+                                <div className="flex gap-2 mt-2 flex-wrap">
+                                  {(() => {
+                                    // Status-aware pill colors mirror the Portfolio Overview cards:
+                                    // Filed = indigo, Registered = teal, Commercialized = fuchsia.
+                                    const statusClass: Record<string, string> = {
+                                      'Filed':          'bg-indigo-100  text-indigo-700  border-indigo-200  hover:bg-indigo-100',
+                                      'Registered':     'bg-teal-100    text-teal-700    border-teal-200    hover:bg-teal-100',
+                                      'Commercialized': 'bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200 hover:bg-fuchsia-100',
+                                    };
+                                    const cls = statusClass[patent.status as string] || 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-100';
+                                    return (
+                                      <Badge variant="outline" className={cls}>
+                                        {patent.status}
+                                      </Badge>
+                                    );
+                                  })()}
+                                  <Badge variant="outline">
+                                    {typeof patent.field === 'string'
+                                      ? patent.field
+                                          .split('-')
+                                          .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+                                          .join(' ')
+                                      : patent.field}
                                   </Badge>
-                                  <Badge variant="outline">{patent.field}</Badge>
+                                  {isBulkPending && (
+                                    <Badge
+                                      variant="outline"
+                                      className="bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100 gap-1"
+                                      title="Added via Bulk Upload — open and save to publish on IP Portfolio"
+                                    >
+                                      <AlertCircle className="h-3 w-3" />
+                                      Needs Review (Bulk)
+                                    </Badge>
+                                  )}
                                 </div>
                               </div>
                               <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
@@ -4779,7 +4935,8 @@ const Admin = () => {
                                 </Button>
                               </div>
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
 
                         {/* Pagination Controls */}
@@ -4949,8 +5106,6 @@ const Admin = () => {
                         <SelectItem value="Filed">Filed</SelectItem>
                         <SelectItem value="Registered">Registered</SelectItem>
                         <SelectItem value="Commercialized">Commercialized</SelectItem>
-                        <SelectItem value="Licensed">Licensed</SelectItem>
-                        <SelectItem value="Under Review">Under Review</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -5241,7 +5396,7 @@ const Admin = () => {
                                 <div className="flex items-center gap-2">
                                   <div>
                                     <p className="font-medium text-sm">{app.title}</p>
-                                    <p className="text-xs text-gray-500">{app.field_of_technology}</p>
+                                    <p className="text-xs text-gray-500">{app.application_number || ''}</p>
                                   </div>
                                   {(app as any)._facultyCommentCount > 0 && (
                                     <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 ml-auto" title={`${(app as any)._facultyCommentCount} faculty comment(s)`}>
@@ -5354,6 +5509,23 @@ const Admin = () => {
                                       className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                     >
                                       <MessageSquare className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                  {app.status === 'Approved for IPOPHL Filing' && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedIpApp(app);
+                                        setIpAppReviewAction('granted');
+                                        setIpAppReviewNotes('');
+                                        setIpAppReviewFiles([]);
+                                        setShowIpAppReviewModal(true);
+                                      }}
+                                      title="Mark as Granted & Send Certification"
+                                      className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                    >
+                                      <Award className="h-4 w-4" />
                                     </Button>
                                   )}
                                 </div>
@@ -6231,8 +6403,6 @@ const Admin = () => {
                   <SelectItem value="Filed">Filed</SelectItem>
                   <SelectItem value="Registered">Registered</SelectItem>
                   <SelectItem value="Commercialized">Commercialized</SelectItem>
-                  <SelectItem value="Licensed">Licensed</SelectItem>
-                  <SelectItem value="Under Review">Under Review</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -7887,7 +8057,7 @@ const Admin = () => {
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-lg font-semibold">{selectedIpApp.title || 'Untitled'}</h3>
-                  <p className="text-sm text-gray-500">{selectedIpApp.field_of_technology}</p>
+                  <p className="text-sm text-gray-500">{selectedIpApp.application_number || ''}</p>
                 </div>
                 <Badge className={`${getIpAppStatusBadge(selectedIpApp.status)} text-white`}>
                   {getIpAppStatusDisplay(selectedIpApp.status)}
@@ -7920,7 +8090,54 @@ const Admin = () => {
                   <p className="text-xs text-gray-500">Updated</p>
                   <p className="font-medium">{formatDate(selectedIpApp.updated_at)}</p>
                 </div>
+                {selectedIpApp.classification && (selectedIpApp.ip_type === 'Utility Model' || selectedIpApp.ip_type === 'Copyright') && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-500">Classification</p>
+                    <p className="font-medium">
+                      {selectedIpApp.classification}
+                      {(selectedIpApp.classification === 'Other' || selectedIpApp.classification === 'Others') && selectedIpApp.classification_other
+                        ? ` — ${selectedIpApp.classification_other}`
+                        : ''}
+                    </p>
+                  </div>
+                )}
               </div>
+
+              {/* Trademark text fields */}
+              {selectedIpApp.ip_type === 'Trademark' && (selectedIpApp.trademark_goods_services || selectedIpApp.trademark_mark_description) && (
+                <div className="space-y-3">
+                  {selectedIpApp.trademark_goods_services && (
+                    <div>
+                      <h4 className="font-medium mb-1">Goods / Services</h4>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg">{selectedIpApp.trademark_goods_services}</p>
+                    </div>
+                  )}
+                  {selectedIpApp.trademark_mark_description && (
+                    <div>
+                      <h4 className="font-medium mb-1">Description of the Mark Representation</h4>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg">{selectedIpApp.trademark_mark_description}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Co-Inventors */}
+              {Array.isArray(selectedIpApp.co_inventors) && selectedIpApp.co_inventors.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">Co-Inventors ({selectedIpApp.co_inventors.length})</h4>
+                  <div className="space-y-2">
+                    {selectedIpApp.co_inventors.map((inv: any, idx: number) => (
+                      <div key={idx} className="p-3 bg-gray-50 rounded-lg text-sm">
+                        <p className="font-medium">{inv.name || `Co-Inventor #${idx + 1}`}</p>
+                        {inv.nationality && <p className="text-gray-600">{inv.nationality}</p>}
+                        {inv.email && <p className="text-gray-600">Email: {inv.email}</p>}
+                        {inv.contact_number && <p className="text-gray-600">Contact: {inv.contact_number}</p>}
+                        {inv.contribution && <p className="text-gray-600 mt-1">Contribution: {inv.contribution}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Abstract */}
               {selectedIpApp.abstract && (
@@ -8091,6 +8308,71 @@ const Admin = () => {
               </div>
             )}
 
+            {/* Granted action — only for applications already Approved for IPOPHL Filing.
+                TPCO handles IPOPHL submission & examination offline, then comes back
+                to mark the application Granted once the certificate is issued. */}
+            {selectedIpApp?.status === 'Approved for IPOPHL Filing' && (
+              <div className="space-y-2">
+                <Label>Action</Label>
+                <Button
+                  type="button"
+                  variant={ipAppReviewAction === 'granted' ? 'default' : 'outline'}
+                  className={`w-full ${ipAppReviewAction === 'granted' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
+                  onClick={() => setIpAppReviewAction('granted')}
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Mark as Granted & Send Certification
+                </Button>
+              </div>
+            )}
+
+            {/* File Attachments for Faculty */}
+            <div className="space-y-2">
+              <Label>
+                {ipAppReviewAction === 'granted' ? 'Certification File(s)' : 'Attach File(s) for Faculty'}
+                {ipAppReviewAction === 'granted' && <span className="text-red-500"> *</span>}
+              </Label>
+              <p className="text-xs text-gray-500">
+                {ipAppReviewAction === 'granted'
+                  ? 'Upload the certification document(s) to send to the faculty.'
+                  : 'Optionally attach supporting files (e.g., revision reference, guidance documents). The faculty will see these on their application detail page.'}
+              </p>
+              <Input
+                type="file"
+                multiple
+                onChange={(e) => {
+                  const selected = Array.from(e.target.files || []);
+                  if (selected.length > 0) {
+                    setIpAppReviewFiles(prev => [...prev, ...selected]);
+                  }
+                  e.target.value = '';
+                }}
+                className="cursor-pointer"
+              />
+              {ipAppReviewFiles.length > 0 && (
+                <div className="space-y-1 mt-2">
+                  {ipAppReviewFiles.map((f, idx) => (
+                    <div key={idx} className="flex items-center justify-between bg-gray-50 rounded px-2 py-1 text-xs">
+                      <div className="flex items-center gap-2 truncate">
+                        <FileText className="h-3 w-3 text-blue-500 shrink-0" />
+                        <span className="truncate" title={f.name}>{f.name}</span>
+                        <span className="text-gray-400 shrink-0">({(f.size / 1024).toFixed(1)} KB)</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => setIpAppReviewFiles(prev => prev.filter((_, i) => i !== idx))}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Comment */}
             <div className="space-y-2">
               <Label>Comment {ipAppReviewAction !== 'approve' && <span className="text-red-500">*</span>}</Label>
@@ -8103,25 +8385,30 @@ const Admin = () => {
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => {
+            <Button variant="outline" disabled={isUploadingReviewFiles} onClick={() => {
               setShowIpAppReviewModal(false);
               setIpAppReviewNotes('');
+              setIpAppReviewFiles([]);
               setSelectedIpApp(null);
             }}>
               Cancel
             </Button>
             <Button 
               onClick={handleIpAppReview}
+              disabled={isUploadingReviewFiles}
               className={
                 ipAppReviewAction === 'approve' ? 'bg-green-600 hover:bg-green-700' :
                 ipAppReviewAction === 'return' ? 'bg-orange-600 hover:bg-orange-700' :
                 ipAppReviewAction === 'reject' ? 'bg-red-600 hover:bg-red-700' :
+                ipAppReviewAction === 'granted' ? 'bg-emerald-600 hover:bg-emerald-700' :
                 'bg-blue-600 hover:bg-blue-700'
               }
             >
+              {isUploadingReviewFiles && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {ipAppReviewAction === 'approve' && 'Approve Application'}
               {ipAppReviewAction === 'return' && 'Flag for Revision'}
               {ipAppReviewAction === 'reject' && 'Reject Application'}
+              {ipAppReviewAction === 'granted' && 'Mark as Granted'}
               {!ipAppReviewAction && 'Submit Comment'}
             </Button>
           </DialogFooter>

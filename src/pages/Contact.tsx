@@ -71,7 +71,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg text-gray-800 mb-2">Call Us Directly</h3>
-                    <p className="text-2xl font-bold text-green-600 mb-1">(088) 856-1738</p>
+                    <p className="text-2xl font-bold text-green-600 mb-1">(088) 856-1738 Local 1145</p>
                     <p className="text-sm text-gray-600">Available Monday to Friday</p>
                     <p className="text-sm text-gray-600">8:00 AM - 5:00 PM</p>
                   </div>
@@ -84,7 +84,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg text-gray-800 mb-2">Email Us</h3>
-                    <p className="text-xl font-bold text-blue-600 mb-1">tpco@ustp.edu.ph</p>
+                    <p className="text-xl font-bold text-blue-600 mb-1">ustp.tpco@ustp.edu.ph</p>
                     <p className="text-sm text-gray-600">We respond within 24 hours</p>
                     <p className="text-sm text-gray-600">Send your inquiry anytime</p>
                   </div>
@@ -138,10 +138,10 @@ const Contact = () => {
                   <p className="text-sm text-gray-600">Technology Transfer Specialist</p>
                   <div className="mt-4 pt-4 border-t">
                     <p className="text-sm text-gray-600">
-                      <strong>Direct Line:</strong> (088) 856-1738
+                      <strong>Direct Line:</strong> (088) 856-1738 Local 1145
                     </p>
                     <p className="text-sm text-gray-600">
-                      <strong>Email:</strong> director.tpco@ustp.edu.ph
+                      <strong>Email:</strong> ustp.tpco@ustp.edu.ph
                     </p>
                   </div>
                 </div>
@@ -162,10 +162,10 @@ const Contact = () => {
                   <p className="text-sm text-gray-600">Industry Partnership Specialist</p>
                   <div className="mt-4 pt-4 border-t">
                     <p className="text-sm text-gray-600">
-                      <strong>Direct Line:</strong> (088) 856-1738
+                      <strong>Direct Line:</strong> (088) 856-1738 Local 1145
                     </p>
                     <p className="text-sm text-gray-600">
-                      <strong>Email:</strong> coordinator.tpco@ustp.edu.ph
+                      <strong>Email:</strong> ustp.tpco@ustp.edu.ph
                     </p>
                   </div>
                 </div>
@@ -228,7 +228,7 @@ const Contact = () => {
               <Button 
                 variant="outline" 
                 size="lg"
-                onClick={() => window.location.href = 'mailto:tpco@ustp.edu.ph?subject=Service Consultation Request'}
+                onClick={() => window.location.href = 'mailto:ustp.tpco@ustp.edu.ph?subject=Service Consultation Request'}
                 className="flex items-center border-primary text-primary hover:bg-primary hover:text-white"
               >
                 <Mail className="mr-2" size={18} />

@@ -43,6 +43,7 @@ import { ExtendedPortfolioItem, transformToExtendedPortfolioItem } from "@/integ
 import { getStatusColor, getFieldColor } from "@/lib/utils";
 import ipBgImage from "@/assets/ip-portfolio-bg.jpg";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { BrochurePieCharts } from "@/components/BrochurePieCharts";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -84,6 +85,10 @@ const IPPortfolio = () => {
           .from('admin_patents' as any)
           .select('*')
           .eq('published', true)
+          // Fetch ALL non-Draft patents here so the stats cards (Filed,
+          // Registered, Commercialized) reflect the true admin counts.
+          // The public list is narrowed down later to only show Registered
+          // and Commercialized patents to visitors.
           .neq('status', 'Draft');
         
         if (patentsData && !patentsError) {
@@ -107,7 +112,7 @@ const IPPortfolio = () => {
             abstract: patent.abstract || `Patent abstract for ${patent.title || 'Untitled Patent'}`,
             licensing: patent.status === 'Licensed' ? 'Already Licensed' : 'Available for licensing',
             applications: [patent.field, 'Innovation', 'Research'].filter(Boolean),
-            contact: "tpco@ustp.edu.ph",
+            contact: "ustp.tpco@ustp.edu.ph",
             inventor: null,
             patent_status: null,
             patent_number: patent.patent_number || null,
@@ -150,8 +155,10 @@ const IPPortfolio = () => {
       // Keep all patents for statistics (includes Under Review, excludes Draft)
       setAllPatents(allData);
       
-      // Filter out Under Review and Draft from public display
-      let displayData = allData.filter(p => p.status !== 'Under Review' && p.status !== 'Draft');
+      // Public list only surfaces patents with a public-facing milestone.
+      // 'Filed' and 'Under Review' stay out of the visible grid but are still
+      // counted in the stats cards via `allPatents`.
+      let displayData = allData.filter(p => p.status === 'Registered' || p.status === 'Commercialized');
       
       // Apply client-side filtering
       let filteredData = displayData;
@@ -348,12 +355,12 @@ const IPPortfolio = () => {
     const licensed = nonDraftPatents.filter(p => p.status === 'Licensed').length;
     // Licensed revenue comes from admin_dashboard_stats (manually entered)
     // Status pie chart data (IP in Application is separate from patents)
+    // Colors aligned with brochure palette for visual consistency with the
+    // annual-report pie charts above (light blue / teal / orange).
     const pieData = [
-      { name: 'Filed', value: filed, color: '#3b82f6' },      // blue-500
-      { name: 'Registered', value: registered, color: '#22c55e' },  // green-500
-      { name: 'Commercialized', value: commercialized, color: '#f59e0b' }, // amber-500
-      { name: 'Licensed', value: licensed, color: '#8b5cf6' },   // violet-500
-      { name: 'IP in Application', value: ipApplicationCount, color: '#f97316' }, // orange-500
+      { name: 'Filed', value: filed, color: '#B8D4E0' },          // brochure light blue
+      { name: 'Registered', value: registered, color: '#7FB4B0' }, // brochure teal
+      { name: 'Commercialized', value: commercialized, color: '#E8A87C' }, // brochure orange
     ].filter(item => item.value > 0);
 
     // Count by field / patent type
@@ -478,16 +485,6 @@ const IPPortfolio = () => {
             Explore our comprehensive collection of patents, technologies, and innovations 
             available for licensing and commercialization partnerships.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="gold" size="lg">
-              Download Portfolio Catalog
-              <Download className="ml-2" size={20} />
-            </Button>
-            <Button variant="gold-outline" size="lg">
-              Licensing Guidelines
-              <FileText className="ml-2" size={20} />
-            </Button>
-          </div>
         </div>
       </section>
 
@@ -732,9 +729,9 @@ const IPPortfolio = () => {
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Portfolio Overview</h2>
           
           {/* Stats Cards Row */}
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {/* Filed */}
-            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0">
+            <Card className="bg-gradient-to-br from-indigo-500 to-indigo-600 border-0">
               <CardContent className="p-4 text-white text-center">
                 <FileText className="h-6 w-6 mx-auto mb-2 opacity-90" />
                 <div className="text-3xl font-bold">{stats.filed}</div>
@@ -744,7 +741,7 @@ const IPPortfolio = () => {
             </Card>
 
             {/* Registered */}
-            <Card className="bg-gradient-to-br from-green-500 to-green-600 border-0">
+            <Card className="bg-gradient-to-br from-teal-500 to-teal-600 border-0">
               <CardContent className="p-4 text-white text-center">
                 <FileCheck className="h-6 w-6 mx-auto mb-2 opacity-90" />
                 <div className="text-3xl font-bold">{stats.registered}</div>
@@ -754,7 +751,7 @@ const IPPortfolio = () => {
             </Card>
 
             {/* Commercialized */}
-            <Card className="bg-gradient-to-br from-amber-500 to-orange-500 border-0">
+            <Card className="bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 border-0">
               <CardContent className="p-4 text-white text-center">
                 <TrendingUp className="h-6 w-6 mx-auto mb-2 opacity-90" />
                 <div className="text-3xl font-bold">{stats.commercialized}</div>
@@ -763,18 +760,9 @@ const IPPortfolio = () => {
               </CardContent>
             </Card>
 
-            {/* Licensed */}
-            <Card className="bg-gradient-to-br from-violet-500 to-purple-600 border-0">
-              <CardContent className="p-4 text-white text-center">
-                <FileCheck className="h-6 w-6 mx-auto mb-2 opacity-90" />
-                <div className="text-3xl font-bold">{stats.licensed}</div>
-                <div className="text-sm opacity-90">Licensed</div>
-                <div className="text-xs opacity-70 mt-1">From IP Portfolio</div>
-              </CardContent>
-            </Card>
-
-            {/* Licensed (Revenue) */}
-            <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 border-0">
+            {/* Licensed (Revenue) — emerald keeps the money/green semantic
+                without clashing with Filed (indigo) or Registered (teal). */}
+            <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 border-0">
               <CardContent className="p-4 text-white text-center">
                 <DollarSign className="h-6 w-6 mx-auto mb-2 opacity-90" />
                 <div className="text-3xl font-bold">
@@ -786,16 +774,6 @@ const IPPortfolio = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* IP in Application */}
-            <Card className="bg-gradient-to-br from-orange-500 to-orange-600 border-0">
-              <CardContent className="p-4 text-white text-center">
-                <Clock className="h-6 w-6 mx-auto mb-2 opacity-90" />
-                <div className="text-3xl font-bold">{stats.ipApplicationCount}</div>
-                <div className="text-sm opacity-90">IP in Application</div>
-                <div className="text-xs opacity-70 mt-1">Faculty Status</div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Total Count Banner */}
@@ -804,8 +782,13 @@ const IPPortfolio = () => {
             <div className="text-5xl font-bold text-gray-900">{stats.total}</div>
           </div>
 
+          {/* Brochure-style IP Distribution (Annual Report View) */}
+          <div className="mb-8">
+            <BrochurePieCharts patents={allPatents} />
+          </div>
+
           {/* Pie Charts */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             {/* Status Distribution Pie Chart */}
             <Card>
               <CardHeader className="text-center pb-2">
@@ -826,49 +809,7 @@ const IPPortfolio = () => {
                         dataKey="value"
                       >
                         {stats.pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        formatter={(value: number, name: string) => [`${value} patents`, name]}
-                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
-                      />
-                      <Legend 
-                        verticalAlign="bottom" 
-                        height={50}
-                        iconType="circle"
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-[280px] text-gray-400">
-                    No data available
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Patent Type / Field Distribution Pie Chart */}
-            <Card>
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-lg">Patent Types</CardTitle>
-                <CardDescription>Breakdown by field or category</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {stats.fieldPieData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={280}>
-                    <PieChart>
-                      <Pie
-                        data={stats.fieldPieData}
-                        cx="50%"
-                        cy="45%"
-                        innerRadius={70}
-                        outerRadius={90}
-                        paddingAngle={4}
-                        dataKey="value"
-                      >
-                        {stats.fieldPieData.map((entry, index) => (
-                          <Cell key={`field-cell-${index}`} fill={entry.color} />
+                          <Cell key={`cell-${index}`} fill={entry.color} stroke="#ffffff" strokeWidth={2} />
                         ))}
                       </Pie>
                       <Tooltip 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, Award, Building, Users, Lightbulb, DollarSign } from "lucide-react";
+import { TrendingUp, Award, Users, Lightbulb } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ImpactStat {
@@ -22,7 +22,7 @@ const ImpactStats = () => {
       try {
         const { data, error } = await supabase
           .from('admin_homepage_content')
-          .select('patents_count, partners_count, startups_count, technologies_count, regional_impact, success_rate')
+          .select('patents_count, partners_count, technologies_count')
           .order('updated_at', { ascending: false })
           .limit(1)
           .single();
@@ -39,13 +39,6 @@ const ImpactStats = () => {
               link: "/ip-portfolio"
             },
             {
-              icon: Building,
-              value: String(content.startups_count),
-              label: "Startups Incubated",
-              trend: "+4 this year",
-              color: "text-blue-600"
-            },
-            {
               icon: Users,
               value: `${content.partners_count}+`,
               label: "Industry Partners",
@@ -60,20 +53,6 @@ const ImpactStats = () => {
               trend: "+25 this year",
               color: "text-primary",
               link: "/ip-portfolio"
-            },
-            {
-              icon: DollarSign,
-              value: content.regional_impact || "₱15M",
-              label: "Regional Economic Impact",
-              trend: "+₱5M this year",
-              color: "text-green-600"
-            },
-            {
-              icon: TrendingUp,
-              value: content.success_rate || "85%",
-              label: "Success Rate",
-              trend: "Industry partnerships",
-              color: "text-primary"
             }
           ]);
           return;
@@ -85,11 +64,8 @@ const ImpactStats = () => {
       // Fallback to defaults if fetch fails
       setStats([
         { icon: Award, value: "24+", label: "Patents Granted", trend: "+6 this year", color: "text-green-600", link: "/ip-portfolio" },
-        { icon: Building, value: "12", label: "Startups Incubated", trend: "+4 this year", color: "text-blue-600" },
         { icon: Users, value: "6+", label: "Industry Partners", trend: "+15 this year", color: "text-purple-600", link: "/about#strategic-partners" },
-        { icon: Lightbulb, value: "8+", label: "Technologies Developed", trend: "+25 this year", color: "text-primary", link: "/ip-portfolio" },
-        { icon: DollarSign, value: "₱15M", label: "Regional Economic Impact", trend: "+₱5M this year", color: "text-green-600" },
-        { icon: TrendingUp, value: "85%", label: "Success Rate", trend: "Industry partnerships", color: "text-primary" }
+        { icon: Lightbulb, value: "8+", label: "Technologies Developed", trend: "+25 this year", color: "text-primary", link: "/ip-portfolio" }
       ]);
     };
 

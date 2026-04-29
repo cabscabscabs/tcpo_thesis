@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Download, BookOpen, FileText, Users, Calendar, ExternalLink, Clock, Loader2, CheckCircle, Info } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Download, BookOpen, FileText, Users, Calendar, ExternalLink, Clock, Loader2, CheckCircle, Info, SlidersHorizontal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -29,6 +30,81 @@ const formatTime = (timeString) => {
 };
 
 const VALID_TABS = ["templates", "guidelines"];
+
+// Category definitions for filter chips
+const TEMPLATE_CATEGORIES = [
+  "All",
+  "Patent Forms",
+  "Utility Model Forms",
+  "Industrial Design Forms",
+  "Trademark Forms",
+  "Copyright Forms",
+  "Legal Agreements",
+  "Technology Transfer / Utilization",
+  "Other",
+] as const;
+
+const GUIDELINE_CATEGORIES = [
+  "All",
+  "Patent Guidelines",
+  "Trademark Guidelines",
+  "IP Procedures & Policies",
+  "Technology Transfer",
+  "Research & Best Practices",
+  "Other",
+] as const;
+
+// Infer a Template subcategory from the resource title
+const inferTemplateCategory = (title: string = ""): string => {
+  const t = title.toLowerCase();
+  // IPOPHL form numbers are the most reliable signal
+  if (/\bform\s*100\b|form100/.test(t)) return "Patent Forms";
+  if (/\bform\s*110\b|form110|utility\s*model/.test(t)) return "Utility Model Forms";
+  if (/\bform\s*300\b|form300|industrial\s*design/.test(t)) return "Industrial Design Forms";
+  if (/\bform\s*400\b|form400|trademark/.test(t)) return "Trademark Forms";
+  if (/copyright|supplemental\s*form/.test(t)) return "Copyright Forms";
+  if (/deed\s*of\s*assignment|nda|non[-\s]?disclosure|joint\s*affidavit|inventorship/.test(t))
+    return "Legal Agreements";
+  if (/itsos|trl|technology\s*utilization|utilization\s*plan|patent\s*specification|patent[-\s]*search\s*report/.test(t))
+    return "Technology Transfer / Utilization";
+  // Fallback: generic patent templates
+  if (/patent/.test(t)) return "Patent Forms";
+  return "Other";
+};
+
+// Infer a Guideline subcategory from the resource title
+const inferGuidelineCategory = (title: string = ""): string => {
+  const t = title.toLowerCase();
+  if (/trademark/.test(t)) return "Trademark Guidelines";
+  if (/technology\s*transfer|ip\s*application\s*process|tpco.*process|requirements/.test(t))
+    return "Technology Transfer";
+  if (/ip[-\s]*procedure|ip[-\s]*system|procedure|policy|policies/.test(t))
+    return "IP Procedures & Policies";
+  if (/patent|claim|drafting|drawing|patentability|keyword|classification|specification/.test(t))
+    return "Patent Guidelines";
+  if (/ethic|best\s*practice|research/.test(t)) return "Research & Best Practices";
+  return "Other";
+};
+
+type SortKey = "newest" | "az" | "updated";
+
+const sortResources = <T extends { title?: string; lastUpdated?: string; created_at?: string }>(
+  items: T[],
+  key: SortKey
+): T[] => {
+  const arr = [...items];
+  if (key === "az") {
+    arr.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+  } else if (key === "updated") {
+    arr.sort((a, b) => {
+      const da = a.lastUpdated ? new Date(a.lastUpdated).getTime() : 0;
+      const db = b.lastUpdated ? new Date(b.lastUpdated).getTime() : 0;
+      return db - da;
+    });
+  }
+  // "newest" = preserve original order (already ordered by created_at desc from DB)
+  return arr;
+};
 
 const Resources = () => {
   const navigate = useNavigate();
@@ -149,7 +225,7 @@ const Resources = () => {
           if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
             toast({
               title: "Registration Not Available",
-              description: "The registration system is being set up. Please contact us directly at tpco@ustp.edu.ph",
+              description: "The registration system is being set up. Please contact us directly at ustp.tpco@ustp.edu.ph",
               variant: "destructive"
             });
           } else {
@@ -190,7 +266,7 @@ const Resources = () => {
       const errorMessage = error?.message || "There was an error submitting your registration.";
       toast({
         title: "Registration Failed",
-        description: `${errorMessage} Please try again or contact us at tpco@ustp.edu.ph`,
+        description: `${errorMessage} Please try again or contact us at ustp.tpco@ustp.edu.ph`,
         variant: "destructive"
       });
     } finally {
@@ -239,6 +315,12 @@ const Resources = () => {
 
   const [guidelines, setGuidelines] = useState<any[]>([]);
 
+  // Filter & sort state
+  const [templateCategory, setTemplateCategory] = useState<string>("All");
+  const [templateSort, setTemplateSort] = useState<SortKey>("newest");
+  const [guidelineCategory, setGuidelineCategory] = useState<string>("All");
+  const [guidelineSort, setGuidelineSort] = useState<SortKey>("newest");
+
   useEffect(() => {
     const loadResources = async () => {
       try {
@@ -257,7 +339,8 @@ const Resources = () => {
             format: r.type === 'video' ? 'Video' : r.file_url ? 'Download' : r.url ? 'Link' : 'Document',
             lastUpdated: r.updated_at ? new Date(r.updated_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently',
             url: r.url,
-            file_url: r.file_url
+            file_url: r.file_url,
+            subcategory: inferTemplateCategory(r.title)
           }));
 
           const dbGuidelines = data.filter((r: any) => r.category === 'Guidelines').map((r: any) => ({
@@ -267,7 +350,8 @@ const Resources = () => {
             pages: null,
             lastUpdated: r.updated_at ? new Date(r.updated_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently',
             url: r.url,
-            file_url: r.file_url
+            file_url: r.file_url,
+            subcategory: inferGuidelineCategory(r.title)
           }));
 
           // Only update if there are resources from DB
@@ -348,7 +432,52 @@ const Resources = () => {
                   Download essential legal templates and documentation for IP protection and partnerships.
                 </p>
               </div>
-              
+
+              {/* Category filter chips + sort */}
+              {!isLoadingResources && templates.length > 0 && (
+                <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex flex-wrap gap-2">
+                    {TEMPLATE_CATEGORIES.map((cat) => {
+                      const count = cat === "All"
+                        ? templates.length
+                        : templates.filter((t: any) => t.subcategory === cat).length;
+                      if (cat !== "All" && count === 0) return null;
+                      const active = templateCategory === cat;
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setTemplateCategory(cat)}
+                          className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                            active
+                              ? "bg-primary text-white border-primary"
+                              : "bg-white text-gray-700 border-gray-300 hover:border-primary hover:text-primary"
+                          }`}
+                        >
+                          {cat}
+                          <span className={`ml-2 text-xs ${active ? "text-white/80" : "text-gray-400"}`}>
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <SlidersHorizontal size={16} className="text-gray-500" />
+                    <Select value={templateSort} onValueChange={(v) => setTemplateSort(v as SortKey)}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">Newest first</SelectItem>
+                        <SelectItem value="updated">Recently updated</SelectItem>
+                        <SelectItem value="az">Title (A–Z)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {isLoadingResources ? (
                   <>{[1, 2, 3].map((i) => (
@@ -373,14 +502,31 @@ const Resources = () => {
                       </CardContent>
                     </Card>
                   ))}</>
-                ) : (
-                  templates.map((template, index) => (
-                    <Card key={index} className="hover:shadow-card transition-all duration-300">
+                ) : (() => {
+                  const filtered = templateCategory === "All"
+                    ? templates
+                    : templates.filter((t: any) => t.subcategory === templateCategory);
+                  const sorted = sortResources(filtered, templateSort);
+                  if (sorted.length === 0) {
+                    return (
+                      <div className="col-span-full text-center py-12 text-gray-500">
+                        <FileText className="mx-auto mb-3 text-gray-400" size={40} />
+                        <p>No templates match this category.</p>
+                      </div>
+                    );
+                  }
+                  return sorted.map((template: any, index: number) => (
+                    <Card key={template.id ?? index} className="hover:shadow-card transition-all duration-300">
                       <CardHeader>
                         <div className="flex items-start justify-between mb-2">
                           <FileText className="text-secondary flex-shrink-0" size={24} />
                           <span className="text-xs text-gray-500">{template.format}</span>
                         </div>
+                        {template.subcategory && (
+                          <span className="inline-block self-start text-[10px] uppercase tracking-wide bg-primary/10 text-primary px-2 py-0.5 rounded mb-2">
+                            {template.subcategory}
+                          </span>
+                        )}
                         <CardTitle className="text-lg font-roboto text-primary">
                           {template.title}
                         </CardTitle>
@@ -414,8 +560,8 @@ const Resources = () => {
                         </Button>
                       </CardContent>
                     </Card>
-                  ))
-                )}
+                  ));
+                })()}
               </div>
             </TabsContent>
             
@@ -430,7 +576,52 @@ const Resources = () => {
                   Comprehensive guidelines and best practices for research, IP management, and technology transfer.
                 </p>
               </div>
-              
+
+              {/* Category filter chips + sort */}
+              {!isLoadingResources && guidelines.length > 0 && (
+                <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex flex-wrap gap-2">
+                    {GUIDELINE_CATEGORIES.map((cat) => {
+                      const count = cat === "All"
+                        ? guidelines.length
+                        : guidelines.filter((g: any) => g.subcategory === cat).length;
+                      if (cat !== "All" && count === 0) return null;
+                      const active = guidelineCategory === cat;
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setGuidelineCategory(cat)}
+                          className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                            active
+                              ? "bg-primary text-white border-primary"
+                              : "bg-white text-gray-700 border-gray-300 hover:border-primary hover:text-primary"
+                          }`}
+                        >
+                          {cat}
+                          <span className={`ml-2 text-xs ${active ? "text-white/80" : "text-gray-400"}`}>
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <SlidersHorizontal size={16} className="text-gray-500" />
+                    <Select value={guidelineSort} onValueChange={(v) => setGuidelineSort(v as SortKey)}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">Newest first</SelectItem>
+                        <SelectItem value="updated">Recently updated</SelectItem>
+                        <SelectItem value="az">Title (A–Z)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {isLoadingResources ? (
                   <>{[1, 2, 3].map((i) => (
@@ -455,14 +646,31 @@ const Resources = () => {
                       </CardContent>
                     </Card>
                   ))}</>
-                ) : (
-                  guidelines.map((guide, index) => (
-                    <Card key={index} className="hover:shadow-card transition-all duration-300">
+                ) : (() => {
+                  const filtered = guidelineCategory === "All"
+                    ? guidelines
+                    : guidelines.filter((g: any) => g.subcategory === guidelineCategory);
+                  const sorted = sortResources(filtered, guidelineSort);
+                  if (sorted.length === 0) {
+                    return (
+                      <div className="col-span-full text-center py-12 text-gray-500">
+                        <BookOpen className="mx-auto mb-3 text-gray-400" size={40} />
+                        <p>No guidelines match this category.</p>
+                      </div>
+                    );
+                  }
+                  return sorted.map((guide: any, index: number) => (
+                    <Card key={guide.id ?? index} className="hover:shadow-card transition-all duration-300">
                       <CardHeader>
                         <div className="flex items-start justify-between mb-2">
                           <BookOpen className="text-secondary flex-shrink-0" size={24} />
                           {guide.pages && <span className="text-xs text-gray-500">{guide.pages} pages</span>}
                         </div>
+                        {guide.subcategory && (
+                          <span className="inline-block self-start text-[10px] uppercase tracking-wide bg-primary/10 text-primary px-2 py-0.5 rounded mb-2">
+                            {guide.subcategory}
+                          </span>
+                        )}
                         <CardTitle className="text-lg font-roboto text-primary">
                           {guide.title}
                         </CardTitle>
@@ -496,8 +704,8 @@ const Resources = () => {
                         </Button>
                       </CardContent>
                     </Card>
-                  ))
-                )}
+                  ));
+                })()}
               </div>
             </TabsContent>
           </Tabs>

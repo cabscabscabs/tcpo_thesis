@@ -107,7 +107,7 @@ const Events = () => {
       console.error('Registration error:', error);
       toast({
         title: "Registration Failed",
-        description: `${error?.message || "There was an error submitting your registration."} Please try again or contact us at tpco@ustp.edu.ph`,
+        description: `${error?.message || "There was an error submitting your registration."} Please try again or contact us at ustp.tpco@ustp.edu.ph`,
         variant: "destructive"
       });
     } finally {
@@ -410,7 +410,7 @@ const Events = () => {
             <Button 
               variant="gold" 
               size="lg"
-              onClick={() => window.location.href = 'mailto:tpco@ustp.edu.ph?subject=Event Inquiry'}
+              onClick={() => window.location.href = 'mailto:ustp.tpco@ustp.edu.ph?subject=Event Inquiry'}
             >
               Email Us
               <ExternalLink className="ml-2" size={18} />
@@ -421,7 +421,7 @@ const Events = () => {
               size="lg"
               onClick={() => window.location.href = 'tel:(088)856-1738'}
             >
-              Call (088) 856-1738
+              Call (088) 856-1738 Local 1145
             </Button>
           </div>
         </div>

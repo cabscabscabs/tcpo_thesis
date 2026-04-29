@@ -1,17 +1,72 @@
 import { useFormContext } from "react-hook-form";
+import { useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { IPTypeBadge } from "../IPTypeBadge";
-import { User, MapPin, Globe, Phone, Mail, FileText, ListOrdered, Upload, CheckCircle, FileCheck, AlertCircle } from "lucide-react";
+import { User, FileText, ListOrdered, Upload, CheckCircle, FileCheck, AlertCircle, ExternalLink, Download, Users, X } from "lucide-react";
 import { useDocumentValidation, IPType } from "@/hooks/useDocumentValidation";
 import { cn } from "@/lib/utils";
+
+// Faculty-facing template served from public/documents/
+const JOINT_AFFIDAVIT_TEMPLATE_URL = "/documents/Joint-Affidavit-of-Inventorship-and-Contribution-Template.pdf";
+const JOINT_AFFIDAVIT_MAX_MB = 20;
 
 export function ReviewStep() {
   const { register, watch, setValue, formState: { errors } } = useFormContext();
   const formData = watch();
+  const jointAffidavitInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Joint Affidavit: derive uploaded file (if any) from attachments array
+  const attachments: any[] = formData.attachments || [];
+  const jointAffidavitFile = attachments.find(
+    (a: any) => a.attachment_type === 'joint_affidavit' || a.document_type === 'joint_affidavit'
+  );
+  const hasJointAffidavit = !!jointAffidavitFile;
+  const requiresJointAffidavit = (formData.co_inventors?.length || 0) > 0;
+
+  const handleJointAffidavitUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!/pdf$/i.test(file.type) && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('Please upload a PDF file.');
+      e.target.value = '';
+      return;
+    }
+    const sizeMB = file.size / (1024 * 1024);
+    if (sizeMB > JOINT_AFFIDAVIT_MAX_MB) {
+      alert(`File exceeds ${JOINT_AFFIDAVIT_MAX_MB}MB limit.`);
+      e.target.value = '';
+      return;
+    }
+    // Remove any prior joint_affidavit then append the new one
+    const filtered = attachments.filter(
+      (a: any) => a.attachment_type !== 'joint_affidavit' && a.document_type !== 'joint_affidavit'
+    );
+    filtered.push({
+      file,
+      file_name: file.name,
+      file_type: file.type || 'application/pdf',
+      file_size: file.size,
+      attachment_type: 'joint_affidavit',
+      document_type: 'joint_affidavit',
+    });
+    setValue('attachments', filtered, { shouldDirty: true });
+    // Reset the acknowledgment if user re-uploads a different file
+    setValue('declaration_joint_affidavit', false);
+    e.target.value = '';
+  };
+
+  const removeJointAffidavit = () => {
+    const filtered = attachments.filter(
+      (a: any) => a.attachment_type !== 'joint_affidavit' && a.document_type !== 'joint_affidavit'
+    );
+    setValue('attachments', filtered, { shouldDirty: true });
+    setValue('declaration_joint_affidavit', false);
+  };
   
   // Document validation for review
   const {
@@ -23,11 +78,6 @@ export function ReviewStep() {
     progress
   } = useDocumentValidation(formData.ip_type as IPType, {
     ip_type: formData.ip_type,
-    claimsPriority: formData.claimsPriority,
-    isAgentFiling: formData.isAgentFiling,
-    isSmallEntity: formData.isSmallEntity,
-    isApplicantInventor: formData.isApplicantInventor,
-    isOwnerAuthor: formData.isOwnerAuthor,
     attachments: formData.attachments
   });
 
@@ -73,18 +123,23 @@ export function ReviewStep() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-gray-500">IP Type</p>
-              <div className="mt-1">
-                <IPTypeBadge type={formData.ip_type} />
-              </div>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Field of Technology</p>
-              <p className="font-medium">{formData.field_of_technology || "Not specified"}</p>
+          <div>
+            <p className="text-sm text-gray-500">IP Type</p>
+            <div className="mt-1">
+              <IPTypeBadge type={formData.ip_type} />
             </div>
           </div>
+          {(formData.ip_type === 'Utility Model' || formData.ip_type === 'Copyright') && formData.classification && (
+            <div>
+              <p className="text-sm text-gray-500">Classification</p>
+              <p className="font-medium">
+                {formData.classification}
+                {(formData.classification === 'Other' || formData.classification === 'Others') && formData.classification_other
+                  ? ` — ${formData.classification_other}`
+                  : ''}
+              </p>
+            </div>
+          )}
           <div>
             <p className="text-sm text-gray-500">Title</p>
             <p className="font-medium text-lg">{formData.title}</p>
@@ -132,6 +187,12 @@ export function ReviewStep() {
                   <div key={index} className="p-3 bg-gray-50 rounded-lg">
                     <p className="font-medium">{inventor.name}</p>
                     <p className="text-sm text-gray-600">{inventor.nationality}</p>
+                    {inventor.email && (
+                      <p className="text-sm text-gray-600">Email: {inventor.email}</p>
+                    )}
+                    {inventor.contact_number && (
+                      <p className="text-sm text-gray-600">Contact: {inventor.contact_number}</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -139,6 +200,36 @@ export function ReviewStep() {
           )}
         </CardContent>
       </Card>
+
+      {/* Trademark Text Fields */}
+      {formData.ip_type === 'Trademark' && (formData.trademark_goods_services || formData.trademark_mark_description) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Trademark Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {formData.trademark_goods_services && (
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Goods / Services</p>
+                <p className="text-sm text-gray-800 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg">
+                  {formData.trademark_goods_services}
+                </p>
+              </div>
+            )}
+            {formData.trademark_mark_description && (
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Description of the Mark Representation</p>
+                <p className="text-sm text-gray-800 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg">
+                  {formData.trademark_mark_description}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Claims */}
       {formData.claims?.length > 0 && (
@@ -170,6 +261,7 @@ export function ReviewStep() {
       )}
 
       {/* Document Checklist Summary */}
+      {formData.ip_type !== 'Trademark' && (
       <Card className={cn(
         "border-l-4",
         documentsValid ? "border-l-green-500" : documentsComplete ? "border-l-yellow-500" : "border-l-red-500"
@@ -263,19 +355,25 @@ export function ReviewStep() {
           </div>
         </CardContent>
       </Card>
+      )}
 
-      {/* Additional Attachments */}
-      {formData.attachments?.length > 0 && (
+      {/* Additional Attachments (excludes joint_affidavit which has its own card) */}
+      {(() => {
+        const extraAttachments = (formData.attachments || []).filter(
+          (a: any) => a.attachment_type !== 'joint_affidavit' && a.document_type !== 'joint_affidavit'
+        );
+        if (extraAttachments.length === 0) return null;
+        return (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5 text-orange-600" />
-              Additional Attachments ({formData.attachments.length})
+              Additional Attachments ({extraAttachments.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {formData.attachments.map((file: any, index: number) => (
+              {extraAttachments.map((file: any, index: number) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p className="font-medium text-sm">{file.file_name}</p>
@@ -288,7 +386,8 @@ export function ReviewStep() {
             </div>
           </CardContent>
         </Card>
-      )}
+        );
+      })()}
 
       {/* Declaration */}
       <Card>
@@ -297,6 +396,136 @@ export function ReviewStep() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {requiresJointAffidavit && (
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Users className="h-5 w-5 text-amber-600 mt-0.5" />
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <p className="font-medium text-amber-900">Joint Affidavit of Inventorship and Contribution</p>
+                      <p className="text-sm text-amber-800 mt-1">
+                        Because this application has co-inventors, a Joint Affidavit of
+                        Inventorship and Contribution is required. Download the template below,
+                        complete and sign it with all co-inventors, then upload the signed copy.
+                      </p>
+                    </div>
+
+                    {/* Step 1: View / Download template */}
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(JOINT_AFFIDAVIT_TEMPLATE_URL, '_blank', 'noopener')}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        View Template
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        asChild
+                      >
+                        <a
+                          href={JOINT_AFFIDAVIT_TEMPLATE_URL}
+                          download="Joint-Affidavit-of-Inventorship-and-Contribution-Template.pdf"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download Template
+                        </a>
+                      </Button>
+                    </div>
+
+                    {/* Step 2: Upload signed copy */}
+                    <div className="pt-2 border-t border-amber-200">
+                      <p className="text-sm font-medium text-amber-900 mb-2">
+                        Upload Signed Joint Affidavit <span className="text-red-500">*</span>
+                      </p>
+                      <input
+                        ref={jointAffidavitInputRef}
+                        type="file"
+                        accept="application/pdf,.pdf"
+                        className="hidden"
+                        onChange={handleJointAffidavitUpload}
+                      />
+                      {!hasJointAffidavit ? (
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          onClick={() => jointAffidavitInputRef.current?.click()}
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload Signed PDF
+                        </Button>
+                      ) : (
+                        <div className="flex items-center justify-between gap-3 p-3 bg-white border border-green-200 rounded-lg">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <CheckCircle className="h-5 w-5 text-green-600 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-gray-800 truncate">
+                                {jointAffidavitFile?.file_name}
+                              </p>
+                              {typeof jointAffidavitFile?.file_size === 'number' && (
+                                <p className="text-xs text-gray-500">
+                                  {formatFileSize(jointAffidavitFile.file_size)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => jointAffidavitInputRef.current?.click()}
+                            >
+                              Replace
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={removeJointAffidavit}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Step 3: Acknowledgment checkbox — only enabled after upload */}
+                    <div className="flex items-start gap-3 pt-2 border-t border-amber-200">
+                      <Checkbox
+                        id="declaration_joint_affidavit"
+                        checked={formData.declaration_joint_affidavit === true}
+                        disabled={!hasJointAffidavit}
+                        onCheckedChange={(checked) => setValue('declaration_joint_affidavit', checked === true)}
+                      />
+                      <div>
+                        <Label
+                          htmlFor="declaration_joint_affidavit"
+                          className={cn(
+                            "font-medium",
+                            hasJointAffidavit ? "cursor-pointer text-amber-900" : "text-gray-400"
+                          )}
+                        >
+                          Joint Affidavit of Inventorship and Contribution
+                        </Label>
+                        <p className={cn("text-sm", hasJointAffidavit ? "text-amber-800" : "text-gray-500")}>
+                          I confirm that the uploaded Joint Affidavit of Inventorship and
+                          Contribution has been signed by all co-inventors listed above.
+                          {!hasJointAffidavit && " Upload the signed PDF to enable this checkbox."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-start gap-3">
               <Checkbox
                 id="declaration_ownership"

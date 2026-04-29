@@ -407,11 +407,11 @@ const AdditionalServices = () => {
                   <div className="space-y-3">
                     <div className="flex items-center">
                       <Phone size={16} className="text-primary mr-2" />
-                      <span className="text-sm">(088) 856-1738</span>
+                      <span className="text-sm">(088) 856-1738 Local 1145</span>
                     </div>
                     <div className="flex items-center">
                       <Mail size={16} className="text-primary mr-2" />
-                      <span className="text-sm">tpco@ustp.edu.ph</span>
+                      <span className="text-sm">ustp.tpco@ustp.edu.ph</span>
                     </div>
                     <Button variant="outline" size="sm" className="w-full mt-4">
                       <Download className="mr-2" size={16} />

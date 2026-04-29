@@ -8,8 +8,8 @@
 
 ### IP Portfolio / Patents
 - [D] Patents granted should be clickable (POV "clickable" buttons)
-- [ ] Limit access to "under review" documents - admin only (not visible on frontpage)
-- [ ] Licensed section: show Title of technology + who adapted it
+- [D] Limit access to "under review" documents - admin only (not visible on frontpage)
+- [ATM] Licensed section: show Title of technology + who adapted it
 - [D] Add options: filed, registered, commercialized, licensed (with footnote)
 - [ ] Add license field
 - [D] Add pie chart for statistics
@@ -46,7 +46,7 @@
 ### Data Management
 - [D] Generate patent data list (filter, download, generate report)
 - [D] Export with checkbox options
-- [ ] Reprogram and direct all
+- [D] Reprogram and direct all
 
 ---
 
@@ -67,7 +67,7 @@
 - [D] Show returned or incomplete status
 
 ### Guidelines
-- [ ] IPOPHL guidelines (can get from IPOPHL website)
+- [D] IPOPHL guidelines (can get from IPOPHL website)
 - [ ] Implement step-by-step process
 
 ---
@@ -75,12 +75,12 @@
 ## AI CHATBOT (TEEPEE)
 
 ### Features
-- [ ] Bot name: "TEEPEE" ("Hi I'm Tepee")
+- [D] Bot name: "TEEPEE" ("Hi I'm Tepee")
 - [D] Expandable chat for better AI understanding
 - [D] Add Bisaya/Cebuano language support
-- [ ] Separate responses for faculty, admin, and public users
+- [not possible] Separate responses for faculty, admin, and public users
 - [D] Predefined responses for static About page content
-- [ ] Conversational starters/greetings
+- [D] Conversational starters/greetings
 
 ---
 
@@ -104,7 +104,7 @@
 
 - [D] Subdomain setup (ustp-tpco.ddns.net)
 - [ ] Server deployment
-- [ ] Supabase Auth: Add https://ustp-tpco.ddns.net to Redirect URLs
+- [D] Supabase Auth: Add https://ustp-tpco.ddns.net to Redirect URLs
 
 ---
 

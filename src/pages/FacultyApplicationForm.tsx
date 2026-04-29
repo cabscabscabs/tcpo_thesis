@@ -182,12 +182,12 @@ export default function FacultyApplicationForm() {
       declaration_ownership: false,
       declaration_accuracy: false,
       declaration_ustp: false,
-      // Document validation fields
-      claimsPriority: false,
-      isAgentFiling: false,
-      isSmallEntity: false,
-      isApplicantInventor: true,
-      isOwnerAuthor: true,
+      declaration_joint_affidavit: false,
+      // New fields
+      classification: "",
+      classification_other: "",
+      trademark_goods_services: "",
+      trademark_mark_description: "",
     },
     mode: "onChange",
   });
@@ -216,16 +216,27 @@ export default function FacultyApplicationForm() {
           .select('*')
           .eq('application_id', editId);
 
-        const mappedAttachments = (attachmentsData || []).map((att: any) => ({
-          id: att.id,
-          file_name: att.file_name,
-          file_size: att.file_size,
-          file_type: att.mime_type || att.file_type,
-          attachment_type: att.file_type === 'drawing' ? 'drawing' : 'document',
-          document_type: att.document_type,
-          isExisting: true,
-          file_path: att.file_path,
-        }));
+        const mappedAttachments = (attachmentsData || []).map((att: any) => {
+          const docType = att.document_type || '';
+          let attachmentType: string;
+          if (docType === 'joint_affidavit') {
+            attachmentType = 'joint_affidavit';
+          } else if (att.file_type === 'drawing') {
+            attachmentType = 'drawing';
+          } else {
+            attachmentType = 'document';
+          }
+          return {
+            id: att.id,
+            file_name: att.file_name,
+            file_size: att.file_size,
+            file_type: att.mime_type || att.file_type,
+            attachment_type: attachmentType,
+            document_type: att.document_type,
+            isExisting: true,
+            file_path: att.file_path,
+          };
+        });
 
         setOriginalAttachments(mappedAttachments);
 
@@ -246,14 +257,14 @@ export default function FacultyApplicationForm() {
           detailed_description: data.detailed_description || '',
           claims: [],
           attachments: mappedAttachments,
-          declaration_ownership: data.declaration_confirmed || false,
-          declaration_accuracy: data.declaration_confirmed || false,
-          declaration_ustp: data.declaration_confirmed || false,
-          claimsPriority: false,
-          isAgentFiling: false,
-          isSmallEntity: false,
-          isApplicantInventor: true,
-          isOwnerAuthor: true,
+          declaration_ownership: false,
+          declaration_accuracy: false,
+          declaration_ustp: false,
+          declaration_joint_affidavit: false,
+          classification: data.classification || '',
+          classification_other: data.classification_other || '',
+          trademark_goods_services: data.trademark_goods_services || '',
+          trademark_mark_description: data.trademark_mark_description || '',
         });
       } catch (err) {
         console.error('Error loading application:', err);
@@ -265,18 +276,12 @@ export default function FacultyApplicationForm() {
     loadApplication();
   }, [editId]);
 
-  const { handleSubmit, trigger, formState: { errors }, watch } = methods;
-  
+  const { handleSubmit, trigger, formState: { errors }, watch, getValues } = methods;
+
   // Watch only the specific fields needed for document validation
-  // (watching individual fields avoids creating a new object on every render)
   const ipType = watch('ip_type') as IPType;
-  const claimsPriority = watch('claimsPriority');
-  const isAgentFiling = watch('isAgentFiling');
-  const isSmallEntity = watch('isSmallEntity');
-  const isApplicantInventor = watch('isApplicantInventor');
-  const isOwnerAuthor = watch('isOwnerAuthor');
   const attachments = watch('attachments');
-  
+
   // Document validation
   const {
     isValid: documentsValid,
@@ -285,13 +290,14 @@ export default function FacultyApplicationForm() {
     getErrorMessages
   } = useDocumentValidation(ipType, {
     ip_type: ipType,
-    claimsPriority,
-    isAgentFiling,
-    isSmallEntity,
-    isApplicantInventor,
-    isOwnerAuthor,
     attachments
   });
+
+  // Helpers for form-level validation of text fields
+  const countWords = (text: string) => {
+    if (!text) return 0;
+    return text.trim().split(/\s+/).filter(Boolean).length;
+  };
 
   const validateStep = async (step: number) => {
     switch (step) {
@@ -303,32 +309,132 @@ export default function FacultyApplicationForm() {
           "applicant_contact",
           "applicant_email",
         ] as const);
-      case 2:
-        // Validate document uploads - IP type is now selected in document upload
-        if (!documentsComplete) {
+      case 2: {
+        // Validate IP Type was selected
+        if (!ipType) {
           toast({
-            title: "Missing Documents",
-            description: `Please upload: ${missingDocs.join(', ')}`,
+            title: "IP Type Required",
+            description: "Please select an IP type before continuing.",
             variant: "destructive",
           });
           return false;
         }
-        if (!documentsValid) {
-          const errors = getErrorMessages();
-          toast({
-            title: "Document Validation Failed",
-            description: errors[0] || "Please check your uploaded documents",
-            variant: "destructive",
-          });
-          return false;
+
+        const values = getValues();
+
+        // Classification (Utility Model + Copyright)
+        if (ipType === 'Utility Model' || ipType === 'Copyright') {
+          if (!values.classification) {
+            toast({
+              title: "Classification Required",
+              description: "Please select a classification.",
+              variant: "destructive",
+            });
+            return false;
+          }
+          if ((values.classification === 'Other' || values.classification === 'Others')
+              && !(values.classification_other || '').trim()) {
+            toast({
+              title: "Specify Classification",
+              description: "Please specify the classification.",
+              variant: "destructive",
+            });
+            return false;
+          }
+        }
+
+        // Trademark text fields
+        if (ipType === 'Trademark') {
+          const goods = (values.trademark_goods_services || '').trim();
+          const mark = (values.trademark_mark_description || '').trim();
+          if (!goods || !mark) {
+            toast({
+              title: "Trademark Fields Required",
+              description: "Please fill in both Goods/Services and Description of the Mark Representation.",
+              variant: "destructive",
+            });
+            return false;
+          }
+          if (countWords(goods) > 150 || countWords(mark) > 150) {
+            toast({
+              title: "Word Limit Exceeded",
+              description: "Trademark text fields are limited to 150 words each.",
+              variant: "destructive",
+            });
+            return false;
+          }
+        }
+
+        // Validate co-inventor emails (must be @ustp.edu.ph if provided)
+        const coInvs = (values.co_inventors || []) as any[];
+        for (let i = 0; i < coInvs.length; i++) {
+          const email = (coInvs[i]?.email || '').trim();
+          if (email && !/@ustp\.edu\.ph$/i.test(email)) {
+            toast({
+              title: "Invalid Co-Inventor Email",
+              description: `Co-inventor #${i + 1} must use an @ustp.edu.ph email.`,
+              variant: "destructive",
+            });
+            return false;
+          }
+        }
+
+        // Document uploads — Trademark has no required uploads
+        if (ipType !== 'Trademark') {
+          if (!documentsComplete) {
+            toast({
+              title: "Missing Documents",
+              description: `Please upload: ${missingDocs.join(', ')}`,
+              variant: "destructive",
+            });
+            return false;
+          }
+          if (!documentsValid) {
+            const errors = getErrorMessages();
+            toast({
+              title: "Document Validation Failed",
+              description: errors[0] || "Please check your uploaded documents",
+              variant: "destructive",
+            });
+            return false;
+          }
         }
         return true;
-      case 3:
-        return await trigger([
+      }
+      case 3: {
+        const okBase = await trigger([
           "declaration_ownership",
           "declaration_accuracy",
           "declaration_ustp",
         ] as const);
+        if (!okBase) return false;
+
+        // Joint Affidavit required when co-inventors exist
+        const values = getValues();
+        const coInvs = (values.co_inventors || []) as any[];
+        if (coInvs.length > 0) {
+          const hasJointAffidavit = (values.attachments || []).some(
+            (a: any) => a.attachment_type === 'joint_affidavit' || a.document_type === 'joint_affidavit'
+          );
+          if (!hasJointAffidavit) {
+            toast({
+              title: "Joint Affidavit Required",
+              description: "Please upload the signed Joint Affidavit of Inventorship and Contribution.",
+              variant: "destructive",
+            });
+            return false;
+          }
+          if (values.declaration_joint_affidavit !== true) {
+            toast({
+              title: "Confirm Joint Affidavit",
+              description: "Please check the Joint Affidavit acknowledgment before submitting.",
+              variant: "destructive",
+            });
+            return false;
+          }
+        }
+        return true;
+      }
       default:
         return true;
     }
@@ -388,6 +494,10 @@ export default function FacultyApplicationForm() {
         summary_of_invention: formData.summary_of_invention,
         detailed_description: formData.detailed_description,
         co_inventors: formData.co_inventors || [],
+        classification: formData.classification || null,
+        classification_other: formData.classification_other || null,
+        trademark_goods_services: formData.trademark_goods_services || null,
+        trademark_mark_description: formData.trademark_mark_description || null,
         declaration_confirmed: formData.declaration_ownership && formData.declaration_accuracy && formData.declaration_ustp,
       };
 
@@ -467,6 +577,12 @@ export default function FacultyApplicationForm() {
   };
 
   const onSubmit = async (data: any) => {
+    // Defensive guard: never submit unless user is actually on the final Review step.
+    // Prevents accidental form-submit events (Enter key, auto-fill, etc.) from sending the app.
+    if (currentStep !== steps.length) {
+      return;
+    }
+
     // Check declarations are confirmed
     if (!data.declaration_ownership || !data.declaration_accuracy || !data.declaration_ustp) {
       toast({
@@ -476,6 +592,33 @@ export default function FacultyApplicationForm() {
       });
       setCurrentStep(3);
       return;
+    }
+
+    // Joint Affidavit is required when co-inventors exist: both the signed PDF
+    // must be uploaded AND the acknowledgment checkbox must be ticked.
+    const coInventors = (data.co_inventors || []) as any[];
+    if (coInventors.length > 0) {
+      const hasJointAffidavit = (data.attachments || []).some(
+        (a: any) => a.attachment_type === 'joint_affidavit' || a.document_type === 'joint_affidavit'
+      );
+      if (!hasJointAffidavit) {
+        toast({
+          title: "Joint Affidavit Required",
+          description: "Please upload the signed Joint Affidavit of Inventorship and Contribution before submitting.",
+          variant: "destructive",
+        });
+        setCurrentStep(3);
+        return;
+      }
+      if (data.declaration_joint_affidavit !== true) {
+        toast({
+          title: "Confirm Joint Affidavit",
+          description: "Please check the Joint Affidavit of Inventorship and Contribution acknowledgment before submitting.",
+          variant: "destructive",
+        });
+        setCurrentStep(3);
+        return;
+      }
     }
 
     // Final document validation before submission
@@ -520,6 +663,10 @@ export default function FacultyApplicationForm() {
         summary_of_invention: data.summary_of_invention,
         detailed_description: data.detailed_description,
         co_inventors: data.co_inventors || [],
+        classification: data.classification || null,
+        classification_other: data.classification_other || null,
+        trademark_goods_services: data.trademark_goods_services || null,
+        trademark_mark_description: data.trademark_mark_description || null,
         declaration_confirmed: true,
         declaration_date: new Date().toISOString(),
         submitted_at: new Date().toISOString(),
@@ -673,7 +820,17 @@ export default function FacultyApplicationForm() {
 
         {/* Form */}
         <FormProvider {...methods}>
-          <form onSubmit={(e) => { e.preventDefault(); onSubmit(methods.getValues()); }}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              // Only run the real submit when user is on the final Review step
+              // AND clicked the explicit Submit button. This blocks Enter-to-submit
+              // and any other spurious submit events on earlier steps.
+              if (currentStep === steps.length) {
+                onSubmit(methods.getValues());
+              }
+            }}
+          >
             <Card className="shadow-sm border-t-4 border-t-blue-600 mb-6">
               <div className="bg-gradient-to-r from-blue-50 to-white p-4 border-b">
                 <div className="flex items-center justify-between">

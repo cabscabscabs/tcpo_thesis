@@ -10,7 +10,6 @@ import { StatusBadge } from "@/components/faculty/StatusBadge";
 import { IPTypeBadge } from "@/components/faculty/IPTypeBadge";
 import { 
   IPApplication, 
-  IPClaim, 
   IPAttachment, 
   IPApplicationStatusHistory,
   IPApplicationComment 
@@ -37,7 +36,6 @@ export default function FacultyApplicationDetail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [application, setApplication] = useState<IPApplication | null>(null);
-  const [claims, setClaims] = useState<IPClaim[]>([]);
   const [attachments, setAttachments] = useState<IPAttachment[]>([]);
   const [statusHistory, setStatusHistory] = useState<IPApplicationStatusHistory[]>([]);
   const [comments, setComments] = useState<IPApplicationComment[]>([]);
@@ -97,6 +95,10 @@ export default function FacultyApplicationDetail() {
         background_of_invention: appData.background_of_invention || '',
         summary_of_invention: appData.summary_of_invention || '',
         co_inventors: appData.co_inventors || [],
+        classification: appData.classification || null,
+        classification_other: appData.classification_other || null,
+        trademark_goods_services: appData.trademark_goods_services || null,
+        trademark_mark_description: appData.trademark_mark_description || null,
         version: appData.current_version || 1,
         is_current_version: true,
         previous_version_id: null,
@@ -110,27 +112,14 @@ export default function FacultyApplicationDetail() {
 
       // Fetch related data in parallel
       const [
-        { data: claimsData },
         { data: attachmentsData },
         { data: historyData },
         { data: commentsData }
       ] = await Promise.all([
-        (supabase as any).from('ip_application_claims').select('*').eq('application_id', id).order('claim_number'),
         (supabase as any).from('ip_application_attachments').select('*').eq('application_id', id).order('created_at', { ascending: false }),
         (supabase as any).from('ip_application_status_history').select('*').eq('application_id', id).order('created_at', { ascending: false }),
         (supabase as any).from('ip_application_comments').select('*').eq('application_id', id).order('created_at', { ascending: false })
       ]);
-
-      // Map claims
-      const mappedClaims: IPClaim[] = (claimsData || []).map((claim: any) => ({
-        id: claim.id,
-        application_id: claim.application_id,
-        claim_number: claim.claim_number,
-        claim_type: claim.claim_type,
-        parent_claim_number: claim.depends_on,
-        text: claim.claim_text,
-        created_at: claim.created_at
-      }));
 
       // Map attachments
       const mappedAttachments: IPAttachment[] = (attachmentsData || []).map((att: any) => ({
@@ -142,8 +131,10 @@ export default function FacultyApplicationDetail() {
         file_url: att.file_path,
         attachment_type: att.file_type,
         description: att.description || '',
-        uploaded_at: att.created_at
-      }));
+        uploaded_at: att.created_at,
+        // Carry document_type so we can separate admin-provided files
+        document_type: att.document_type || null,
+      } as IPAttachment & { document_type: string | null }));
 
       // Map status history
       const mappedHistory: IPApplicationStatusHistory[] = (historyData || []).map((hist: any) => ({
@@ -184,7 +175,7 @@ export default function FacultyApplicationDetail() {
       });
 
       setApplication(mappedApplication);
-      setClaims(mappedClaims);
+      
       setAttachments(mappedAttachments);
       setStatusHistory(mappedHistory);
       setComments(mappedComments);
@@ -367,7 +358,7 @@ export default function FacultyApplicationDetail() {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t">
                   <div>
                     <p className="text-sm text-gray-500">Submitted</p>
                     <p className="font-medium">
@@ -378,12 +369,8 @@ export default function FacultyApplicationDetail() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Version</p>
-                    <p className="font-medium">v{application.version}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Field</p>
-                    <p className="font-medium">{application.field_of_technology}</p>
+                    <p className="text-sm text-gray-500">Application No.</p>
+                    <p className="font-medium font-mono text-xs">{application.application_number}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Last Updated</p>
@@ -397,25 +384,50 @@ export default function FacultyApplicationDetail() {
 
             {/* Tabs Content */}
             <Tabs defaultValue="details" className="w-full">
-              <TabsList className="text-[white] grid w-full grid-cols-4">
+              <TabsList className="text-[white] grid w-full grid-cols-3">
                 <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="claims">Claims</TabsTrigger>
                 <TabsTrigger value="attachments">Attachments</TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
               </TabsList>
 
               <TabsContent value="details" className="mt-4 space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Abstract
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 leading-relaxed">{application.abstract}</p>
-                  </CardContent>
-                </Card>
+                {application.classification && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Classification</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-700">
+                        {application.classification}
+                        {(application.classification === 'Other' || application.classification === 'Others') && application.classification_other && (
+                          <span className="text-gray-500"> — {application.classification_other}</span>
+                        )}
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {application.ip_type === 'Trademark' && (application.trademark_goods_services || application.trademark_mark_description) && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Trademark Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {application.trademark_goods_services && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500 mb-1">List of Goods / Services</p>
+                          <p className="text-gray-700 whitespace-pre-wrap">{application.trademark_goods_services}</p>
+                        </div>
+                      )}
+                      {application.trademark_mark_description && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500 mb-1">Description of the Mark Representation</p>
+                          <p className="text-gray-700 whitespace-pre-wrap">{application.trademark_mark_description}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
                 {application.background_of_invention && (
                   <Card>
@@ -451,92 +463,121 @@ export default function FacultyApplicationDetail() {
                 )}
               </TabsContent>
 
-              <TabsContent value="claims" className="mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Claims ({claims.length})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {claims.length === 0 ? (
-                      <p className="text-gray-500 text-center py-8">No claims filed</p>
-                    ) : (
-                      <div className="space-y-4">
-                        {claims.map((claim) => (
-                          <div key={claim.id} className="p-4 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge variant={claim.claim_type === 'independent' ? 'default' : 'secondary'}>
-                                Claim {claim.claim_number}
-                              </Badge>
-                              <span className="text-sm text-gray-500">
-                                {claim.claim_type === 'independent' ? 'Independent' : `Dependent on Claim ${claim.parent_claim_number}`}
-                              </span>
-                            </div>
-                            <p className="text-gray-700">{claim.text}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+              <TabsContent value="attachments" className="mt-4 space-y-4">
+                {(() => {
+                  const adminDocTypes = new Set(['admin_feedback', 'certification']);
+                  const facultyAttachments = attachments.filter(
+                    (a: any) => !adminDocTypes.has(a.document_type)
+                  );
+                  const adminAttachments = attachments.filter(
+                    (a: any) => adminDocTypes.has(a.document_type)
+                  );
+                  const certifications = adminAttachments.filter(
+                    (a: any) => a.document_type === 'certification'
+                  );
+                  const adminFeedback = adminAttachments.filter(
+                    (a: any) => a.document_type === 'admin_feedback'
+                  );
 
-              <TabsContent value="attachments" className="mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Attachments ({attachments.length})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {attachments.length === 0 ? (
-                      <p className="text-gray-500 text-center py-8">No attachments</p>
-                    ) : (
-                      <div className="space-y-3">
-                        {attachments.map((attachment) => (
-                          <div 
-                            key={attachment.id} 
-                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                          >
-                            <div className="flex items-center gap-3">
-                              <FileText className="h-8 w-8 text-blue-500" />
-                              <div>
-                                <p className="font-medium">{attachment.file_name}</p>
-                                <p className="text-sm text-gray-500">
-                                  {formatFileSize(attachment.file_size)} • {attachment.attachment_type}
-                                </p>
-                                {attachment.description && (
-                                  <p className="text-sm text-gray-600 mt-1">{attachment.description}</p>
-                                )}
-                              </div>
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                if (attachment.file_url) {
-                                  window.open(attachment.file_url, '_blank');
-                                } else {
-                                  toast({
-                                    title: "Error",
-                                    description: "File URL not available.",
-                                    variant: "destructive"
-                                  });
-                                }
-                              }}
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
-                            </Button>
-                          </div>
-                        ))}
+                  const renderAttachmentRow = (attachment: any) => (
+                    <div
+                      key={attachment.id}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-8 w-8 text-blue-500" />
+                        <div>
+                          <p className="font-medium">{attachment.file_name}</p>
+                          <p className="text-sm text-gray-500">
+                            {formatFileSize(attachment.file_size)}
+                            {attachment.attachment_type ? ` • ${attachment.attachment_type}` : ''}
+                          </p>
+                          {attachment.description && (
+                            <p className="text-sm text-gray-600 mt-1">{attachment.description}</p>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (attachment.file_url) {
+                            window.open(attachment.file_url, '_blank');
+                          } else {
+                            toast({
+                              title: "Error",
+                              description: "File URL not available.",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </Button>
+                    </div>
+                  );
+
+                  return (
+                    <>
+                      {/* Certifications from admin (Granted) */}
+                      {certifications.length > 0 && (
+                        <Card className="border-emerald-200 bg-emerald-50/40">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-emerald-800">
+                              <FileText className="h-5 w-5" />
+                              Certifications from Admin ({certifications.length})
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              {certifications.map(renderAttachmentRow)}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Admin feedback / revision reference files */}
+                      {adminFeedback.length > 0 && (
+                        <Card className="border-blue-200 bg-blue-50/40">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-blue-800">
+                              <FileText className="h-5 w-5" />
+                              Admin-Provided Files ({adminFeedback.length})
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-xs text-gray-600 mb-3">
+                              Reference files attached by the TPCO admin during review.
+                            </p>
+                            <div className="space-y-3">
+                              {adminFeedback.map(renderAttachmentRow)}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Faculty-uploaded attachments */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <FileText className="h-5 w-5" />
+                            Your Attachments ({facultyAttachments.length})
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {facultyAttachments.length === 0 ? (
+                            <p className="text-gray-500 text-center py-8">No attachments</p>
+                          ) : (
+                            <div className="space-y-3">
+                              {facultyAttachments.map(renderAttachmentRow)}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </>
+                  );
+                })()}
               </TabsContent>
 
               <TabsContent value="history" className="mt-4">
@@ -615,6 +656,12 @@ export default function FacultyApplicationDetail() {
                       <div key={index} className="p-3 bg-gray-50 rounded-lg">
                         <p className="font-medium">{inventor.name}</p>
                         <p className="text-sm text-gray-500">{inventor.nationality}</p>
+                        {inventor.email && (
+                          <p className="text-sm text-blue-700 mt-1 break-all">{inventor.email}</p>
+                        )}
+                        {inventor.contact_number && (
+                          <p className="text-sm text-gray-600">{inventor.contact_number}</p>
+                        )}
                         <p className="text-sm text-gray-600 mt-1">{inventor.contribution}</p>
                       </div>
                     ))}

@@ -59,22 +59,12 @@ export function DocumentChecklist({ onValidationChange }: DocumentChecklistProps
   const { toast } = useToast();
   const { watch, setValue } = useFormContext();
   const ipType = watch('ip_type') as IPType;
-  const claimsPriority = watch('claimsPriority');
-  const isAgentFiling = watch('isAgentFiling');
-  const isSmallEntity = watch('isSmallEntity');
-  const isApplicantInventor = watch('isApplicantInventor');
-  const isOwnerAuthor = watch('isOwnerAuthor');
   const attachments = watch('attachments') || [];
   
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
 
   const formState = {
     ip_type: ipType,
-    claimsPriority,
-    isAgentFiling,
-    isSmallEntity,
-    isApplicantInventor,
-    isOwnerAuthor,
     attachments
   };
 
@@ -159,6 +149,19 @@ export function DocumentChecklist({ onValidationChange }: DocumentChecklistProps
         <AlertTitle>Select IP Type</AlertTitle>
         <AlertDescription>
           Please select an IP type in the previous step to see required documents.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  // Trademark uses text fields instead of file uploads
+  if (ipType === 'Trademark' && requirements.length === 0) {
+    return (
+      <Alert className="bg-blue-50 border-blue-200">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertTitle className="text-blue-800">No File Uploads Required</AlertTitle>
+        <AlertDescription className="text-blue-700">
+          Trademark details are entered as text in the section above &mdash; no file uploads are required for this IP type.
         </AlertDescription>
       </Alert>
     );
@@ -260,9 +263,6 @@ export function DocumentChecklist({ onValidationChange }: DocumentChecklistProps
                       {req.required && (
                         <Badge variant="destructive" className="text-xs">Required</Badge>
                       )}
-                      {req.conditional && (
-                        <Badge variant="outline" className="text-xs">Conditional</Badge>
-                      )}
                       {isUploaded && (
                         <Badge variant="default" className="bg-green-500 text-xs">
                           <CheckCircle className="h-3 w-3 mr-1" />
@@ -346,25 +346,6 @@ export function DocumentChecklist({ onValidationChange }: DocumentChecklistProps
               </div>
             );
           })}
-        </CardContent>
-      </Card>
-
-      {/* IPOPHL Guidelines */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <Info className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div>
-              <h4 className="font-medium text-blue-900">IPOPHL Filing Requirements</h4>
-              <ul className="text-sm text-blue-800 mt-2 space-y-1 list-disc list-inside">
-                <li>All documents must be clear and legible</li>
-                <li>File names should not contain special characters (use underscores)</li>
-                <li>Maximum file size is 20MB per document (50MB for copyright works)</li>
-                <li>PDF files are preferred for text documents</li>
-                <li>Images should be high resolution (minimum 300 DPI)</li>
-              </ul>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

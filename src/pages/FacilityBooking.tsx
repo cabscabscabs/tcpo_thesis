@@ -151,7 +151,7 @@ const FacilityBooking = () => {
   };
 
   const handleEmailTPCO = () => {
-    window.open('mailto:tpco@ustp.edu.ph?subject=SSF Facility Booking Inquiry');
+    window.open('mailto:ustp.tpco@ustp.edu.ph?subject=SSF Facility Booking Inquiry');
   };
 
   const handleOpenBookingModal = (facility: any) => {
@@ -294,7 +294,7 @@ const FacilityBooking = () => {
                 <CardContent className="p-6">
                   <Phone className="text-secondary mx-auto mb-4" size={32} />
                   <h4 className="font-semibold mb-2">Call Us</h4>
-                  <p className="text-gray-600 mb-2">(088) 856-1738</p>
+                  <p className="text-gray-600 mb-2">(088) 856-1738 Local 1145</p>
                   <p className="text-sm text-gray-500">Mon-Fri, 8:00 AM - 5:00 PM</p>
                 </CardContent>
               </Card>
@@ -303,7 +303,7 @@ const FacilityBooking = () => {
                 <CardContent className="p-6">
                   <Mail className="text-secondary mx-auto mb-4" size={32} />
                   <h4 className="font-semibold mb-2">Email Us</h4>
-                  <p className="text-gray-600 mb-2">tpco@ustp.edu.ph</p>
+                  <p className="text-gray-600 mb-2">ustp.tpco@ustp.edu.ph</p>
                   <p className="text-sm text-gray-500">Response within 24 hours</p>
                 </CardContent>
               </Card>

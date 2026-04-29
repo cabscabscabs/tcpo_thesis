@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Handshake, BookOpen, Rocket, Users, Building, FileText, CheckCircle, Clock, ArrowRight, Phone, Mail, MapPin, Wrench, Lightbulb } from "lucide-react";
+import { Shield, Handshake, BookOpen, Rocket, Users, Building, FileText, CheckCircle, Clock, ArrowRight, Phone, Mail, MapPin, Wrench, Lightbulb, TrendingUp, Droplet, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import servicesImage from "@/assets/services-bg.jpg";
@@ -99,40 +99,57 @@ const Services = () => {
     }
   ];
 
-  const successStories = [
+  // Banner Programs — flagship initiatives of USTP TPCO
+  const bannerPrograms = [
     {
-      title: "AgriTech Soil Enhancement",
-      company: "GreenGrow Solutions",
-      technology: "Bio-Organic Fertilizer System",
-      impact: "35% yield increase, ₱2M annual revenue",
-      timeline: "6 months from licensing to market",
-      narrative: "Dr. Maria Santos, a soil scientist at USTP, developed an innovative bio-organic fertilizer system using locally-sourced agricultural waste. When GreenGrow Solutions, a local farming cooperative, approached USTP TPCO for sustainable farming solutions, we facilitated the technology transfer. Through our licensing program, GreenGrow implemented the system across 500 hectares of farmland. The results exceeded expectations: crop yields increased by 35%, soil health improved dramatically, and the cooperative generated ₱2M in additional annual revenue. Today, the technology is being scaled to other regions in Mindanao.",
-      challenge: "Traditional fertilizers were degrading soil quality and becoming increasingly expensive for local farmers.",
-      solution: "Bio-organic fertilizer system that enriches soil while reducing costs by 40%.",
-      outcome: "Transformed 500 hectares of farmland and created a sustainable revenue model for farming communities."
+      name: "Ripple Tank",
+      focus: "IP Protection",
+      description: "Safeguarding intellectual property rights through patent, copyright, and trademark support.",
+      icon: Shield,
+      accent: "from-blue-600 to-primary",
     },
     {
-      title: "Smart Construction Materials",
-      company: "BuildSmart Inc.",
-      technology: "Concrete Additive Technology",
-      impact: "20% cost reduction, 15 projects implemented",
-      timeline: "8 months development to deployment",
-      narrative: "Professor Roberto Mendez's research on concrete additives using volcanic ash from local sources caught the attention of BuildSmart Inc., a regional construction company. Through USTP TPCO's industry-academe matching program, we facilitated a partnership that transformed how construction projects are executed in Northern Mindanao. The innovative additive not only reduced construction costs by 20% but also improved structural integrity by 30%. BuildSmart has since implemented this technology in 15 major projects, including hospitals and schools, contributing to safer and more affordable infrastructure development.",
-      challenge: "High construction costs and environmental concerns with traditional concrete production.",
-      solution: "Volcanic ash-based concrete additive that improves strength while reducing costs.",
-      outcome: "15 major construction projects completed with improved safety standards and cost efficiency."
+      name: "Rush Stream",
+      focus: "Commercialization",
+      description: "Accelerating the movement of USTP innovations from lab to market through licensing and partnerships.",
+      icon: TrendingUp,
+      accent: "from-teal-600 to-accent",
     },
     {
-      title: "Food Preservation Innovation",
-      company: "FreshPack Solutions",
-      technology: "Natural Packaging Technology",
-      impact: "50% shelf life extension, export market entry",
-      timeline: "4 months pilot to commercial scale",
-      narrative: "Dr. Carmen Reyes developed a revolutionary natural packaging technology using plant-based antimicrobial agents. FreshPack Solutions, a food processing startup, was struggling with product shelf life limitations that prevented them from accessing export markets. USTP TPCO's startup incubation program provided the perfect platform for technology transfer. Within four months, FreshPack successfully scaled the technology, extending product shelf life by 50% and enabling them to enter international markets. The company now exports to three ASEAN countries and has created 50 new jobs in the local community.",
-      challenge: "Limited shelf life of processed foods preventing export market expansion.",
-      solution: "Plant-based antimicrobial packaging that naturally preserves food products.",
-      outcome: "Successful entry into international markets with 50% longer product shelf life."
-    }
+      name: "Rapid Boost",
+      focus: "Technology Promotion",
+      description: "Amplifying the visibility of USTP technologies via outreach, showcases, and stakeholder engagement.",
+      icon: Rocket,
+      accent: "from-fuchsia-600 to-primary",
+    },
+  ];
+
+  // Innovation Drives — targeted support programs under TPCO
+  const innovationDrives = [
+    {
+      acronym: "B.E.C.K. Program",
+      expansion: "Business eLearning and Concept Know-How",
+    },
+    {
+      acronym: "L.I.N.K LGU",
+      expansion: "Leading Innovation, Networking, and Knowledge for Local Government Units",
+    },
+    {
+      acronym: "C.A.S.C.A.D.E. Newsletter",
+      expansion: "Commercialization and Stories of Creative Advances, Discoveries, and Emerging IP",
+    },
+    {
+      acronym: "iPROTECT",
+      expansion: "Intellectual Property Rights Outreach, Training, Education, and Capacity Transformation",
+    },
+    {
+      acronym: "Fireside Chat Series",
+      expansion: "Cultivating a Culture of Innovation with USTP Leaders",
+    },
+    {
+      acronym: "T.T.R.I.P.P",
+      expansion: "Technology Transfer Relay and Intellectual Property Promotions",
+    },
   ];
 
   return (
@@ -274,138 +291,99 @@ const Services = () => {
         </div>
       </section>
 
-      {/* Additional Services */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-roboto font-bold text-primary mb-4">
-              Additional Services
+      {/* Banner Programs */}
+      <section className="relative py-20 bg-gradient-to-b from-white via-gray-50 to-white overflow-hidden">
+        {/* decorative ripples */}
+        <div className="pointer-events-none absolute -top-24 -left-24 w-96 h-96 rounded-full bg-secondary/5" />
+        <div className="pointer-events-none absolute -bottom-24 -right-24 w-[28rem] h-[28rem] rounded-full bg-primary/5" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-secondary mb-3">
+              USTP TPCO Flagships
+            </span>
+            <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4">
+              Banner Programs
             </h2>
-            <p className="text-lg text-gray-600">
-              Specialized services to support your innovation journey
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Three flagship initiatives that anchor our work across IP protection,
+              commercialization, and technology promotion.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {additionalServices.map((service, index) => (
-              <Card key={index} className="text-center hover:shadow-card transition-all duration-300 cursor-pointer group"
-                    onClick={() => navigate('/additional-services')}>
-                <CardContent className="p-6">
-                  <div className="p-3 bg-secondary/10 rounded-full w-fit mx-auto mb-4 group-hover:bg-secondary/20 transition-colors">
-                    <service.icon className="text-secondary" size={32} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {bannerPrograms.map((program, index) => (
+              <Card
+                key={index}
+                className="relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-t-4 border-t-secondary"
+              >
+                {/* ripple accents */}
+                <div className="absolute -right-12 -top-12 w-40 h-40 rounded-full bg-secondary/10 group-hover:bg-secondary/20 transition-colors" />
+                <div className="absolute -right-20 -top-20 w-56 h-56 rounded-full bg-primary/5" />
+
+                <CardContent className="relative p-8 text-center">
+                  <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-5 shadow-lg bg-gradient-to-br ${program.accent} group-hover:scale-110 transition-transform`}>
+                    <program.icon className="text-secondary" size={38} />
                   </div>
-                  <h3 className="font-roboto font-semibold text-primary mb-2 group-hover:text-accent transition-colors">{service.title}</h3>
-                  <p className="text-gray-600 text-sm mb-4">{service.description}</p>
-                  <Badge variant="outline" className="text-xs mb-4">
-                    {service.duration}
-                  </Badge>
-                  <div className="mt-4">
-                    <span className="text-sm text-primary group-hover:text-accent transition-colors font-medium">
-                      Learn More →
-                    </span>
-                  </div>
+                  <h3 className="text-2xl font-roboto font-bold text-primary mb-1">
+                    {program.name}
+                  </h3>
+                  <p className="text-sm font-semibold uppercase tracking-[0.15em] text-secondary">
+                    {program.focus}
+                  </p>
+                  <p className="text-xs uppercase tracking-widest text-gray-400 mb-4">
+                    Activities
+                  </p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {program.description}
+                  </p>
                 </CardContent>
               </Card>
             ))}
           </div>
-          
-          <div className="text-center mt-8">
-            <Button variant="gold" size="lg" onClick={() => navigate('/additional-services')}>
-              View All Additional Services
-              <ArrowRight className="ml-2" size={16} />
-            </Button>
-          </div>
         </div>
       </section>
 
-      {/* Success Stories */}
-      <section id="success-stories" className="py-16">
+      {/* Innovation Drives */}
+      <section className="py-20 bg-gradient-to-br from-primary/[0.03] via-gray-50 to-accent/[0.03]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-roboto font-bold text-primary mb-4">
-              Success Stories
+          <div className="text-center mb-14">
+            <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-secondary mb-3">
+              Targeted Support Programs
+            </span>
+            <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4">
+              Innovation Drives
             </h2>
-            <p className="text-lg text-gray-600">
-              Real results from our technology transfer partnerships
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Focused programs that fuel learning, outreach, and technology transfer
+              across USTP and partner communities.
             </p>
           </div>
 
-          <div className="space-y-12">
-            {successStories.map((story, index) => (
-              <div key={index} className={`grid grid-cols-1 lg:grid-cols-2 gap-8 items-center ${
-                index % 2 === 1 ? 'lg:grid-flow-col-dense' : ''
-              }`}>
-                {/* Story Content */}
-                <div className={index % 2 === 1 ? 'lg:col-start-2' : ''}>
-                  <Card className="h-full">
-                    <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge variant="secondary" className="text-xs">
-                          Case Study {index + 1}
-                        </Badge>
-                        <span className="text-xs text-gray-500">{story.timeline}</span>
-                      </div>
-                      <CardTitle className="text-xl font-roboto text-primary">
-                        {story.title}
-                      </CardTitle>
-                      <CardDescription className="font-semibold text-secondary">
-                        {story.company}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div>
-                          <h4 className="font-semibold text-sm text-primary mb-2">The Challenge</h4>
-                          <p className="text-sm text-gray-600">{story.challenge}</p>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-sm text-primary mb-2">USTP Solution</h4>
-                          <p className="text-sm text-gray-600">{story.solution}</p>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-sm text-primary mb-2">Impact Achieved</h4>
-                          <p className="text-sm text-gray-600">{story.outcome}</p>
-                          <div className="mt-2 p-2 bg-green-50 rounded-md">
-                            <p className="text-sm font-semibold text-green-800">{story.impact}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {innovationDrives.map((drive, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-5 p-5 rounded-xl text-white shadow-md hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 group bg-gradient-to-r from-primary via-primary to-accent"
+              >
+                <div className="flex-shrink-0 w-14 h-14 rounded-full bg-secondary text-primary font-roboto font-bold text-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  {String(index + 1).padStart(2, "0")}
                 </div>
-                
-                {/* Story Narrative */}
-                <div className={index % 2 === 1 ? 'lg:col-start-1' : ''}>
-                  <div className="prose prose-gray max-w-none">
-                    <h3 className="text-2xl font-roboto font-bold text-primary mb-4">
-                      Success Story: {story.technology}
-                    </h3>
-                    <p className="text-gray-700 leading-relaxed text-justify">
-                      {story.narrative}
-                    </p>
-                    <div className="mt-6 flex flex-wrap gap-2">
-                      <Badge variant="outline" className="bg-primary/5">
-                        Technology Transfer
-                      </Badge>
-                      <Badge variant="outline" className="bg-accent/5">
-                        Industry Partnership
-                      </Badge>
-                      <Badge variant="outline" className="bg-secondary/5">
-                        Market Success
-                      </Badge>
-                    </div>
-                  </div>
+                <div className="min-w-0">
+                  <h3 className="text-lg md:text-xl font-roboto font-bold text-secondary leading-tight">
+                    {drive.acronym}
+                  </h3>
+                  <p className="text-sm text-white/90 leading-snug mt-1">
+                    {drive.expansion}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
-          
+
           <div className="text-center mt-12">
-            <p className="text-gray-600 mb-4">
-              Want to be our next success story?
-            </p>
             <Button variant="gold" size="lg" onClick={() => navigate('/contact')}>
-              Start Your Journey
+              Partner With a Program
               <ArrowRight className="ml-2" size={16} />
             </Button>
           </div>
@@ -426,12 +404,12 @@ const Services = () => {
             <div className="flex flex-col items-center">
               <Phone className="text-secondary mb-2" size={24} />
               <h3 className="font-semibold mb-1">Call Us</h3>
-              <p className="text-gray-200">(088) 856-1738</p>
+              <p className="text-gray-200">(088) 856-1738 Local 1145</p>
             </div>
             <div className="flex flex-col items-center">
               <Mail className="text-secondary mb-2" size={24} />
               <h3 className="font-semibold mb-1">Email Us</h3>
-              <p className="text-gray-200">tpco@ustp.edu.ph</p>
+              <p className="text-gray-200">ustp.tpco@ustp.edu.ph</p>
             </div>
             <div className="flex flex-col items-center">
               <MapPin className="text-secondary mb-2" size={24} />

@@ -27,7 +27,7 @@ function transformAdminPatent(patent: any): ExtendedPortfolioItem {
     abstract: patent.abstract || `Patent abstract for ${patent.title || 'Untitled Patent'}`,
     licensing: patent.status === 'Licensed' ? 'Already Licensed' : 'Available for licensing',
     applications: [patent.field, 'Innovation', 'Research'].filter(Boolean),
-    contact: "tpco@ustp.edu.ph",
+    contact: "ustp.tpco@ustp.edu.ph",
     inventor: null,
     patent_status: null,
     patent_number: patent.patent_number || null,
@@ -66,7 +66,10 @@ async function fetchPublishedItems(): Promise<ExtendedPortfolioItem[]> {
       .from('admin_patents' as any)
       .select('*')
       .eq('published', true)
-      .neq('status', 'Draft');
+      // Only surface patents that have reached a public-facing milestone.
+      // Filed/Under Review/Licensed drafts are excluded from recommendations
+      // so Featured Technologies matches the public IP Portfolio rules.
+      .in('status', ['Registered', 'Commercialized']);
 
     if (error) throw error;
     if (data && data.length > 0) {

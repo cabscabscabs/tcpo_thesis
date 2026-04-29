@@ -1,38 +1,75 @@
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  Upload, 
-  FileText, 
+import {
+  Upload,
+  FileText,
   X,
-  FileCheck,
   FileText as FileTextIcon,
-  Info
+  Info,
+  Tag
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { IPType, ipTypeConfig } from "@/types/ipApplication";
 import { DocumentChecklist } from "./DocumentChecklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+const MAX_ADDITIONAL_ATTACHMENT_MB = 50;
+const WORD_LIMIT = 150;
+
+function countWords(text: string): number {
+  if (!text) return 0;
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
 export function ClaimsAndDrawingsStep() {
   const { register, watch, setValue, formState: { errors } } = useFormContext();
   const attachments = watch("attachments") || [];
-  const ipType = watch("ip_type");
+  const ipType = watch("ip_type") as IPType | undefined;
+  const classification = watch("classification") as string | undefined;
+  const classificationOther = watch("classification_other") as string | undefined;
+  const goodsServices = (watch("trademark_goods_services") as string | undefined) || "";
+  const markDescription = (watch("trademark_mark_description") as string | undefined) || "";
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'drawing' | 'document') => {
     const files = event.target.files;
-    if (files) {
-      const newAttachments = Array.from(files).map(file => ({
+    if (!files) return;
+
+    const accepted: any[] = [];
+    const rejected: string[] = [];
+    Array.from(files).forEach((file) => {
+      const sizeMB = file.size / (1024 * 1024);
+      if (sizeMB > MAX_ADDITIONAL_ATTACHMENT_MB) {
+        rejected.push(`${file.name} exceeds ${MAX_ADDITIONAL_ATTACHMENT_MB}MB limit`);
+        return;
+      }
+      accepted.push({
         file,
         file_name: file.name,
         file_type: file.type,
         file_size: file.size,
         attachment_type: type
-      }));
-      setValue("attachments", [...attachments, ...newAttachments]);
+      });
+    });
+
+    if (accepted.length > 0) {
+      setValue("attachments", [...attachments, ...accepted]);
     }
+    if (rejected.length > 0) {
+      // Non-blocking inline message; toast is handled by parent on submit if needed
+      alert(rejected.join('\n'));
+    }
+    // Reset input so the same file can be re-selected
+    event.target.value = '';
   };
 
   const removeAttachment = (index: number) => {
@@ -48,19 +85,35 @@ export function ClaimsAndDrawingsStep() {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-  
-  // Conditional fields for document requirements
-  const claimsPriority = watch('claimsPriority');
-  const isAgentFiling = watch('isAgentFiling');
-  const isSmallEntity = watch('isSmallEntity');
-  const isApplicantInventor = watch('isApplicantInventor') !== false; // Default true
-  const isOwnerAuthor = watch('isOwnerAuthor') !== false; // Default true
 
   const ipTypes: IPType[] = ['Patent', 'Utility Model', 'Industrial Design', 'Copyright', 'Trademark'];
 
+  // Classification options per IP type
+  const classificationOptions: { value: string; label: string }[] =
+    ipType === 'Utility Model'
+      ? [
+          { value: 'ICT Related', label: 'ICT Related' },
+          { value: 'Mechanical', label: 'Mechanical' },
+          { value: 'Chemical', label: 'Chemical' },
+          { value: 'Other', label: 'Other' },
+        ]
+      : ipType === 'Copyright'
+      ? [
+          { value: 'IM', label: 'IM (Instructional Materials)' },
+          { value: 'Computer Program', label: 'Computer Program' },
+          { value: 'Others', label: 'Others' },
+        ]
+      : [];
+
+  const isClassificationApplicable = ipType === 'Utility Model' || ipType === 'Copyright';
+  const isOtherSelected = classification === 'Other' || classification === 'Others';
+
+  const goodsServicesWordCount = countWords(goodsServices);
+  const markDescriptionWordCount = countWords(markDescription);
+
   return (
     <div className="space-y-6">
-      {/* IP Type Selection - Required for document validation */}
+      {/* IP Type Selection */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -76,19 +129,19 @@ export function ClaimsAndDrawingsStep() {
               Please select the type of IP application you are submitting. This will determine the required documents.
             </AlertDescription>
           </Alert>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {ipTypes.map((type) => {
               const config = ipTypeConfig[type];
               const isSelected = ipType === type;
-              
+
               return (
                 <div
                   key={type}
                   onClick={() => setValue("ip_type", type, { shouldValidate: true })}
                   className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                    isSelected 
-                      ? "border-blue-500 bg-blue-50" 
+                    isSelected
+                      ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-blue-300"
                   }`}
                 >
@@ -111,210 +164,217 @@ export function ClaimsAndDrawingsStep() {
         </CardContent>
       </Card>
 
-      {/* Document Upload Section */}
       {ipType && (
         <>
-      {/* Title of the IP */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileTextIcon className="h-5 w-5 text-blue-600" />
-            Title of the IP
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Label htmlFor="ip_title">Title <span className="text-red-500">*</span></Label>
-            <Input
-              id="ip_title"
-              placeholder="Enter the title of your intellectual property"
-              {...register("title", { required: "Title is required" })}
-            />
-            {errors.title && (
-              <p className="text-sm text-red-500">{errors.title.message as string}</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Filing Options */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileCheck className="h-5 w-5 text-purple-600" />
-            Filing Options
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Priority Claim */}
-            <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-              <Checkbox
-                id="claimsPriority"
-                checked={claimsPriority}
-                onCheckedChange={(checked) => setValue('claimsPriority', checked)}
-              />
-              <div className="space-y-1">
-                <Label htmlFor="claimsPriority" className="font-medium cursor-pointer">
-                  Claims Priority
-                </Label>
-                <p className="text-sm text-gray-500">
-                  Based on earlier filing in another country
-                </p>
-              </div>
-            </div>
-
-            {/* Agent Filing */}
-            <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-              <Checkbox
-                id="isAgentFiling"
-                checked={isAgentFiling}
-                onCheckedChange={(checked) => setValue('isAgentFiling', checked)}
-              />
-              <div className="space-y-1">
-                <Label htmlFor="isAgentFiling" className="font-medium cursor-pointer">
-                  Filing via Agent
-                </Label>
-                <p className="text-sm text-gray-500">
-                  Using a patent attorney or agent
-                </p>
-              </div>
-            </div>
-
-            {/* Small Entity */}
-            <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-              <Checkbox
-                id="isSmallEntity"
-                checked={isSmallEntity}
-                onCheckedChange={(checked) => setValue('isSmallEntity', checked)}
-              />
-              <div className="space-y-1">
-                <Label htmlFor="isSmallEntity" className="font-medium cursor-pointer">
-                  Small Entity
-                </Label>
-                <p className="text-sm text-gray-500">
-                  Eligible for reduced fees
-                </p>
-              </div>
-            </div>
-
-            {/* Applicant is Inventor (for Patent/Utility Model) */}
-            {(ipType === 'Patent' || ipType === 'Utility Model') && (
-              <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                <Checkbox
-                  id="isApplicantInventor"
-                  checked={isApplicantInventor}
-                  onCheckedChange={(checked) => setValue('isApplicantInventor', checked)}
-                />
-                <div className="space-y-1">
-                  <Label htmlFor="isApplicantInventor" className="font-medium cursor-pointer">
-                    Applicant is Inventor
-                  </Label>
-                  <p className="text-sm text-gray-500">
-                    No assignment needed
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Owner is Author (for Copyright) */}
-            {ipType === 'Copyright' && (
-              <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                <Checkbox
-                  id="isOwnerAuthor"
-                  checked={isOwnerAuthor}
-                  onCheckedChange={(checked) => setValue('isOwnerAuthor', checked)}
-                />
-                <div className="space-y-1">
-                  <Label htmlFor="isOwnerAuthor" className="font-medium cursor-pointer">
-                    Owner is Author
-                  </Label>
-                  <p className="text-sm text-gray-500">
-                    No ownership affidavit needed
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Document Checklist */}
-      <DocumentChecklist />
-
-      {/* Additional Attachments Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5 text-green-600" />
-            Additional Attachments
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Documents Upload */}
-          <div className="space-y-3">
-            <Label>Supporting Documents</Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-              <FileText className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-              <p className="text-sm text-gray-600 mb-2">
-                Upload forms, declarations, or other supporting documents
-              </p>
-              <p className="text-xs text-gray-500 mb-4">
-                Supported formats: PDF, DOC, DOCX (max 10MB each)
-              </p>
-              <Input
-                type="file"
-                accept=".pdf,.doc,.docx"
-                multiple
-                onChange={(e) => handleFileUpload(e, 'document')}
-                className="hidden"
-                id="documents-upload"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => document.getElementById('documents-upload')?.click()}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Select Documents
-              </Button>
-            </div>
-          </div>
-
-          {/* Attached Files List */}
-          {attachments.length > 0 && (
-            <div className="space-y-2">
-              <Label>Attached Files</Label>
+          {/* Title of the IP */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileTextIcon className="h-5 w-5 text-blue-600" />
+                Title of the IP
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-2">
-                {attachments.map((file: any, index: number) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-green-500" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{file.file_name}</p>
-                        <p className="text-xs text-gray-500">
-                          {formatFileSize(file.file_size)}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeAttachment(index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+                <Label htmlFor="ip_title">Title <span className="text-red-500">*</span></Label>
+                <Input
+                  id="ip_title"
+                  placeholder="Enter the title of your intellectual property"
+                  {...register("title", { required: "Title is required" })}
+                />
+                {errors.title && (
+                  <p className="text-sm text-red-500">{errors.title.message as string}</p>
+                )}
               </div>
-            </div>
+            </CardContent>
+          </Card>
+
+          {/* Classification (Utility Model + Copyright) */}
+          {isClassificationApplicable && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Tag className="h-5 w-5 text-purple-600" />
+                  Classification
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="classification">
+                    Classification <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={classification || ''}
+                    onValueChange={(val) => {
+                      setValue('classification', val, { shouldValidate: true });
+                      if (val !== 'Other' && val !== 'Others') {
+                        setValue('classification_other', '');
+                      }
+                    }}
+                  >
+                    <SelectTrigger id="classification">
+                      <SelectValue placeholder="Select a classification" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classificationOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {isOtherSelected && (
+                  <div className="space-y-2">
+                    <Label htmlFor="classification_other">
+                      Specify <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="classification_other"
+                      placeholder="Please specify the classification"
+                      value={classificationOther || ''}
+                      onChange={(e) => setValue('classification_other', e.target.value)}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
-          </>
+
+          {/* Trademark text fields — replace file uploads */}
+          {ipType === 'Trademark' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileTextIcon className="h-5 w-5 text-blue-600" />
+                  Trademark Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="trademark_goods_services">
+                      Goods / Services <span className="text-red-500">*</span>
+                    </Label>
+                    <span
+                      className={`text-xs ${
+                        goodsServicesWordCount > WORD_LIMIT ? 'text-red-500' : 'text-gray-500'
+                      }`}
+                    >
+                      {goodsServicesWordCount} / {WORD_LIMIT} words
+                    </span>
+                  </div>
+                  <Textarea
+                    id="trademark_goods_services"
+                    placeholder="Describe the goods and/or services covered by this trademark (max 150 words)"
+                    rows={4}
+                    {...register("trademark_goods_services")}
+                  />
+                  <p className="text-xs text-gray-500">
+                    Enter a plain-text description. No file upload needed.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="trademark_mark_description">
+                      Description of the Mark Representation <span className="text-red-500">*</span>
+                    </Label>
+                    <span
+                      className={`text-xs ${
+                        markDescriptionWordCount > WORD_LIMIT ? 'text-red-500' : 'text-gray-500'
+                      }`}
+                    >
+                      {markDescriptionWordCount} / {WORD_LIMIT} words
+                    </span>
+                  </div>
+                  <Textarea
+                    id="trademark_mark_description"
+                    placeholder="Describe the mark (wording, design elements, colors, etc.) in up to 150 words"
+                    rows={4}
+                    {...register("trademark_mark_description")}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Document Checklist */}
+          <DocumentChecklist />
+
+          {/* Additional Attachments */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5 text-green-600" />
+                Additional Attachments
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <Label>Supporting Documents</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                  <FileText className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                  <p className="text-sm text-gray-600 mb-2">
+                    Upload forms, declarations, or other supporting documents
+                  </p>
+                  <p className="text-xs text-gray-500 mb-4">
+                    Supported formats: PDF, DOC, DOCX (max {MAX_ADDITIONAL_ATTACHMENT_MB}MB each)
+                  </p>
+                  <Input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    multiple
+                    onChange={(e) => handleFileUpload(e, 'document')}
+                    className="hidden"
+                    id="documents-upload"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById('documents-upload')?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Select Documents
+                  </Button>
+                </div>
+              </div>
+
+              {/* Attached Files List */}
+              {attachments.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Attached Files</Label>
+                  <div className="space-y-2">
+                    {attachments.map((file: any, index: number) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-green-500" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{file.file_name}</p>
+                            <p className="text-xs text-gray-500">
+                              {formatFileSize(file.file_size)}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(index)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );

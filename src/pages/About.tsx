@@ -491,7 +491,7 @@ const About = () => {
               <Phone className="text-secondary mx-auto mb-3" size={32} />
               <h3 className="font-roboto font-semibold mb-2">Phone</h3>
               <p className="text-primary-foreground/80">
-                +63 (088) 856-1738<br />
+                (088) 856-1738 Local 1145<br />
               </p>
             </div>
 
@@ -499,8 +499,7 @@ const About = () => {
               <Mail className="text-secondary mx-auto mb-3" size={32} />
               <h3 className="font-roboto font-semibold mb-2">Email</h3>
               <p className="text-primary-foreground/80">
-                tpco@ustp.edu.ph<br />
-                info@ustp.edu.ph
+                ustp.tpco@ustp.edu.ph<br />
               </p>
             </div>
           </div>

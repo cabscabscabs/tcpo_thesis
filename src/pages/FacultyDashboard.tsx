@@ -196,7 +196,8 @@ export default function FacultyDashboard() {
     if (activeTab === "approved") return app.status === "Approved for IPOPHL Filing" && !app.is_archived;
     if (activeTab === "filed") return 
       ['Filed to IPOPHL', 'Under IPOPHL Examination', 'Published'].includes(app.status) && !app.is_archived;
-    if (activeTab === "completed") return ['Granted', 'Rejected'].includes(app.status) && !app.is_archived;
+    if (activeTab === "granted") return app.status === "Granted" && !app.is_archived;
+    if (activeTab === "completed") return app.status === "Rejected" && !app.is_archived;
     if (activeTab === "archived") return app.is_archived;
     return true;
   });
@@ -282,7 +283,8 @@ export default function FacultyDashboard() {
             <TabsTrigger value="pending" className="data-[state=active]:bg-amber-50 data-[state=active]:text-amber-700 data-[state=active]:border-amber-200">Pending Review</TabsTrigger>
             <TabsTrigger value="approved" className="data-[state=active]:bg-green-50 data-[state=active]:text-green-700 data-[state=active]:border-green-200">Approved</TabsTrigger>
             <TabsTrigger value="filed" className="data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 data-[state=active]:border-purple-200">Filed to IPOPHL</TabsTrigger>
-            <TabsTrigger value="completed" className="data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 data-[state=active]:border-emerald-200">Completed</TabsTrigger>
+            <TabsTrigger value="granted" className="data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 data-[state=active]:border-emerald-200">Granted</TabsTrigger>
+            <TabsTrigger value="completed" className="data-[state=active]:bg-rose-50 data-[state=active]:text-rose-700 data-[state=active]:border-rose-200">Rejected</TabsTrigger>
             <TabsTrigger value="archived" className="data-[state=active]:bg-gray-100 data-[state=active]:text-gray-700 data-[state=active]:border-gray-300">Archived</TabsTrigger>
           </TabsList>
 

@@ -64,11 +64,11 @@ const Footer = () => {
   ];
 
   const partners = [
-    { name: "Oro Chamber of Commerce", url: "https://www.orochamber.org/" },
-    { name: "Ateneo IPO", url: "https://www.aipo.ateneo.edu/" },
-    { name: "DOST Region X", url: "https://region10.dost.gov.ph/" },
-    { name: "DTI Misamis Oriental", url: "https://www.dti.gov.ph/dti-regions/dti-region-10" },
-    { name: "CDO b.i.t.e.s.", url: "https://www.cdobites.com/" }
+    { name: "Oro Chamber of Commerce", url: "https://www.orochamber.org/", logo: "/images/partners/oro-chamber.png" },
+    { name: "Ateneo IPO", url: "https://www.aipo.ateneo.edu/", logo: "/images/partners/ateneo-ipo.png" },
+    { name: "DOST Region X", url: "https://region10.dost.gov.ph/", logo: "/images/partners/dost-region-x.png" },
+    { name: "DTI Misamis Oriental", url: "https://www.dti.gov.ph/dti-regions/dti-region-10", logo: "/images/partners/dti-mis-or.png" },
+    { name: "CDO b.i.t.e.s.", url: "https://www.cdobites.com/", logo: "/images/partners/cdo-bites.jpg" }
   ];
 
   return (
@@ -91,11 +91,11 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Phone size={16} className="text-secondary" />
-                <span className="text-sm">(088) 856-1738</span>
+                <span className="text-sm">(088) 856-1738 Local 1145</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail size={16} className="text-secondary" />
-                <span className="text-sm">tpco@ustp.edu.ph</span>
+                <span className="text-sm">ustp.tpco@ustp.edu.ph</span>
               </div>
             </div>
 
@@ -167,16 +167,23 @@ const Footer = () => {
         {/* Partners Section */}
         <div className="border-t border-gray-600 mt-8 pt-8">
           <h4 className="font-roboto font-semibold mb-4 text-center">Our Partners</h4>
-          <div className="flex flex-wrap justify-center gap-4 mb-6">
+          <div className="flex flex-wrap justify-center items-center gap-4 mb-6">
             {partners.map((partner, index) => (
-              <a 
-                key={index} 
+              <a
+                key={index}
                 href={partner.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-white/80 bg-white/5 px-3 py-1 rounded-full hover:bg-white/10 hover:text-secondary transition-colors cursor-pointer"
+                title={partner.name}
+                aria-label={partner.name}
+                className="flex items-center justify-center bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-3 h-20 w-36 sm:w-40"
               >
-                {partner.name}
+                <img
+                  src={partner.logo}
+                  alt={partner.name}
+                  className="max-h-full max-w-full object-contain"
+                  loading="lazy"
+                />
               </a>
             ))}
           </div>

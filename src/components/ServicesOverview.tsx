@@ -1,42 +1,84 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Shield, Handshake, BookOpen, Rocket, ArrowRight } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Shield,
+  Handshake,
+  BookOpen,
+  Rocket,
+  ArrowRight,
+  Wrench,
+  Lightbulb,
+  Users,
+  Building,
+  FileText,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import servicesImage from "@/assets/services-bg.jpg";
+
+// Icon mapping kept in sync with src/pages/Services.tsx
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const iconMap: Record<string, any> = {
+  Shield,
+  Handshake,
+  BookOpen,
+  Rocket,
+  Wrench,
+  Lightbulb,
+  Users,
+  Building,
+  FileText,
+};
+
+interface OverviewService {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  icon: string;
+  features: string[];
+}
 
 const ServicesOverview = () => {
   const navigate = useNavigate();
-  
-  const services = [
-    {
-      icon: Shield,
-      title: "IP Protection Services",
-      description: "Comprehensive patent filing support, trademark registration, and intellectual property strategy development.",
-      features: ["Patent Application Assistance", "Prior Art Search", "IP Portfolio Management", "Legal Consultation"]
-    },
-    {
-      icon: Handshake,
-      title: "Technology Licensing",
-      description: "Connect researchers with industry partners for technology commercialization and licensing opportunities.",
-      features: ["Licensing Negotiations", "Technology Valuation", "Market Analysis", "Partnership Facilitation"]
-    },
-    {
-      icon: BookOpen,
-      title: "Industry-Academe Matching",
-      description: "Bridge the gap between academic research and industry needs through strategic partnerships.",
-      features: ["Collaboration Matching", "Joint Research Projects", "Consulting Services", "Technology Transfer"]
-    },
-    {
-      icon: Rocket,
-      title: "Startup Incubation",
-      description: "Support researchers in launching startups through CDO b.i.t.e.s. incubation program.",
-      features: ["Business Development", "Mentorship Programs", "Funding Assistance", "Market Entry Support"]
-    }
-  ];
+  const [services, setServices] = useState<OverviewService[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("services")
+          .select("id, name, slug, description, icon, features, order_num, published")
+          .eq("published", true)
+          .order("order_num", { ascending: true });
+
+        if (!error && data) {
+          setServices(
+            data.map((s: any) => ({
+              id: s.id,
+              name: s.name,
+              slug: s.slug || "",
+              description: s.description || "",
+              icon: s.icon || "Wrench",
+              features: Array.isArray(s.features) ? s.features : [],
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Error loading services overview:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadServices();
+  }, []);
 
   const handleRequestService = () => {
-    // Navigate to the services page using React Router
-    navigate('/services');
+    navigate("/services");
   };
 
   return (
@@ -49,39 +91,91 @@ const ServicesOverview = () => {
               Our Services
             </h2>
             <p className="text-lg text-gray-600 mb-8">
-              From ideation to commercialization, USTP TPCO provides comprehensive support 
+              From ideation to commercialization, USTP TPCO provides comprehensive support
               for researchers, inventors, and industry partners in Northern Mindanao.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-              {services.map((service, index) => (
-                <Card key={index} className="group hover:shadow-card transition-all duration-300 border-l-4 border-l-secondary">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <div className="p-2 bg-secondary/10 rounded-lg">
-                        <service.icon className="text-primary" size={24} />
+              {loading ? (
+                [1, 2, 3, 4].map((i) => (
+                  <Card key={i} className="border-l-4 border-l-secondary">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <Skeleton className="h-10 w-10 rounded-lg" />
+                        <Skeleton className="h-5 w-40" />
                       </div>
-                      <CardTitle className="text-lg font-roboto text-primary group-hover:text-primary transition-colors">
-                        {service.title}
-                      </CardTitle>
-                    </div>
-                    <CardDescription className="text-gray-600">
-                      {service.description}
-                    </CardDescription>
-                  </CardHeader>
-                  
-                  <CardContent className="pt-0">
-                    <ul className="space-y-1 text-sm text-gray-500">
-                      {service.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center">
-                          <div className="w-1 h-1 bg-secondary rounded-full mr-2"></div>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              ))}
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </CardHeader>
+                    <CardContent className="pt-0 space-y-2">
+                      <Skeleton className="h-3 w-2/3" />
+                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-3 w-3/4" />
+                    </CardContent>
+                  </Card>
+                ))
+              ) : services.length === 0 ? (
+                <div className="col-span-2 text-center text-gray-500 py-8">
+                  <p>No services available at the moment.</p>
+                </div>
+              ) : (
+                services.map((service) => {
+                  const IconComponent = iconMap[service.icon] || Wrench;
+                  // Keep card compact: show up to 4 features on the homepage
+                  const previewFeatures = service.features.slice(0, 4);
+                  return (
+                    <Card
+                      key={service.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Request service: ${service.name}`}
+                      onClick={() => {
+                        if (service.slug) {
+                          navigate(`/service-request?service=${service.slug}`);
+                        } else {
+                          navigate("/services");
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          if (service.slug) {
+                            navigate(`/service-request?service=${service.slug}`);
+                          } else {
+                            navigate("/services");
+                          }
+                        }
+                      }}
+                      className="group cursor-pointer hover:shadow-card hover:-translate-y-0.5 transition-all duration-300 border-l-4 border-l-secondary focus:outline-none focus:ring-2 focus:ring-secondary"
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <div className="p-2 bg-secondary/10 rounded-lg">
+                            <IconComponent className="text-primary" size={24} />
+                          </div>
+                          <CardTitle className="text-lg font-roboto text-primary group-hover:text-primary transition-colors">
+                            {service.name}
+                          </CardTitle>
+                        </div>
+                        <CardDescription className="text-gray-600">
+                          {service.description}
+                        </CardDescription>
+                      </CardHeader>
+
+                      <CardContent className="pt-0">
+                        <ul className="space-y-1 text-sm text-gray-500">
+                          {previewFeatures.map((feature, idx) => (
+                            <li key={idx} className="flex items-center">
+                              <div className="w-1 h-1 bg-secondary rounded-full mr-2"></div>
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
@@ -89,15 +183,12 @@ const ServicesOverview = () => {
                 Request Service
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button variant="gold-outline" size="lg">
-                Download Service Guide
-              </Button>
             </div>
           </div>
 
           {/* Services Image */}
           <div className="relative">
-            <div 
+            <div
               className="rounded-lg shadow-lg h-96 bg-cover bg-center bg"
               style={{ backgroundImage: `url(${servicesImage})` }}
             >
