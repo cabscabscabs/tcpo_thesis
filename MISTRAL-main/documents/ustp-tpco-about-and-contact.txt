@@ -22,9 +22,9 @@ for stakeholders.
 
 Quick Stats:
 - 6 Years of Excellence
-- 12 Expert Team Members
-- 95% Success Rate
-- 24/7 Support Available
+- 10 Expert Team Members
+- 3 Specialized Units
+- 4+ Core Services Offered
 
 OUR MISSION
 -----------
@@ -47,21 +47,28 @@ OUR VALUES
 
 OUR EXPERT TEAM
 ---------------
+The TPCO team consists of 10 members organized into Leadership, Unit Managers, and Technical/Support Staff. All team members can be contacted through the main office line (088) 856-1738 Local 1145 or ustp.tpco@ustp.edu.ph.
+
 Leadership:
-- Dr. Venessa Garcia - Director, Technology Promotions and Commercialization Office
+- Dr. Venessa A. Garcia - TPCO Director (Technology Promotions and Commercialization Office)
 
 Unit Managers:
-- Engr. Gladdy Christie Compasan - Manager, TPCO - Innovation and Technology Support Unit
-- Ms. Flora Monica Mabaylan - Manager, TPCO - Promotions Management Unit
-- Ms. Rhea Suzette Haguisan - Manager, TPCO - Business Development Unit
+- Engr. Gladdy Christie H. Compasan - Manager, TPCO - Innovation and Technology Support Unit (ITSU)
+- Rhea Suzette M. Haguisan - Manager, TPCO - Business Development Unit (BDU)
 
-Technical Staff:
-- Engr. Jodie Rey Fernandez - Technology Promotions Officer, TPCO - Promotions Management Unit
-- Engr. Clark Darwin Gozon - Technical Expert, TPCO - Innovation and Technology Support Unit
-- Engr. Mark Lister Nalupa - Technical Expert, TPCO - Innovation and Technology Support Unit
-- Noreza P. Aleno - Administrative Staff, TPCO - Innovation and Technology Support Unit
-- Krystia Ces G. Napili - Science Research Specialist, Technology Promotions and Commercialization Office
-- Michael J. Cerbito - Administrative Assistant, Technology Promotions and Commercialization Office
+Technical & Support Staff:
+- Engr. Jodie Rey D. Fernandez - Technology Promotions Officer
+- Engr. Clark Darwin Gozon - Technical Expert (ITSU)
+- Fatimah Nasra P. Hamoy - Technical Expert (ITSU)
+- Noreza P. Aleño - Administrative Staff (ITSU)
+- Krystia Ces G. Napili - Science Research Specialist
+- Geoffrey Carlo P. Delada - Administrative Assistant
+- Atty. Michelle M. Bacarra - Contract Management Officer
+
+TPCO ORGANIZATIONAL UNITS:
+- ITSU (Innovation and Technology Support Unit): IP protection, patent applications, patent drafting, prior art search, copyright/trademark registration, technology assessment.
+- BDU (Business Development Unit): Technology licensing, commercialization, industry-academe partnerships, startup incubation, investment guidance.
+- PMU (Promotions Management Unit): Technology promotions, outreach campaigns, events, and marketing.
 
 OUR JOURNEY - KEY MILESTONES
 ----------------------------
@@ -113,39 +120,47 @@ Claro M. Recto Ave, Lapasan
 Cagayan de Oro City, 9000 Misamis Oriental, Philippines
 
 PHONE:
-+63 (088) 856-1738 (primary - available Monday to Friday, 8:00 AM - 5:00 PM)
-+63 (088) 856-1739
+(088) 856-1738 Local 1145 (primary - available Monday to Friday, 8:00 AM - 5:00 PM)
 
 EMAIL:
-tpco@ustp.edu.ph (primary - we respond within 24 hours)
-info@ustp.edu.ph
+ustp.tpco@ustp.edu.ph (primary - we respond within 24 hours)
 
 OFFICE HOURS:
 Monday - Friday, 8:00 AM - 5:00 PM
 Walk-in consultations welcome, appointments recommended
 
+DIRECT CONTACT PERSONS (shown on the Contact page):
+- Office Director: Dr. Venessa A. Garcia - TPCO Director, Technology Promotions & Commercialization Office
+  Direct Line: (088) 856-1738 Local 1145
+  Email: ustp.tpco@ustp.edu.ph
+- Business Development Manager: Rhea Suzette M. Haguisan - Manager, Business Development Unit (Industry Partnerships & Licensing)
+  Direct Line: (088) 856-1738 Local 1145
+  Email: ustp.tpco@ustp.edu.ph
+
 HOW TO CONTACT US
 -----------------
 You can reach us through:
-1. Phone: Call (088) 856-1738 directly - available Monday to Friday, 8:00 AM - 5:00 PM
-2. Email: Send email to tpco@ustp.edu.ph - we respond within 24 hours
+1. Phone: Call (088) 856-1738 Local 1145 directly - available Monday to Friday, 8:00 AM - 5:00 PM
+2. Email: Send email to ustp.tpco@ustp.edu.ph - we respond within 24 hours
 3. Visit our office at USTP Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan
 4. Schedule a meeting through the Contact page on our website
 5. Use the "Contact Us" button in the navigation bar on the website
 
-SERVICES WE CAN HELP WITH
--------------------------
-Technology Transfer Services:
-- IP Protection & Patent Application
-- Technology Licensing Support
-- Prior Art Search & Analysis
-- Technology Valuation
+SERVICES WE CAN HELP WITH (BY UNIT)
+-----------------------------------
+The Contact page groups the "How We Can Help You" services by the TPCO unit that delivers them:
 
-Partnership & Commercialization:
-- Industry-Academe Matching
-- Startup Incubation Programs
-- Market Research & Analysis
-- Funding & Investment Guidance
+ITSU - Innovation & Technology Support:
+- IP Protection & Patent Application
+- Patent Drafting & Prior Art Search
+- Copyright & Trademark Registration
+- Technology Valuation & IP Consultations
+
+BDU & PMU - Business Development & Promotion:
+- Technology Licensing & Commercialization
+- Industry-Academe Partnership Matching
+- Startup Incubation & Investment Guidance
+- Technology Promotion & Outreach Campaigns
 
 
 NAVIGATION - HOW TO FIND PAGES

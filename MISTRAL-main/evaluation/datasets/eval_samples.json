@@ -114,7 +114,7 @@
   {
     "id": "eval_015",
     "question": "Who is the director of TPCO?",
-    "ground_truth": "Dr. Venessa Garcia is the Director of the Technology Promotions and Commercialization Office at USTP. She leads the TPCO office and oversees all technology transfer activities.",
+    "ground_truth": "Dr. Venessa A. Garcia is the TPCO Director of the Technology Promotions and Commercialization Office at USTP. She leads the TPCO office and oversees all technology transfer activities.",
     "category": "about",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
     "metadata": {"difficulty": "easy", "domain": "team_info"}
@@ -138,7 +138,7 @@
   {
     "id": "eval_018",
     "question": "How do I contact TPCO for inquiries?",
-    "ground_truth": "You can contact TPCO through multiple channels: Phone at (088) 856-1738 (available Monday-Friday, 8:00 AM - 5:00 PM), Email at tpco@ustp.edu.ph (response within 24 hours), or visit their office at USTP Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan, Cagayan de Oro City, 9000 Misamis Oriental. You can also use the Contact page at /contact on the website which has 'Call Now' and 'Send Email' buttons.",
+    "ground_truth": "You can contact TPCO through multiple channels: Phone at (088) 856-1738 Local 1145 (available Monday-Friday, 8:00 AM - 5:00 PM), Email at ustp.tpco@ustp.edu.ph (response within 24 hours), or visit their office at USTP Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan, Cagayan de Oro City, 9000 Misamis Oriental. The Contact page at /contact also shows direct contacts for the Office Director (Dr. Venessa A. Garcia) and the Business Development Manager (Rhea Suzette M. Haguisan).",
     "category": "navigation",
     "expected_sources": ["ustp-tpco-about-and-contact.txt", "USTP_TPCO_Website_Knowledge_Base.txt"],
     "metadata": {"difficulty": "easy", "domain": "contact"}
@@ -394,7 +394,7 @@
   {
     "id": "eval_050",
     "question": "Who manages the Innovation and Technology Support Unit (ITSU)?",
-    "ground_truth": "Engr. Gladdy Christie Compasan is the Manager of TPCO - Innovation and Technology Support Unit (ITSU). ITSU handles IP protection, patent applications, and technology assessment.",
+    "ground_truth": "Engr. Gladdy Christie H. Compasan is the Manager of TPCO - Innovation and Technology Support Unit (ITSU). ITSU handles IP protection, patent applications, patent drafting, prior art search, copyright/trademark registration, and technology assessment.",
     "category": "about",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
     "metadata": {"difficulty": "easy", "domain": "team_info"}
@@ -402,7 +402,7 @@
   {
     "id": "eval_051",
     "question": "What are the organizational units of TPCO?",
-    "ground_truth": "TPCO has three organizational units: (1) ITSU (Innovation and Technology Support Unit) - handles IP protection, patent applications, and technology assessment, (2) PMU (Promotions Management Unit) - handles technology promotions, marketing, and events, and (3) BDU (Business Development Unit) - handles business partnerships, licensing, and commercialization.",
+    "ground_truth": "TPCO has three organizational units: (1) ITSU (Innovation and Technology Support Unit) - handles IP protection, patent applications, patent drafting, prior art search, copyright/trademark registration, and technology assessment, (2) PMU (Promotions Management Unit) - handles technology promotions, marketing, outreach campaigns, and events, and (3) BDU (Business Development Unit) - handles business partnerships, licensing, commercialization, startup incubation, and investment guidance.",
     "category": "about",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
     "metadata": {"difficulty": "easy", "domain": "organization"}
@@ -410,7 +410,7 @@
   {
     "id": "eval_052",
     "question": "Who manages the Business Development Unit?",
-    "ground_truth": "Ms. Rhea Suzette Haguisan is the Manager of TPCO - Business Development Unit (BDU). The BDU handles business partnerships, licensing, and commercialization.",
+    "ground_truth": "Rhea Suzette M. Haguisan is the Manager of TPCO - Business Development Unit (BDU). The BDU handles business partnerships, licensing, commercialization, startup incubation, and investment guidance.",
     "category": "about",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
     "metadata": {"difficulty": "easy", "domain": "team_info"}
@@ -562,7 +562,7 @@
   {
     "id": "eval_071",
     "question": "What are the quick stats on the About page?",
-    "ground_truth": "The About page displays 4 quick stats: 6 Years of Excellence, 12 Expert Team Members, 95% Success Rate, and 24/7 Support Available.",
+    "ground_truth": "The About page displays 4 quick stats: 6 Years of Excellence, 10 Expert Team Members, 3 Specialized Units, and 4+ Core Services Offered.",
     "category": "about",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
     "metadata": {"difficulty": "easy", "domain": "statistics"}
@@ -658,7 +658,7 @@
   {
     "id": "eval_083",
     "question": "Who is the Promotions Management Unit manager?",
-    "ground_truth": "Ms. Flora Monica Mabaylan is the Manager of TPCO - Promotions Management Unit (PMU). The PMU handles technology promotions, marketing, and events.",
+    "ground_truth": "The Promotions Management Unit (PMU) handles technology promotions, marketing, outreach campaigns, and events. (Note: PMU currently does not have a dedicated manager listed on the About page; PMU activities are overseen by the TPCO Director.)",
     "category": "about",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
     "metadata": {"difficulty": "easy", "domain": "team_info"}
@@ -666,7 +666,7 @@
   {
     "id": "eval_084",
     "question": "Who are the technical experts in the ITSU?",
-    "ground_truth": "The ITSU (Innovation and Technology Support Unit) has two Technical Experts: Engr. Clark Darwin Gozon and Engr. Mark Lister Nalupa. Both provide technical expertise for innovation support. The unit is managed by Engr. Gladdy Christie Compasan, with Noreza P. Aleno serving as Administrative Staff.",
+    "ground_truth": "The ITSU (Innovation and Technology Support Unit) has two Technical Experts: Engr. Clark Darwin Gozon and Fatimah Nasra P. Hamoy. Both provide technical expertise for innovation support. The unit is managed by Engr. Gladdy Christie H. Compasan, with Noreza P. Aleño serving as Administrative Staff.",
     "category": "about",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
     "metadata": {"difficulty": "medium", "domain": "team_info"}
@@ -674,7 +674,7 @@
   {
     "id": "eval_085",
     "question": "What is the Technology Promotions Officer's role?",
-    "ground_truth": "Engr. Jodie Rey Fernandez serves as the Technology Promotions Officer in the TPCO - Promotions Management Unit (PMU). His role involves handling technology promotions activities.",
+    "ground_truth": "Engr. Jodie Rey D. Fernandez serves as the Technology Promotions Officer at TPCO. His role involves handling technology promotions activities.",
     "category": "about",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "ustp-tpco-about-and-contact.txt"],
     "metadata": {"difficulty": "easy", "domain": "team_info"}
@@ -682,7 +682,7 @@
   {
     "id": "eval_086",
     "question": "What is the contact email of TPCO?",
-    "ground_truth": "The primary contact email of TPCO is tpco@ustp.edu.ph, with a response time within 24 hours. An alternative email is info@ustp.edu.ph.",
+    "ground_truth": "The primary contact email of TPCO is ustp.tpco@ustp.edu.ph, with a response time within 24 hours.",
     "category": "about",
     "expected_sources": ["ustp-tpco-about-and-contact.txt", "USTP_TPCO_Website_Knowledge_Base.txt"],
     "metadata": {"difficulty": "easy", "domain": "contact"}
@@ -690,7 +690,7 @@
   {
     "id": "eval_087",
     "question": "What is the phone number of TPCO?",
-    "ground_truth": "The primary phone number of TPCO is +63 (088) 856-1738, available Monday to Friday, 8:00 AM - 5:00 PM. There is also a secondary number: +63 (088) 856-1739.",
+    "ground_truth": "The primary phone number of TPCO is (088) 856-1738 Local 1145, available Monday to Friday, 8:00 AM - 5:00 PM.",
     "category": "about",
     "expected_sources": ["ustp-tpco-about-and-contact.txt", "USTP_TPCO_Website_Knowledge_Base.txt"],
     "metadata": {"difficulty": "easy", "domain": "contact"}

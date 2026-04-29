@@ -9,7 +9,7 @@ const Hero = () => {
   const navigate = useNavigate();
   const [heroContent, setHeroContent] = useState({
     heroTitle: "Accelerating Innovation Through Technology Transfer",
-    heroSubtitle: "USTP Technology Promotions and Commercialization Office — your gateway to cutting-edge research, intellectual property protection, and industry collaboration in Northern Mindanao.",
+    heroSubtitle: "",
     heroImage: null as string | null,
     patentsCount: 0,
     partnersCount: 50,
@@ -94,9 +94,11 @@ const Hero = () => {
             })}
           </h1>
           <div className="w-20 h-0.5 bg-secondary mx-auto mb-6"></div>
-          <p className="text-lg md:text-xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
-            {heroContent.heroSubtitle}
-          </p>
+          {heroContent.heroSubtitle && (
+            <p className="text-lg md:text-xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
+              {heroContent.heroSubtitle}
+            </p>
+          )}
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button variant="gold" size="xl" className="group" onClick={() => navigate('/ip-portfolio')}>

@@ -131,14 +131,14 @@ MAIN PAGES AND HOW TO ACCESS THEM:
     - Navigation: Click "About" in the navigation bar
     - Content: Information about USTP TPCO
     - Sections: Hero with Quick Stats, About Us description, Mission/Vision/Values, Expert Team, Company Journey/Milestones, Strategic Partners, Contact/Visit Us
-    - Quick Stats: 6 Years of Excellence, 12 Expert Team Members, 95% Success Rate, 24/7 Support Available
+    - Quick Stats: 6 Years of Excellence, 10 Expert Team Members, 3 Specialized Units, 4+ Core Services Offered
 
 12. CONTACT
     - URL: /contact
     - Navigation: Click "Contact Us" button in the navigation bar
     - Content: Detailed contact information and service consultation page
-    - Phone: (088) 856-1738 (Available Mon-Fri, 8:00 AM - 5:00 PM)
-    - Email: tpco@ustp.edu.ph (response within 24 hours)
+    - Phone: (088) 856-1738 Local 1145 (Available Mon-Fri, 8:00 AM - 5:00 PM)
+    - Email: ustp.tpco@ustp.edu.ph (response within 24 hours)
     - Office: University of Science and Technology of Southern Philippines, Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan, Cagayan de Oro City, 9000 Misamis Oriental
     - "How We Can Help You" section listing Technology Transfer Services and Partnership & Commercialization services
     - Call-to-action with "Call Now" and "Send Email" buttons
@@ -153,7 +153,7 @@ MAIN PAGES AND HOW TO ACCESS THEM:
     - URL: /faculty
     - Navigation: Accessible after login with faculty role
     - Content: Faculty IP application management dashboard
-    - Features: Create/edit IP applications, track application status through IPOPHL filing process, view notifications
+    - Features: Create/edit IP applications, track application status through q filing process, view notifications
     - Application statuses: Draft, Submitted for Internal Review, Under Internal Review, Needs Revision, Approved for IPOPHL Filing, Filed to IPOPHL, Under IPOPHL Examination, Published, Granted, Rejected
     - Tabs: All, Drafts, Pending Review, Approved, Filed to IPOPHL, Completed, Archived
 
@@ -177,7 +177,7 @@ Q: "Where are the services?" or "What services do you offer?"
 A: Click "Services" in the navigation bar to view all services offered by TPCO. The Services page includes core services (loaded dynamically from admin), additional services like IP Training & Workshops, Technology Assessment, and Market Research, as well as success stories from real partnerships.
 
 Q: "How do I contact TPCO?" or "Contact information?"
-A: Click "Contact Us" button in the navigation bar to access the Contact page. You can also call (088) 856-1738 or email tpco@ustp.edu.ph directly. The office is at USTP Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan, Cagayan de Oro City.
+A: Click "Contact Us" button in the navigation bar to access the Contact page. You can also call (088) 856-1738 Local 1145 or email ustp.tpco@ustp.edu.ph directly. The office is at USTP Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan, Cagayan de Oro City.
 
 Q: "Where can I see patents/technologies?" or "IP Portfolio?"
 A: Click "Our IP" in the navigation bar to access the IP Portfolio page. There you can browse, search, and filter patents and technologies available for licensing. The page also includes analytics charts showing status distribution and patent types.
@@ -356,52 +356,52 @@ EVENT TYPES:
 SECTION 4: EXPERT TEAM (ABOUT PAGE)
 ================================================================================
 
-The Expert Team at USTP TPCO consists of the following members:
+The Expert Team at USTP TPCO consists of 10 members organized under Leadership, Unit Managers, and Technical/Support Staff:
 
-1. DR. VENESSA GARCIA
-   Position: Director – Technology Promotions and Commercialization Office
+1. DR. VENESSA A. GARCIA
+   Position: TPCO Director (Technology Promotions and Commercialization Office)
    Role: Leads the TPCO office and oversees all technology transfer activities
 
-2. ENGR. GLADDY CHRISTIE COMPASAN
-   Position: Manager, TPCO – Innovation and Technology Support Unit
+2. ENGR. GLADDY CHRISTIE H. COMPASAN
+   Position: Manager, TPCO - Innovation and Technology Support Unit (ITSU)
    Role: Manages the Innovation and Technology Support Unit (ITSU)
 
-3. MS. FLORA MONICA MABAYLAN
-   Position: Manager, TPCO – Promotions Management Unit
-   Role: Manages the Promotions Management Unit (PMU)
+3. RHEA SUZETTE M. HAGUISAN
+   Position: Manager, TPCO - Business Development Unit (BDU)
+   Role: Manages the Business Development Unit (BDU); handles industry partnerships and licensing
 
-4. MS. RHEA SUZETTE HAGUISAN
-   Position: Manager, TPCO – Business Development Unit
-   Role: Manages the Business Development Unit (BDU)
-
-5. ENGR. JODIE REY FERNANDEZ
-   Position: Technology Promotions Officer, TPCO – Promotions Management Unit
+4. ENGR. JODIE REY D. FERNANDEZ
+   Position: Technology Promotions Officer
    Role: Handles technology promotions activities
 
-6. ENGR. CLARK DARWIN GOZON
-   Position: Technical Expert, TPCO – Innovation and Technology Support Unit
+5. ENGR. CLARK DARWIN GOZON
+   Position: Technical Expert (ITSU)
    Role: Provides technical expertise for innovation support
 
-7. ENGR. MARK LISTER NALUPA
-   Position: Technical Expert, TPCO – Innovation and Technology Support Unit
+6. FATIMAH NASRA P. HAMOY
+   Position: Technical Expert (ITSU)
    Role: Provides technical expertise for innovation support
 
-8. NOREZA P. ALENO
-   Position: Administrative Staff, TPCO – Innovation and Technology Support Unit
+7. NOREZA P. ALEÑO
+   Position: Administrative Staff (ITSU)
    Role: Provides administrative support for ITSU
 
-9. KRYSTIA CES G. NAPILI
+8. KRYSTIA CES G. NAPILI
    Position: Science Research Specialist, Technology Promotions and Commercialization Office
    Role: Handles science research activities
 
-10. MICHAEL J. CERBITO
-    Position: Administrative Assistant, Technology Promotions and Commercialization Office
-    Role: Provides administrative assistance to the office
+9. GEOFFREY CARLO P. DELADA
+   Position: Administrative Assistant, Technology Promotions and Commercialization Office
+   Role: Provides administrative assistance to the office
+
+10. ATTY. MICHELLE M. BACARRA
+    Position: Contract Management Officer, Technology Promotions and Commercialization Office
+    Role: Handles legal contracts, IP agreements, and contract management for the office
 
 TPCO ORGANIZATIONAL UNITS:
-- ITSU (Innovation and Technology Support Unit): Handles IP protection, patent applications, and technology assessment
-- PMU (Promotions Management Unit): Handles technology promotions, marketing, and events
-- BDU (Business Development Unit): Handles business partnerships, licensing, and commercialization
+- ITSU (Innovation and Technology Support Unit): Handles IP protection, patent applications, patent drafting, prior art search, copyright/trademark registration, and technology assessment.
+- PMU (Promotions Management Unit): Handles technology promotions, marketing, outreach campaigns, and events.
+- BDU (Business Development Unit): Handles business partnerships, licensing, commercialization, startup incubation, and investment guidance.
 
 ================================================================================
 SECTION 5: CONTACT INFORMATION
@@ -415,12 +415,18 @@ Claro M. Recto Ave, Lapasan
 Cagayan de Oro City, Philippines 9000
 
 PHONE NUMBERS:
-+63 (088) 856-1738 (primary)
-+63 (088) 856-1739
+(088) 856-1738 Local 1145 (primary)
 
 EMAIL ADDRESSES:
-tpco@ustp.edu.ph (primary - response within 24 hours)
-info@ustp.edu.ph
+ustp.tpco@ustp.edu.ph (primary - response within 24 hours)
+
+DIRECT CONTACTS (from the Contact page):
+- Office Director: Dr. Venessa A. Garcia
+  Direct Line: (088) 856-1738 Local 1145
+  Email: ustp.tpco@ustp.edu.ph
+- Business Development Manager: Rhea Suzette M. Haguisan (Manager - Business Development Unit, Industry Partnerships & Licensing)
+  Direct Line: (088) 856-1738 Local 1145
+  Email: ustp.tpco@ustp.edu.ph
 
 OFFICE HOURS:
 Monday - Friday
@@ -697,9 +703,9 @@ SECTION 15: QUICK STATS
 
 About Page Quick Stats:
 - 6 Years of Excellence
-- 12 Expert Team Members
-- 95% Success Rate
-- 24/7 Support Available
+- 10 Expert Team Members
+- 3 Specialized Units
+- 4+ Core Services Offered
 
 Homepage Hero Stats (editable from admin):
 - 24+ Patents Granted

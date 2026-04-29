@@ -47,6 +47,19 @@ import { BrochurePieCharts } from "@/components/BrochurePieCharts";
 
 const ITEMS_PER_PAGE = 10;
 
+// Display helper: capitalize each word in a free-form field/category value
+// so raw DB strings like "food", "engineering", "machine-learning",
+// or "information technology" render as "Food", "Engineering",
+// "Machine Learning", "Information Technology".
+const toTitleCase = (value: string | null | undefined): string => {
+  if (!value) return "";
+  return value
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
+};
+
 // Define interfaces for the filter data
 interface CategoryData {
   category: string | null;
@@ -513,7 +526,7 @@ const IPPortfolio = () => {
                 <SelectContent>
                   <SelectItem value="all">All Fields</SelectItem>
                   {fieldOptions.map((field) => (
-                    <SelectItem key={field} value={field}>{field}</SelectItem>
+                    <SelectItem key={field} value={field}>{toTitleCase(field)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -559,7 +572,7 @@ const IPPortfolio = () => {
               )}
               {selectedField !== "all" && (
                 <Badge variant="secondary" className="flex items-center gap-1">
-                  Field: {selectedField}
+                  Field: {toTitleCase(selectedField)}
                   <button 
                     onClick={() => setSelectedField("all")}
                     className="ml-1 hover:text-red-600"
@@ -625,7 +638,7 @@ const IPPortfolio = () => {
                             <Badge className={`${getStatusColor(item.status)} text-xs pointer-events-none`}>{item.status}</Badge>
                           )}
                           {(item.field || item.category) && (
-                            <Badge className={`${getFieldColor(item.field || item.category || '')} text-xs pointer-events-none`}>{item.field || item.category}</Badge>
+                            <Badge className={`${getFieldColor(item.field || item.category || '')} text-xs pointer-events-none`}>{toTitleCase(item.field || item.category || '')}</Badge>
                           )}
                         </div>
                         <span className="text-secondary text-sm font-mono whitespace-nowrap ml-2">{item.year || new Date(item.created_at || new Date()).getFullYear()}</span>
