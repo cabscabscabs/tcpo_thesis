@@ -25,7 +25,7 @@ const Navigation = () => {
             <img
               src="/images/tpco-logo.png"
               alt="USTP TPCO Logo"
-              className="h-12 w-12 object-contain mr-3 bg-white rounded-md p-0.5"
+              className="h-9 w-9 object-contain mr-2 bg-white rounded-md p-0.5"
             />
             <div className="flex-shrink-0 text-white">
               <h1 className="text-xl font-roboto font-bold">USTP TPCO</h1>

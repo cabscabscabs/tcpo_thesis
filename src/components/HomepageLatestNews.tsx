@@ -139,11 +139,15 @@ const HomepageLatestNews = () => {
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">
-            Latest News & Updates
+          <div className="text-[10px] md:text-xs font-bold tracking-[0.25em] text-secondary uppercase mb-2">
+            Newsroom
+          </div>
+          <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-3">
+            Latest News &amp; Updates
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Stay informed with the latest developments, announcements, and achievements from USTP Technology & Product Commercialization Office
+          <div className="w-16 h-0.5 bg-secondary mx-auto mb-5"></div>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Stay informed with the latest developments, announcements, and achievements from the USTP Technology Promotions &amp; Commercialization Office.
           </p>
         </div>
 

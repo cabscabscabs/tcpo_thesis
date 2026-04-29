@@ -133,9 +133,9 @@ const Contact = () => {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-2">
-                  <p className="font-semibold text-gray-800">Dr. [Director Name]</p>
-                  <p className="text-sm text-gray-600">Director, TPCO</p>
-                  <p className="text-sm text-gray-600">Technology Transfer Specialist</p>
+                  <p className="font-semibold text-gray-800">Dr. Venessa A. Garcia</p>
+                  <p className="text-sm text-gray-600">TPCO Director</p>
+                  <p className="text-sm text-gray-600">Technology Promotions &amp; Commercialization Office</p>
                   <div className="mt-4 pt-4 border-t">
                     <p className="text-sm text-gray-600">
                       <strong>Direct Line:</strong> (088) 856-1738 Local 1145
@@ -152,14 +152,14 @@ const Contact = () => {
               <CardHeader className="bg-secondary/10">
                 <CardTitle className="text-lg font-roboto flex items-center text-secondary">
                   <User className="mr-2" size={20} />
-                  Program Coordinator
+                  Business Development Manager
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-2">
-                  <p className="font-semibold text-gray-800">[Coordinator Name]</p>
-                  <p className="text-sm text-gray-600">Program Coordinator</p>
-                  <p className="text-sm text-gray-600">Industry Partnership Specialist</p>
+                  <p className="font-semibold text-gray-800">Rhea Suzette M. Haguisan</p>
+                  <p className="text-sm text-gray-600">Manager — Business Development Unit</p>
+                  <p className="text-sm text-gray-600">Industry Partnerships &amp; Licensing</p>
                   <div className="mt-4 pt-4 border-t">
                     <p className="text-sm text-gray-600">
                       <strong>Direct Line:</strong> (088) 856-1738 Local 1145
@@ -183,21 +183,23 @@ const Contact = () => {
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-semibold text-primary mb-3">Technology Transfer Services</h4>
+                  <div className="text-[10px] font-bold tracking-[0.22em] text-secondary uppercase mb-1">ITSU</div>
+                  <h4 className="font-semibold text-primary mb-3">Innovation &amp; Technology Support</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
-                    <li>• IP Protection & Patent Application</li>
-                    <li>• Technology Licensing Support</li>
-                    <li>• Prior Art Search & Analysis</li>
-                    <li>• Technology Valuation</li>
+                    <li>• IP Protection &amp; Patent Application</li>
+                    <li>• Patent Drafting &amp; Prior Art Search</li>
+                    <li>• Copyright &amp; Trademark Registration</li>
+                    <li>• Technology Valuation &amp; IP Consultations</li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-primary mb-3">Partnership & Commercialization</h4>
+                  <div className="text-[10px] font-bold tracking-[0.22em] text-secondary uppercase mb-1">BDU &amp; PMU</div>
+                  <h4 className="font-semibold text-primary mb-3">Business Development &amp; Promotion</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
-                    <li>• Industry-Academe Matching</li>
-                    <li>• Startup Incubation Programs</li>
-                    <li>• Market Research & Analysis</li>
-                    <li>• Funding & Investment Guidance</li>
+                    <li>• Technology Licensing &amp; Commercialization</li>
+                    <li>• Industry–Academe Partnership Matching</li>
+                    <li>• Startup Incubation &amp; Investment Guidance</li>
+                    <li>• Technology Promotion &amp; Outreach Campaigns</li>
                   </ul>
                 </div>
               </div>
@@ -205,36 +207,55 @@ const Contact = () => {
           </Card>
 
           {/* Call to Action */}
-          <div className="text-center bg-gradient-to-r from-primary/5 to-accent/5 p-8 rounded-lg">
-            <h3 className="text-2xl font-roboto font-bold text-primary mb-4">
-              Ready to Start Your Innovation Journey?
+          <div className="text-center bg-gradient-to-r from-primary/5 to-accent/5 p-8 md:p-10 rounded-lg border border-primary/10">
+            <div className="text-[10px] md:text-xs font-bold tracking-[0.25em] text-secondary uppercase mb-2">
+              Get in Touch
+            </div>
+            <h3 className="text-2xl md:text-3xl font-roboto font-bold text-primary mb-3">
+              Turn Your Research into Real-World Impact
             </h3>
-            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-              Don't let your research stay in the lab. Contact us today to explore how we can 
-              help transform your innovations into market-ready solutions that create real impact.
+            <div className="w-16 h-0.5 bg-secondary mx-auto mb-4"></div>
+            <p className="text-gray-600 mb-6 max-w-2xl mx-auto leading-relaxed">
+              From IP protection to licensing and commercialization, TPCO partners with faculty,
+              students, and industry to move innovations out of the lab and into the market.
+              Tell us about your technology — we'll take it from there.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                variant="gold" 
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+              <Button
+                variant="gold"
                 size="lg"
                 onClick={() => window.location.href = 'tel:(088)856-1738'}
-                className="flex items-center"
+                className="flex items-center justify-center"
               >
                 <Phone className="mr-2" size={18} />
-                Call Now: (088) 856-1738
+                Call (088) 856-1738
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 size="lg"
                 onClick={() => window.location.href = 'mailto:ustp.tpco@ustp.edu.ph?subject=Service Consultation Request'}
-                className="flex items-center border-primary text-primary hover:bg-primary hover:text-white"
+                className="flex items-center justify-center border-primary text-primary hover:bg-primary hover:text-white"
               >
                 <Mail className="mr-2" size={18} />
-                Send Email
+                Email Us
+              </Button>
+
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => window.open('https://maps.app.goo.gl/QADDEJs8reyJs9959', '_blank')}
+                className="flex items-center justify-center border-secondary text-secondary hover:bg-secondary hover:text-white"
+              >
+                <MapPin className="mr-2" size={18} />
+                Visit the Office
               </Button>
             </div>
+
+            <p className="text-xs text-gray-500 mt-5">
+              Office hours: Monday – Friday, 8:00 AM – 5:00 PM
+            </p>
           </div>
         </div>
       </section>

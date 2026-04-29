@@ -76,11 +76,15 @@ const ImpactStats = () => {
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4">
+          <div className="text-[10px] md:text-xs font-bold tracking-[0.25em] text-secondary uppercase mb-2">
+            By the Numbers
+          </div>
+          <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-3">
             Our Impact
           </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Driving innovation and economic growth in Northern Mindanao through technology 
+          <div className="w-16 h-0.5 bg-secondary mx-auto mb-5"></div>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Driving innovation and economic growth in Northern Mindanao through technology
             transfer and strategic partnerships.
           </p>
         </div>

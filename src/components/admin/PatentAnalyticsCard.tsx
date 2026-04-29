@@ -28,10 +28,50 @@ interface PatentAnalyticsProps {
 
 type ExportSection = 'overview' | 'status' | 'field' | 'lifecycle' | 'summary';
 
+// Extract a year from a record by probing common date/year fields.
+// Falls back to parsing an ISO-like string or a 4-digit year pattern.
+const getRecordYear = (rec: any): number | null => {
+  if (!rec) return null;
+  const candidates = [
+    rec.year,
+    rec.filed_date,
+    rec.filing_date,
+    rec.date_filed,
+    rec.submission_date,
+    rec.submitted_at,
+    rec.created_at,
+    rec.date_created,
+    rec.createdAt,
+    rec.updated_at,
+  ];
+  for (const c of candidates) {
+    if (c == null || c === '') continue;
+    if (typeof c === 'number' && c > 1900 && c < 3000) return c;
+    const d = new Date(c);
+    if (!isNaN(d.getTime())) return d.getFullYear();
+    const m = String(c).match(/(19|20)\d{2}/);
+    if (m) return parseInt(m[0], 10);
+  }
+  return null;
+};
+
 export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnalyticsProps) {
   // State for export dialog
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [exportSections, setExportSections] = useState<ExportSection[]>(['overview', 'status', 'field', 'lifecycle', 'summary']);
+  // Year filter state — 'all' means no bound on that side
+  const [fromYear, setFromYear] = useState<string>('all');
+  const [toYear, setToYear] = useState<string>('all');
+
+  // Available years discovered across patents + ipApplications (desc)
+  const availableYears = useMemo(() => {
+    const s = new Set<number>();
+    [...patents, ...ipApplications].forEach((r) => {
+      const y = getRecordYear(r);
+      if (y) s.add(y);
+    });
+    return Array.from(s).sort((a, b) => b - a);
+  }, [patents, ipApplications]);
 
   // Calculate metrics
   const totalPatents = patents.length;
@@ -129,30 +169,74 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
   const handleExportCSV = () => {
     const rows: string[] = [];
     const timestamp = new Date().toLocaleString();
-    
+
+    // Year-range filter
+    const loRaw = fromYear === 'all' ? null : parseInt(fromYear, 10);
+    const hiRaw = toYear === 'all' ? null : parseInt(toYear, 10);
+    const lo = loRaw != null && hiRaw != null ? Math.min(loRaw, hiRaw) : loRaw;
+    const hi = loRaw != null && hiRaw != null ? Math.max(loRaw, hiRaw) : hiRaw;
+    const inRange = (y: number | null) => {
+      if (lo == null && hi == null) return true;
+      if (y == null) return false;
+      if (lo != null && y < lo) return false;
+      if (hi != null && y > hi) return false;
+      return true;
+    };
+    const filteredPatents = (lo == null && hi == null)
+      ? patents
+      : patents.filter((p) => inRange(getRecordYear(p)));
+    const filteredIpApps = (lo == null && hi == null)
+      ? ipApplications
+      : ipApplications.filter((a) => inRange(getRecordYear(a)));
+
+    // Recompute metrics from filtered sets so the CSV reflects the chosen range
+    const fTotal = filteredPatents.length;
+    const fStatusCounts = filteredPatents.reduce((acc: Record<string, number>, p: any) => {
+      const s = p.status || 'Pending';
+      acc[s] = (acc[s] || 0) + 1;
+      return acc;
+    }, {});
+    const fFieldCounts = filteredPatents.reduce((acc: Record<string, number>, p: any) => {
+      const f = p.field || 'Unspecified';
+      acc[f] = (acc[f] || 0) + 1;
+      return acc;
+    }, {});
+    const fTopFields = Object.entries(fFieldCounts)
+      .sort(([, a], [, b]) => (b as number) - (a as number))
+      .slice(0, 5);
+
+    // Human-readable range label
+    const rangeLabel =
+      lo == null && hi == null
+        ? 'All years'
+        : lo != null && hi != null && lo === hi
+          ? `Year ${lo}`
+          : `${lo != null ? lo : 'Earliest'} – ${hi != null ? hi : 'Latest'}`;
+
     // Header
     rows.push('Patent Analytics Report');
     rows.push(`Generated on: ${timestamp}`);
-    rows.push(`Total Patents: ${totalPatents}`);
+    rows.push(`Year Range: ${rangeLabel}`);
+    rows.push(`Total Patents: ${fTotal}`);
     rows.push('');
 
     // Overview Section
     if (exportSections.includes('overview')) {
       rows.push('=== OVERVIEW ===');
       rows.push('Metric,Count,Percentage');
-      const approvedCount = ipApplications.filter((app: any) =>
+      const approvedCount = filteredIpApps.filter((app: any) =>
         app.status === 'Approved for IPOPHL Filing' ||
         app.status === 'Filed to IPOPHL' ||
         app.status === 'Granted'
-      ).length || (statusCounts['Approved'] || statusCounts['Granted'] || statusCounts['Approved for IPOPHL Filing'] || statusCounts['Available'] || 0);
-      const pendingReviewCount = ipApplications.filter((app: any) =>
+      ).length || (fStatusCounts['Approved'] || fStatusCounts['Granted'] || fStatusCounts['Approved for IPOPHL Filing'] || fStatusCounts['Available'] || 0);
+      const pendingReviewCount = filteredIpApps.filter((app: any) =>
         app.status === 'Submitted for Internal Review' ||
         app.status === 'Under Internal Review' ||
         app.status === 'Needs Revision'
       ).length;
-      rows.push(`Total Applications,${totalPatents},100%`);
-      rows.push(`Approved,${approvedCount},${totalPatents > 0 ? ((approvedCount / totalPatents) * 100).toFixed(1) : 0}%`);
-      rows.push(`Pending Review,${pendingReviewCount},${totalPatents > 0 ? ((pendingReviewCount / totalPatents) * 100).toFixed(1) : 0}%`);
+      rows.push(`Total Applications,${fTotal},100%`);
+      rows.push(`Approved,${approvedCount},${fTotal > 0 ? ((approvedCount / fTotal) * 100).toFixed(1) : 0}%`);
+      rows.push(`Pending Review,${pendingReviewCount},${fTotal > 0 ? ((pendingReviewCount / fTotal) * 100).toFixed(1) : 0}%`);
       rows.push('');
     }
 
@@ -160,10 +244,10 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
     if (exportSections.includes('status')) {
       rows.push('=== STATUS DISTRIBUTION ===');
       rows.push('Status,Count,Percentage');
-      Object.entries(statusCounts)
+      Object.entries(fStatusCounts)
         .sort(([,a], [,b]) => (b as number) - (a as number))
         .forEach(([status, count]) => {
-          const percentage = totalPatents > 0 ? ((count as number) / totalPatents * 100).toFixed(1) : '0';
+          const percentage = fTotal > 0 ? ((count as number) / fTotal * 100).toFixed(1) : '0';
           rows.push(`${status},${count},${percentage}%`);
         });
       rows.push('');
@@ -173,10 +257,10 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
     if (exportSections.includes('field')) {
       rows.push('=== FIELD DISTRIBUTION ===');
       rows.push('Field,Count,Percentage');
-      Object.entries(fieldCounts)
+      Object.entries(fFieldCounts)
         .sort(([,a], [,b]) => (b as number) - (a as number))
         .forEach(([field, count]) => {
-          const percentage = totalPatents > 0 ? ((count as number) / totalPatents * 100).toFixed(1) : '0';
+          const percentage = fTotal > 0 ? ((count as number) / fTotal * 100).toFixed(1) : '0';
           rows.push(`${formatFieldName(field)},${count},${percentage}%`);
         });
       rows.push('');
@@ -184,9 +268,9 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
 
     // Lifecycle Funnel Section
     if (exportSections.includes('lifecycle')) {
-      const filed = (statusCounts['Filed'] || 0);
-      const registered = (statusCounts['Registered'] || 0);
-      const commercialized = (statusCounts['Commercialized'] || 0);
+      const filed = (fStatusCounts['Filed'] || 0);
+      const registered = (fStatusCounts['Registered'] || 0);
+      const commercialized = (fStatusCounts['Commercialized'] || 0);
       const totalPipeline = filed + registered + commercialized;
       const reachedRegistered = registered + commercialized;
       const reachedCommercialized = commercialized;
@@ -208,22 +292,22 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
 
     // Summary Stats Section
     if (exportSections.includes('summary')) {
-      const filed = (statusCounts['Filed'] || 0);
-      const registered = (statusCounts['Registered'] || 0);
-      const commercialized = (statusCounts['Commercialized'] || 0);
+      const filed = (fStatusCounts['Filed'] || 0);
+      const registered = (fStatusCounts['Registered'] || 0);
+      const commercialized = (fStatusCounts['Commercialized'] || 0);
       const totalPipeline = filed + registered + commercialized;
-      const topField = topFields[0];
+      const topField = fTopFields[0];
 
       rows.push('=== SUMMARY STATISTICS ===');
       rows.push('Statistic,Value');
-      rows.push(`Total Patents,${totalPatents}`);
+      rows.push(`Total Patents,${fTotal}`);
       rows.push(`Patents in Lifecycle,${totalPipeline}`);
       rows.push(`Currently Filed,${filed}`);
       rows.push(`Currently Registered,${registered}`);
       rows.push(`Currently Commercialized,${commercialized}`);
       rows.push(`Top Field,${topField ? formatFieldName(topField[0]) : 'N/A'}`);
       rows.push(`Top Field Count,${topField ? topField[1] : 0}`);
-      rows.push(`Distinct Fields,${Object.keys(fieldCounts).length}`);
+      rows.push(`Distinct Fields,${Object.keys(fFieldCounts).length}`);
     }
 
     // Create and download CSV
@@ -232,7 +316,13 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `patent-analytics-report-${new Date().toISOString().split('T')[0]}.csv`);
+    const yearSuffix =
+      lo == null && hi == null
+        ? ''
+        : lo != null && hi != null && lo === hi
+          ? `-${lo}`
+          : `-${lo ?? 'earliest'}_${hi ?? 'latest'}`;
+    link.setAttribute('download', `patent-analytics-report-${new Date().toISOString().split('T')[0]}${yearSuffix}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -434,7 +524,45 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
             <div className="text-sm text-muted-foreground">
               Total patents in report: <span className="font-medium">{totalPatents}</span>
             </div>
-            
+
+            {/* Year Range filter */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Year Range (Optional)</Label>
+              <div className="flex items-center gap-2">
+                <select
+                  value={fromYear}
+                  onChange={(e) => setFromYear(e.target.value)}
+                  className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  aria-label="From year"
+                >
+                  <option value="all">All years</option>
+                  {availableYears.map((y) => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+                <span className="text-sm text-muted-foreground">to</span>
+                <select
+                  value={toYear}
+                  onChange={(e) => setToYear(e.target.value)}
+                  className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  aria-label="To year"
+                >
+                  <option value="all">All years</option>
+                  {availableYears.map((y) => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Leave both on “All years” to include every record. Pick the same year in both to export a single year (e.g. 2024). Pick different years to export a range (e.g. 2024–2025).
+              </p>
+              {(fromYear !== 'all' || toYear !== 'all') && availableYears.length === 0 && (
+                <p className="text-xs text-amber-600">
+                  No date information found on records — year filter will exclude everything.
+                </p>
+              )}
+            </div>
+
             <div className="space-y-3">
               <Label className="text-sm font-medium">Select Sections to Export:</Label>
               
@@ -442,7 +570,7 @@ export function PatentAnalyticsCard({ patents, ipApplications = [] }: PatentAnal
                 {[
                   { key: 'overview', label: 'Overview (KPI Summary)', desc: 'Total, Approved, Pending Review' },
                   { key: 'status', label: 'Status Distribution', desc: 'Breakdown by patent status' },
-                  { key: 'field', label: 'Field Distribution', desc: 'Breakdown by field/college' },
+                  { key: 'field', label: 'Field Distribution', desc: 'Breakdown by field' },
                   { key: 'lifecycle', label: 'Patent Lifecycle Funnel', desc: 'Filed → Registered → Commercialized conversion' },
                   { key: 'summary', label: 'Summary Statistics', desc: 'Pipeline counts, top field, totals' },
                 ].map((section) => (

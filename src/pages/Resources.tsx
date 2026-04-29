@@ -397,11 +397,15 @@ const Resources = () => {
       {/* Hero Section */}
       <section className="relative py-20 bg-gradient-to-r from-primary to-accent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-roboto font-bold text-white mb-6">
-            Resources & Tools
+          <div className="text-[10px] md:text-xs font-bold tracking-[0.3em] text-secondary uppercase mb-4">
+            Knowledge Hub
+          </div>
+          <h1 className="text-4xl md:text-5xl font-roboto font-bold text-white mb-4">
+            Resources &amp; Tools
           </h1>
-          <p className="text-xl text-gray-200 max-w-3xl mx-auto mb-8">
-            Access comprehensive resources, learning materials, and tools to support 
+          <div className="w-20 h-0.5 bg-secondary mx-auto mb-6"></div>
+          <p className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto mb-8 leading-relaxed">
+            Access comprehensive resources, learning materials, and tools to support
             your innovation journey and technology transfer activities.
           </p>
           <div className="flex justify-center">
@@ -425,10 +429,14 @@ const Resources = () => {
             {/* Templates Tab */}
             <TabsContent value="templates" className="mt-8">
               <div className="mb-8">
-                <h2 className="text-2xl font-roboto font-bold text-primary mb-4">
-                  Legal Templates & Documents
+                <div className="text-[10px] md:text-xs font-bold tracking-[0.25em] text-secondary uppercase mb-2">
+                  Downloads
+                </div>
+                <h2 className="text-2xl font-roboto font-bold text-primary mb-2">
+                  Legal Templates &amp; Documents
                 </h2>
-                <p className="text-gray-600 mb-6">
+                <div className="w-12 h-0.5 bg-secondary mb-4"></div>
+                <p className="text-gray-600 mb-6 leading-relaxed">
                   Download essential legal templates and documentation for IP protection and partnerships.
                 </p>
               </div>
@@ -569,10 +577,14 @@ const Resources = () => {
             {/* Guidelines Tab */}
             <TabsContent value="guidelines" className="mt-8">
               <div className="mb-8">
-                <h2 className="text-2xl font-roboto font-bold text-primary mb-4">
-                  Research Guidelines & Best Practices
+                <div className="text-[10px] md:text-xs font-bold tracking-[0.25em] text-secondary uppercase mb-2">
+                  Reference
+                </div>
+                <h2 className="text-2xl font-roboto font-bold text-primary mb-2">
+                  Research Guidelines &amp; Best Practices
                 </h2>
-                <p className="text-gray-600 mb-6">
+                <div className="w-12 h-0.5 bg-secondary mb-4"></div>
+                <p className="text-gray-600 mb-6 leading-relaxed">
                   Comprehensive guidelines and best practices for research, IP management, and technology transfer.
                 </p>
               </div>
@@ -716,11 +728,15 @@ const Resources = () => {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-roboto font-bold text-primary mb-4">
-              Workshops & Events
+            <div className="text-[10px] md:text-xs font-bold tracking-[0.25em] text-secondary uppercase mb-2">
+              Coming Up
+            </div>
+            <h2 className="text-3xl font-roboto font-bold text-primary mb-3">
+              Workshops &amp; Events
             </h2>
-            <p className="text-lg text-gray-600">
-              Join our regular workshops and events to enhance your IP and technology transfer knowledge
+            <div className="w-16 h-0.5 bg-secondary mx-auto mb-5"></div>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Join our regular workshops and events to enhance your IP and technology transfer knowledge.
             </p>
           </div>
 

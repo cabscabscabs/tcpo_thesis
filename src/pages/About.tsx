@@ -2,103 +2,31 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Mail, Phone, MapPin, Linkedin, Award, Users, Target, Heart } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
+import { Mail, Phone, MapPin, Award, Users, Target, Heart, Building2, Briefcase } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const About = () => {
   const navigate = useNavigate();
-  const team = [
-    {
-      name: "Dr. Venessa Garcia",
-      position: "Director – Technology Promotions and Commercialization Office",
-      expertise: "",
-      education: "",
-      email: "",
-      bio: "",
-      image: "/images/team/venessa-garcia.jpg"
-    },
-    {
-      name: "Engr. Gladdy Christie Compasan",
-      position: "Manager, TPCO – Innovation and Technology Support Unit",
-      expertise: "",
-      education: "",
-      email: "",
-      bio: "",
-      image: "/images/team/gladdy-christie-compasan.jpg"
-    },
-    {
-      name: "Ms. Flora Monica Mabaylan",
-      position: "Manager, TPCO – Promotions Management Unit",
-      expertise: "",
-      education: "",
-      email: "",
-      bio: "",
-      image: "/images/team/flora-monica-mabaylan.jpg"
-    },
-    {
-      name: "Ms. Rhea Suzette Haguisan",
-      position: "Manager, TPCO – Business Development Unit",
-      expertise: "",
-      education: "",
-      email: "",
-      bio: "",
-      image: "/images/team/rhea-suzette-haguisan.jpg"
-    },
-    {
-      name: "Engr. Jodie Rey Fernandez",
-      position: "Technology Promotions Officer, TPCO – Promotions Management Unit",
-      expertise: "",
-      education: "",
-      email: "",
-      bio: "",
-      image: "/images/team/jodie-rey-fernandez.jpg"
-    },
-    {
-      name: "Engr. Clark Darwin Gozon",
-      position: "Technical Expert, TPCO – Innovation and Technology Support Unit",
-      expertise: "",
-      education: "",
-      email: "",
-      bio: "",
-      image: "/images/team/clark-darwin-gozon.jpg"
-    },
-    {
-      name: "Engr. Mark Lister Nalupa",
-      position: "Technical Expert, TPCO – Innovation and Technology Support Unit",
-      expertise: "",
-      education: "",
-      email: "",
-      bio: "",
-      image: "/images/team/mark-lister-nalupa.jpg"
-    },
-    {
-      name: "Noreza P. Aleno",
-      position: "Administrative Staff, TPCO – Innovation and Technology Support Unit",
-      expertise: "",
-      education: "",
-      email: "",
-      bio: "",
-      image: "/images/team/noreza-aleno.jpg"
-    },
-    {
-      name: "Krystia Ces G. Napili",
-      position: "Science Research Specialist, Technology Promotions and Commercialization Office",
-      expertise: "",
-      education: "",
-      email: "",
-      bio: "",
-      image: "/images/team/krystia-ces-napili.jpg"
-    },
-    {
-      name: "Michael J. Cerbito",
-      position: "Administrative Assistant, Technology Promotions and Commercialization Office",
-      expertise: "",
-      education: "",
-      email: "",
-      bio: "",
-      image: "/images/team/michael-cerbito.jpg"
-    }
+
+  // Carousel team members — filenames in /public/images/team/tpco-team/ map to display names
+  const teamMembers = [
+    { nickname: "Ven",   fullName: "Dr. Venessa A. Garcia",           title: "TPCO Director",                    image: "/images/team/tpco-team/Ven.png"   },
+    { nickname: "Gladi", fullName: "Engr. Gladdy Christie H. Compasan", title: "Manager \u2014 ITSU",              image: "/images/team/tpco-team/Gladi.png" },
+    { nickname: "Carl",  fullName: "Geoffrey Carlo P. Delada",         title: "Administrative Assistant",         image: "/images/team/tpco-team/Carl.png"  },
+    { nickname: "Rhea",  fullName: "Rhea Suzette M. Haguisan",         title: "Manager \u2014 BDU",               image: "/images/team/tpco-team/Rhea.png"  },
+    { nickname: "Jodie", fullName: "Engr. Jodie Rey D. Fernandez",     title: "Technology Promotions Officer",    image: "/images/team/tpco-team/Jodie.png" },
+    { nickname: "Clark", fullName: "Engr. Clark Darwin Gozon",         title: "Technical Expert",                 image: "/images/team/tpco-team/Clark.png" },
+    { nickname: "Nas",   fullName: "Fatimah Nasra P. Hamoy",           title: "Technical Expert",                 image: "/images/team/tpco-team/Nas.png"   },
+    { nickname: "Nor",   fullName: "Noreza P. Ale\u00f1o",             title: "Administrative Staff",             image: "/images/team/tpco-team/Nor.png"   },
+    { nickname: "Ces",   fullName: "Krystia Ces G. Napili",            title: "Science Research Specialist",      image: "/images/team/tpco-team/Ces.png"   },
+    { nickname: "Mich",  fullName: "Atty. Michelle M. Bacarra",        title: "Contract Management Officer",      image: "/images/team/tpco-team/Mich.png"  },
   ];
 
   const partners = [
@@ -253,22 +181,22 @@ const About = () => {
               <Card className="bg-white/10 backdrop-blur-sm border-white/20">
                 <CardContent className="p-6 text-center">
                   <Users className="text-secondary mx-auto mb-3" size={32} />
-                  <div className="text-2xl font-roboto font-bold text-white mb-1">12</div>
+                  <div className="text-2xl font-roboto font-bold text-white mb-1">10</div>
                   <div className="text-primary-foreground/80 text-sm">Expert Team Members</div>
                 </CardContent>
               </Card>
               <Card className="bg-white/10 backdrop-blur-sm border-white/20">
                 <CardContent className="p-6 text-center">
-                  <Target className="text-secondary mx-auto mb-3" size={32} />
-                  <div className="text-2xl font-roboto font-bold text-white mb-1">95%</div>
-                  <div className="text-primary-foreground/80 text-sm">Success Rate</div>
+                  <Building2 className="text-secondary mx-auto mb-3" size={32} />
+                  <div className="text-2xl font-roboto font-bold text-white mb-1">3</div>
+                  <div className="text-primary-foreground/80 text-sm">Specialized Units</div>
                 </CardContent>
               </Card>
               <Card className="bg-white/10 backdrop-blur-sm border-white/20">
                 <CardContent className="p-6 text-center">
-                  <Heart className="text-secondary mx-auto mb-3" size={32} />
-                  <div className="text-2xl font-roboto font-bold text-white mb-1">24/7</div>
-                  <div className="text-primary-foreground/80 text-sm">Support Available</div>
+                  <Briefcase className="text-secondary mx-auto mb-3" size={32} />
+                  <div className="text-2xl font-roboto font-bold text-white mb-1">4+</div>
+                  <div className="text-primary-foreground/80 text-sm">Core Services Offered</div>
                 </CardContent>
               </Card>
             </div>
@@ -341,50 +269,335 @@ const About = () => {
         </div>
       </section>
 
-      {/* Team Section */}
-      <section className="py-16 bg-muted">
+      {/* Team Section — Professional Carousel */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary text-white mb-4">
-              Our Expert Team
+          <div className="text-center mb-14">
+            <div className="inline-block text-xs font-semibold tracking-[0.2em] text-secondary uppercase mb-3">
+              Our People
+            </div>
+            <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4">
+              Meet our Team
             </h2>
-            <p className="text-lg text-muted-foreground text-white max-w-3xl mx-auto">
-              Meet the dedicated professionals driving innovation and technology transfer at USTP TPCO.
+            <div className="w-16 h-0.5 bg-secondary mx-auto mb-5"></div>
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              A dedicated group of professionals driving innovation, technology transfer,
+              and commercialization across Northern Mindanao.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {team.map((member, index) => (
-              <Card key={index} className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="p-6 text-center">
-                  <div className="mx-auto mb-4">
-                    <Avatar className="w-20 h-20 mx-auto">
-                      <AvatarImage src={member.image} alt={member.name} />
-                      <AvatarFallback className="bg-gradient-ustp text-white font-roboto font-bold text-xl">
-                        {member.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
+          <div className="relative px-4 sm:px-8 md:px-16">
+            <Carousel
+              opts={{ align: "start", loop: true }}
+              className="w-full max-w-6xl mx-auto"
+            >
+              <CarouselContent className="-ml-6">
+                {teamMembers.map((member) => (
+                  <CarouselItem
+                    key={member.nickname}
+                    className="pl-6 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
+                  >
+                    <article className="group h-full rounded-lg bg-white border border-border overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-secondary/40">
+                      <div className="relative aspect-[3/4] overflow-hidden bg-muted">
+                        <img
+                          src={member.image}
+                          alt={member.fullName}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-x-0 bottom-0 h-1 bg-secondary scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500"></div>
+                      </div>
+                      <div className="p-5">
+                        <h3 className="font-roboto font-bold text-primary text-[15px] leading-snug">
+                          {member.fullName}
+                        </h3>
+                        <p className="mt-1 text-xs text-muted-foreground uppercase tracking-wide">
+                          {member.title}
+                        </p>
+                      </div>
+                    </article>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="-left-2 md:-left-10 bg-white border-primary/20 text-primary hover:bg-primary hover:text-white hover:border-primary" />
+              <CarouselNext className="-right-2 md:-right-10 bg-white border-primary/20 text-primary hover:bg-primary hover:text-white hover:border-primary" />
+            </Carousel>
+          </div>
+        </div>
+      </section>
+
+      {/* Organizational Chart Section — Corporate Tree */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Heading */}
+          <div className="text-center mb-16">
+            <div className="inline-block text-xs font-semibold tracking-[0.2em] text-secondary uppercase mb-3">
+              Office Structure
+            </div>
+            <h2 className="text-3xl md:text-4xl font-roboto font-bold text-primary mb-4">
+              TPCO Organizational Chart
+            </h2>
+            <div className="w-16 h-0.5 bg-secondary mx-auto mb-5"></div>
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Our office is organized into three specialized units, each led by a dedicated
+              manager reporting to the Director.
+            </p>
+          </div>
+
+          <div className="max-w-6xl mx-auto lg:translate-x-16 xl:translate-x-24">
+            {/* ===== Director + Admin Assistant sidecar ===== */}
+            <div className="relative">
+              <div className="flex justify-center">
+                <div className="w-full sm:w-[30rem] bg-white rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-secondary"></div>
+                  <div className="flex items-center gap-5 px-6 py-6">
+                    <div className="w-24 h-32 rounded-md overflow-hidden bg-slate-100 ring-1 ring-border flex-shrink-0">
+                      <img
+                        src="/images/team/tpco-team/Ven.png"
+                        alt="Dr. Venessa A. Garcia"
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1 text-left">
+                      <div className="text-[10px] font-bold tracking-[0.25em] text-secondary uppercase">
+                        TPCO Director
+                      </div>
+                      <div className="font-roboto font-bold text-primary text-xl md:text-[22px] mt-1 leading-tight">
+                        Dr. Venessa A. Garcia
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed">
+                        Technology Promotions and Commercialization Office
+                      </div>
+                    </div>
                   </div>
-                  
-                  <h3 className="text-xl font-roboto font-bold text-primary mb-1">
-                    {member.name}
-                  </h3>
-                  <p className="text-primary font-semibold mb-2">{member.position}</p>
-                  <p className="text-sm text-muted-foreground mb-3">{member.expertise}</p>
-                  <p className="text-xs text-muted-foreground mb-3">{member.education}</p>
-                  <p className="text-sm text-muted-foreground mb-4">{member.bio}</p>
-                  
-                  <div className="flex justify-center space-x-2">
-                    <Button variant="ghost" size="sm" className="text-primary hover:text-primary">
-                      <Mail size={16} />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-primary hover:text-primary">
-                      <Linkedin size={16} />
-                    </Button>
+                </div>
+
+                {/* Geoffrey sidecar — broken side link to Director (desktop) */}
+                <div className="hidden lg:flex absolute top-1/2 -translate-y-1/2 left-[calc(50%+15.5rem)] items-center">
+                  <div className="w-10 border-t-2 border-dashed border-slate-400"></div>
+                  <div className="bg-white rounded-lg border border-dashed border-slate-300 shadow-sm px-3 py-3 flex items-center gap-3 w-60">
+                    <div className="w-14 h-[4.5rem] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border flex-shrink-0">
+                      <img src="/images/team/tpco-team/Carl.png" alt="Geoffrey Carlo P. Delada" className="w-full h-full object-cover" loading="lazy" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[9px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">Administrative Assistant</div>
+                      <div className="text-primary font-medium text-[12px] leading-snug">Geoffrey Carlo P. Delada</div>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              </div>
+
+              {/* Mobile / tablet fallback for Geoffrey */}
+              <div className="lg:hidden mt-6 flex justify-center">
+                <div className="bg-white rounded-lg border border-dashed border-slate-300 shadow-sm px-3 py-3 flex items-center gap-3 w-full max-w-sm">
+                  <div className="w-14 h-[4.5rem] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border flex-shrink-0">
+                    <img src="/images/team/tpco-team/Carl.png" alt="Geoffrey Carlo P. Delada" className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[9px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">Administrative Assistant</div>
+                    <div className="text-primary font-medium text-[12px] leading-snug">Geoffrey Carlo P. Delada</div>
+                    <div className="text-[9px] text-muted-foreground italic mt-0.5">Reports to Director</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Connector stub under Director */}
+            <div className="hidden md:flex justify-center">
+              <div className="h-10 w-px bg-slate-300"></div>
+            </div>
+
+            {/* T-junction connectors aligned to 4 column centers */}
+            <div className="hidden md:grid grid-cols-4">
+              <div className="relative h-6">
+                <div className="absolute left-1/2 right-0 top-0 h-px bg-slate-300"></div>
+                <div className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-slate-300"></div>
+              </div>
+              <div className="relative h-6">
+                <div className="absolute inset-x-0 top-0 h-px bg-slate-300"></div>
+                <div className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-slate-300"></div>
+              </div>
+              <div className="relative h-6">
+                <div className="absolute inset-x-0 top-0 h-px bg-slate-300"></div>
+                <div className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-slate-300"></div>
+              </div>
+              <div className="relative h-6">
+                <div className="absolute left-0 right-1/2 top-0 h-px bg-slate-300"></div>
+                <div className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-slate-300"></div>
+              </div>
+            </div>
+
+            {/* ===== 4 Columns: ITSU, PMU, BDU, Contract Mgmt ===== */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-4 mt-8 md:mt-0">
+              {/* --- ITSU --- */}
+              <div className="flex flex-col">
+                {/* Unit header */}
+                <div className="bg-white rounded-lg border border-border shadow-sm px-4 py-4 text-center">
+                  <span className="inline-block px-2.5 py-0.5 rounded bg-secondary/15 text-secondary text-[10px] font-bold tracking-[0.25em] uppercase">
+                    ITSU
+                  </span>
+                  <div className="font-roboto font-semibold text-primary text-[12px] mt-2 leading-snug">
+                    Innovation &amp; Technology Support Unit
+                  </div>
+                </div>
+                <div className="flex justify-center">
+                  <div className="h-5 w-px bg-slate-300"></div>
+                </div>
+                {/* Manager: Gladdy + Noreza sidecar (broken side link) */}
+                <div className="relative">
+                  <div className="bg-white rounded-lg border border-border shadow-sm px-4 py-5 text-center">
+                    <div className="w-28 aspect-[3/4] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border mx-auto mb-3">
+                      <img
+                        src="/images/team/tpco-team/Gladi.png"
+                        alt="Engr. Gladdy Christie H. Compasan"
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="text-[9px] font-semibold tracking-[0.22em] text-muted-foreground uppercase">Manager</div>
+                    <div className="font-roboto font-semibold text-primary text-[12px] mt-1 leading-snug">
+                      Engr. Gladdy Christie H. Compasan
+                    </div>
+                  </div>
+                  {/* Noreza sidecar — broken side link to ITSU Manager (desktop lg+, left side) */}
+                  <div className="hidden lg:flex absolute top-1/2 -translate-y-1/2 right-[calc(100%+0.25rem)] items-center z-20">
+                    <div className="bg-white rounded-lg border border-dashed border-slate-300 shadow-sm px-3 py-3 flex items-center gap-3 w-56">
+                      <div className="w-14 aspect-[3/4] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border flex-shrink-0">
+                        <img src="/images/team/tpco-team/Nor.png" alt="Noreza P. Aleño" className="w-full h-full object-cover" loading="lazy" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[9px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">Administrative Staff</div>
+                        <div className="text-primary font-medium text-[12px] leading-snug">Noreza P. Aleño</div>
+                      </div>
+                    </div>
+                    <div className="w-8 border-t-2 border-dashed border-slate-400 flex-shrink-0"></div>
+                  </div>
+                </div>
+                {/* Solid connector to Fatimah */}
+                <div className="flex justify-center">
+                  <div className="h-5 w-px bg-slate-300"></div>
+                </div>
+                {/* Fatimah — solid connection */}
+                <div className="bg-white rounded-lg border border-border shadow-sm px-3 py-3 flex items-center gap-3 hover:border-secondary/50 transition-colors">
+                  <div className="w-14 aspect-[3/4] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border flex-shrink-0">
+                    <img src="/images/team/tpco-team/Nas.png" alt="Fatimah Nasra P. Hamoy" className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[9px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">Technical Expert</div>
+                    <div className="text-primary font-medium text-[12px] leading-snug">Fatimah Nasra P. Hamoy</div>
+                  </div>
+                </div>
+                {/* Noreza — mobile/tablet fallback (stacked below, dashed connector) */}
+                <div className="lg:hidden flex justify-center">
+                  <div className="h-5 border-l-2 border-dashed border-slate-400"></div>
+                </div>
+                <div className="lg:hidden bg-white rounded-lg border border-dashed border-slate-300 shadow-sm px-3 py-3 flex items-center gap-3">
+                  <div className="w-14 aspect-[3/4] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border flex-shrink-0">
+                    <img src="/images/team/tpco-team/Nor.png" alt="Noreza P. Aleño" className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[9px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">Administrative Staff</div>
+                    <div className="text-primary font-medium text-[12px] leading-snug">Noreza P. Aleño</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* --- PMU --- */}
+              <div className="flex flex-col">
+                <div className="bg-white rounded-lg border border-border shadow-sm px-4 py-4 text-center">
+                  <span className="inline-block px-2.5 py-0.5 rounded bg-secondary/15 text-secondary text-[10px] font-bold tracking-[0.25em] uppercase">
+                    PMU
+                  </span>
+                  <div className="font-roboto font-semibold text-primary text-[12px] mt-2 leading-snug">
+                    Promotions Management Unit
+                  </div>
+                </div>
+                <div className="flex justify-center">
+                  <div className="h-5 w-px bg-slate-300"></div>
+                </div>
+                {/* Empty Manager box */}
+                <div className="bg-white rounded-lg border-2 border-dashed border-slate-300 px-4 py-5 flex flex-col items-center justify-center text-center min-h-[14rem]">
+                  <div className="w-28 aspect-[3/4] rounded-md bg-slate-50 border border-dashed border-slate-200 mx-auto mb-3"></div>
+                  <div className="text-[9px] font-semibold tracking-[0.22em] text-muted-foreground uppercase">Manager</div>
+                  <div className="text-muted-foreground text-[11px] mt-1 italic">(Vacant)</div>
+                </div>
+                <div className="flex justify-center">
+                  <div className="h-5 w-px bg-slate-300"></div>
+                </div>
+                {/* Jodie */}
+                <div className="bg-white rounded-lg border border-border shadow-sm px-3 py-3 flex items-center gap-3 hover:border-secondary/50 transition-colors">
+                  <div className="w-14 aspect-[3/4] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border flex-shrink-0">
+                    <img src="/images/team/tpco-team/Jodie.png" alt="Engr. Jodie Rey D. Fernandez" className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[9px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">Promotions &amp; Marketing Officer</div>
+                    <div className="text-primary font-medium text-[12px] leading-snug">Engr. Jodie Rey D. Fernandez</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* --- BDU --- */}
+              <div className="flex flex-col">
+                <div className="bg-white rounded-lg border border-border shadow-sm px-4 py-4 text-center">
+                  <span className="inline-block px-2.5 py-0.5 rounded bg-secondary/15 text-secondary text-[10px] font-bold tracking-[0.25em] uppercase">
+                    BDU
+                  </span>
+                  <div className="font-roboto font-semibold text-primary text-[12px] mt-2 leading-snug">
+                    Business Development Unit
+                  </div>
+                </div>
+                <div className="flex justify-center">
+                  <div className="h-5 w-px bg-slate-300"></div>
+                </div>
+                {/* Manager: Rhea */}
+                <div className="bg-white rounded-lg border border-border shadow-sm px-4 py-5 text-center">
+                  <div className="w-28 aspect-[3/4] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border mx-auto mb-3">
+                    <img
+                      src="/images/team/tpco-team/Rhea.png"
+                      alt="Rhea Suzette M. Haguisan"
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="text-[9px] font-semibold tracking-[0.22em] text-muted-foreground uppercase">Manager</div>
+                  <div className="font-roboto font-semibold text-primary text-[12px] mt-1 leading-snug">
+                    Rhea Suzette M. Haguisan
+                  </div>
+                </div>
+                <div className="flex justify-center">
+                  <div className="h-5 w-px bg-slate-300"></div>
+                </div>
+                {/* Krystia */}
+                <div className="bg-white rounded-lg border border-border shadow-sm px-3 py-3 flex items-center gap-3 hover:border-secondary/50 transition-colors">
+                  <div className="w-14 aspect-[3/4] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border flex-shrink-0">
+                    <img src="/images/team/tpco-team/Ces.png" alt="Krystia Ces G. Napili" className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[9px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">Science Research Specialist</div>
+                    <div className="text-primary font-medium text-[12px] leading-snug">Krystia Ces G. Napili</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* --- Contract Management Officer (direct report to Director) --- */}
+              <div className="flex flex-col">
+                <div className="bg-white rounded-lg border border-border shadow-sm px-4 py-5 text-center">
+                  <div className="w-28 aspect-[3/4] rounded-md overflow-hidden bg-slate-100 ring-1 ring-border mx-auto mb-3">
+                    <img
+                      src="/images/team/tpco-team/Mich.png"
+                      alt="Atty. Michelle M. Bacarra"
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="text-[9px] font-semibold tracking-[0.22em] text-muted-foreground uppercase">Contract Management Officer</div>
+                  <div className="font-roboto font-semibold text-primary text-[12px] mt-1 leading-snug">
+                    Atty. Michelle M. Bacarra
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

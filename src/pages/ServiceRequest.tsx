@@ -376,13 +376,13 @@ Preferred Contact: ${formData.preferredContact}`,
                         />
                       </div>
                       <div>
-                        <Label htmlFor="organization">Organization</Label>
+                        <Label htmlFor="organization">Affiliate</Label>
                         <Input
                           id="organization"
                           type="text"
                           value={formData.organization}
                           onChange={(e) => setFormData({...formData, organization: e.target.value})}
-                          placeholder="Enter organization name"
+                          placeholder="Enter affiliate name"
                           className="placeholder:text-gray-400"
                         />
                       </div>

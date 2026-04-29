@@ -9,7 +9,7 @@ const Hero = () => {
   const navigate = useNavigate();
   const [heroContent, setHeroContent] = useState({
     heroTitle: "Accelerating Innovation Through Technology Transfer",
-    heroSubtitle: "USTP Technology and Partnership Commercialization Office - Your gateway to cutting-edge research, intellectual property protection, and industry collaboration in Northern Mindanao.",
+    heroSubtitle: "USTP Technology Promotions and Commercialization Office — your gateway to cutting-edge research, intellectual property protection, and industry collaboration in Northern Mindanao.",
     heroImage: null as string | null,
     patentsCount: 24,
     partnersCount: 50,
@@ -58,6 +58,9 @@ const Hero = () => {
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="max-w-4xl mx-auto">
+          <div className="text-[10px] md:text-xs font-bold tracking-[0.3em] text-secondary uppercase mb-4">
+            USTP · Technology Promotions &amp; Commercialization Office
+          </div>
           <h1 className="text-4xl md:text-6xl font-roboto font-bold text-white mb-6">
             {heroContent.heroTitle.split(' ').map((word, index) => {
               if (word.toLowerCase() === 'innovation') {
@@ -66,7 +69,8 @@ const Hero = () => {
               return word + ' ';
             })}
           </h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
+          <div className="w-20 h-0.5 bg-secondary mx-auto mb-6"></div>
+          <p className="text-lg md:text-xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
             {heroContent.heroSubtitle}
           </p>
           

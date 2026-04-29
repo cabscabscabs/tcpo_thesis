@@ -478,11 +478,15 @@ const IPPortfolio = () => {
       >
         <div className="absolute inset-0 bg-primary/80"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-roboto font-bold text-white mb-6">
+          <div className="text-[10px] md:text-xs font-bold tracking-[0.3em] text-secondary uppercase mb-4">
+            Our Technologies
+          </div>
+          <h1 className="text-4xl md:text-5xl font-roboto font-bold text-white mb-4">
             Intellectual Property Portfolio
           </h1>
-          <p className="text-xl text-gray-200 max-w-3xl mx-auto mb-8">
-            Explore our comprehensive collection of patents, technologies, and innovations 
+          <div className="w-20 h-0.5 bg-secondary mx-auto mb-6"></div>
+          <p className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto mb-8 leading-relaxed">
+            Explore our comprehensive collection of patents, technologies, and innovations
             available for licensing and commercialization partnerships.
           </p>
         </div>
@@ -726,7 +730,13 @@ const IPPortfolio = () => {
       {/* Statistics Section - Portfolio Overview */}
       <section className="py-12 bg-white border-t">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Portfolio Overview</h2>
+          <div className="text-center mb-8">
+            <div className="text-[10px] md:text-xs font-bold tracking-[0.25em] text-secondary uppercase mb-2">
+              At a Glance
+            </div>
+            <h2 className="text-3xl font-roboto font-bold text-primary mb-3">Portfolio Overview</h2>
+            <div className="w-16 h-0.5 bg-secondary mx-auto"></div>
+          </div>
           
           {/* Stats Cards Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

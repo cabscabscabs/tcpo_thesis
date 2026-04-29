@@ -3210,20 +3210,41 @@ const Admin = () => {
       toast({ title: 'Validation Error', description: 'No registrations to export', variant: 'destructive' })
       return;
     }
-    
-    const headers = ['Full Name', 'Email', 'Phone', 'Organization', 'Position', 'Dietary Requirements', 'Special Requests', 'Status', 'Registered At'];
+
+    // Include the event's name and date so the exported CSV is
+    // self-contained — otherwise the file only lists registrants with no
+    // indication of which event they belong to.
+    const eventName = selectedEventForRegistrations?.title || '';
+    const eventDateRaw = selectedEventForRegistrations?.date;
+    const eventDate = eventDateRaw
+      ? new Date(eventDateRaw).toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        })
+      : '';
+    // Event time is a free-form string (e.g., "9:00 AM - 12:00 PM") so we
+    // pass it through as-is rather than trying to parse/format it.
+    const eventTime = selectedEventForRegistrations?.time || '';
+    // Escape any embedded double-quotes so the CSV stays valid.
+    const csvEscape = (v: string) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+
+    const headers = ['Event Name', 'Event Date', 'Event Time', 'Full Name', 'Email', 'Phone', 'Organization', 'Position', 'Dietary Requirements', 'Special Requests', 'Status', 'Registered At'];
     const csvContent = [
       headers.join(','),
       ...eventRegistrations.map(reg => [
-        `"${reg.full_name}"`,
-        `"${reg.email}"`,
-        `"${reg.phone || ''}"`,
-        `"${reg.organization || ''}"`,
-        `"${reg.position || ''}"`,
-        `"${reg.dietary_requirements || ''}"`,
-        `"${reg.special_requests || ''}"`,
-        `"${reg.status}"`,
-        `"${new Date(reg.registered_at).toLocaleString()}"`
+        csvEscape(eventName),
+        csvEscape(eventDate),
+        csvEscape(eventTime),
+        csvEscape(reg.full_name),
+        csvEscape(reg.email),
+        csvEscape(reg.phone || ''),
+        csvEscape(reg.organization || ''),
+        csvEscape(reg.position || ''),
+        csvEscape(reg.dietary_requirements || ''),
+        csvEscape(reg.special_requests || ''),
+        csvEscape(reg.status),
+        csvEscape(new Date(reg.registered_at).toLocaleString()),
       ].join(','))
     ].join('\n');
     
