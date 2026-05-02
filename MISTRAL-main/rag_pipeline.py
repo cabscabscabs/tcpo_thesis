@@ -290,7 +290,7 @@ class RAGPipeline:
         # Step 2: Retrieve relevant chunks
         # For follow-up questions, enrich the search query with context from the
         # last user message so the vector search finds relevant documents.
-        # Rewrite query for better retrieval (e.g., "What is a patent?" → "patent definition meaning")
+        # Rewrite query for better retrieval (e.g., "What is a patent?" → "patent definition explanation overview")
         rewritten_question = rewrite_query_for_retrieval(question)
 
         if has_history:
@@ -304,6 +304,7 @@ class RAGPipeline:
         else:
             enhanced_query = f"office information: {rewritten_question}"
 
+        # Retrieve with re-ranking enabled for better context quality
         chunks = self.vector_store.search(enhanced_query)
 
         # Filter by relevance threshold (cosine distance; lower = more similar)

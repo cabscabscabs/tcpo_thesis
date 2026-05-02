@@ -1,0 +1,529 @@
+question,answer,ground_truth,faithfulness,answer_relevancy,coherence,helpfulness,feedback,error
+What services does TPCO offer for patent applications?,"Hi, I'm Tepee!
+
+TPCO offers patent-related services through its Innovation & Technology Support Unit (ITSU):
+
+- IP Protection & Patent Application
+- Patent Drafting & Prior Art Search
+- Technology Valuation & IP Consultations
+
+For patent applications, you can reach out to ITSU for assistance with protection, drafting, prior art searches, and consultations. Visit the [Services page](services) to learn more about these offerings.","TPCO offers IP Protection services including Patent Application Assistance, Prior Art Search, IP Portfolio Management, Legal Consultation, Trademark Registration, Copyright Protection, Freedom to Operate Analysis, Patent Landscape Studies, and IP Strategy Development. The timeline is 3-6 months with consultation fees applying.",0.4,0.7,0.8,0.6,"The answer provides relevant patent services but includes some unsupported claims (e.g., ""Technology Valuation"") and omits key details like timelines/fees from the reference answer.",
+How do I file a trademark application?,"Hi, I'm Tepee!
+
+To file a trademark application through USTP TPCO, you can submit the following requirements:
+
+- Form 400 (IPOPHL)
+- Description/functions and colors of the mark
+- Class of trade or services
+- JPEG format copy of the mark
+
+For the Declaration of Actual Use (DAU), you will need to submit:
+- Letter request for DAU to IPOPHL
+- Proofs (photos) of the usage of the mark
+
+You may also download the necessary forms from the [Templates page](/resources?tab=templates).
+
+For assistance with the trademark application process, you can submit a service request through the [Service Request page](/service-request).","To file a trademark application through TPCO, you can submit a service request for IP Protection assistance. TPCO will help you prepare and file the application with IPOPHL. The trademark application requires IPOPHL Form 400 (Trademark Application Form), required fees, and supporting documents. The process involves classification of goods/services using the Nice Classification system (45 classes), examination, publication, and registration. You can access the service request form at /service-request?service=ip-protection.",0.4,0.7,0.8,0.0,"The answer provides relevant details about trademark filing requirements but includes unsupported claims (e.g., ""USTP TPCO,"" ""Form 400 (IPOPHL)"") and omits key steps like Nice Classification, making it only partially faithful to the ground truth.",
+What is the difference between a patent and a copyright?,"Hi, I'm Tepee!
+
+Based on the context provided, here's the difference between a patent and a copyright:
+
+A patent is an exclusive right granted for an invention, which can be a product or a process that provides a new way of doing something or offers a new technical solution to a problem. It gives the creator or manufacturer a monopoly over the protected work for a set period of time, typically up to 20 years, in exchange for disclosing the details of the new technology to the public.
+
+A copyright, on the other hand, protects literary and artistic works, designs, and other creative expressions. It grants economic rights to the creator, enabling them to obtain remuneration from the exploitation of their works by third parties, and these rights are transferable or licensable. Copyright also includes moral rights, which allow the creator to maintain a personal connection with their work and are always retained by the author.","A patent protects inventions, processes, and technical solutions, granting exclusive rights for 20 years. A copyright protects original works of authorship like literary, artistic, and software works, lasting for the author's life plus 50 years. Patents require registration while copyright exists automatically upon creation, though registration provides additional legal benefits.",0.1,1.0,0.9,0.8,"The answer is highly relevant and coherent, providing a detailed comparison between patents and copyrights, but it fails completely in faithfulness since no context was provided to ground the claims. The answer is still practically useful and well-structured despite the lack of context.",
+What makes an invention patentable according to Philippine law?,"Hi, I'm Tepee!
+
+According to the context provided, an invention is patentable under Philippine law if it meets the following requirements:
+
+1. **Novelty**: The technical solution must be ""new"" or the first of its kind in the world. It should not form part of prior art, which includes anything made available to the public before the filing date of the application.
+
+2. **Industrial Applicability**: The technical solution must work and can be developed or manufactured. An invention that can be produced and used in any industry shall be industrially applicable. This includes all manufacturing, extracting, and processing activities of enterprises carried out continuously, independently, and for commercial gain.","An invention is patentable if it is new, involves an inventive step, and is industrially applicable. The invention must not be publicly known or used before the filing date.",0.5,0.8,0.7,0.7,"The answer is mostly relevant and coherent but includes an unsupported claim about ""prior art"" (not in the ground truth) and omits the ""inventive step"" requirement, reducing faithfulness.",
+Where can I find templates for IP application forms?,"Hi, I'm Tepee!
+
+You can find templates for IP application forms on the [Resources page](resources?tab=templates).","IP application form templates are available on the Resources page under the Templates tab. Navigate to /resources?tab=templates to access downloadable forms for trademark, patent, copyright, and other IP-related applications. Examples include IPOPHL Form 100 for patent applications, Form 300 for copyright, and Form 400 for trademarks. Templates are loaded dynamically from the resources table in Supabase.",0.7,0.8,0.9,0.7,"The answer is mostly faithful and relevant but lacks specific examples of forms mentioned in the ground truth, slightly reducing its completeness and helpfulness.",
+What is technology transfer and how does TPCO facilitate it?,"Hi, I'm Tepee!
+
+Technology transfer is the process of transferring technology from the person or organization that owns or holds it to another person or organization, as defined in RA 10055. TPCO facilitates technology transfer through its Business Development Unit (BDU), which focuses on licensing technologies, fostering industry-academe partnerships, and guiding startups and investors. TPCO also works closely with the Innovation and Technology Support Unit (ITSU) for IP protection and assessment, ensuring technologies are ready for transfer.
+
+TPCO creates and nurtures an innovation ecosystem that promotes entrepreneurship and commercialization to contribute to economic and social development. This involves communicating with researchers, ITSU, BDU, and potential industry adopters to conduct IP valuation and ensure technologies are market-ready.
+
+For more details about TPCO’s services and how they can assist with technology transfer, visit the [Services page](services).","Technology transfer is the process of sharing knowledge, skills, and methods to enable broader application. TPCO facilitates technology transfer through IP licensing, commercialization support, technology utilization planning, and its Industry-Academe Matching service which bridges academic research and industry needs through strategic partnerships.",0.5,0.8,0.9,0.8,"The answer is well-structured and relevant but includes some unsupported claims (e.g., RA 10055 reference) and omits key details from the ground truth (e.g., ""technology utilization planning"" and ""Industry-Academe Matching service"").",
+What should be included in a patent specification?,"Hi, I'm Tepee!
+
+A patent specification should include:
+
+- A fully, clearly, and concisely described invention
+- Every feature of the invention claimed
+- A depiction of what is essential in the specification and claims
+- A distinct pointing out and claiming of what the applicant regards as the invention
+- An abstract, description, claims, and drawings
+- The title of the invention, technical field/features, manner of solving the technical problem, and the main use or uses","A patent specification should include: (1) Title of the invention, (2) Abstract summarizing the technical disclosure, (3) Detailed description of the invention including background, summary, and detailed explanation, (4) Claims defining the scope of protection, and (5) Drawings if necessary for understanding the invention. The specification must enable a person skilled in the art to reproduce the invention.",0.3,0.8,0.7,0.7,"The answer is relevant and covers key aspects of patent specifications but includes some non-standard elements (e.g., ""depiction of what is essential"") and lacks grounding in the reference answer, reducing faithfulness.",
+How can I book facilities or equipment at USTP?,I don't have that specific information in my knowledge base. Please contact TPCO directly for assistance.,"Facility booking and Shared Service Facility (SSF) services have been removed from the USTP TPCO website. The Resources page now only provides access to Templates and Guidelines tabs. For facility-related inquiries, please contact TPCO directly at ustp.tpco@ustp.edu.ph or call (088) 856-1738 Local 1145.",0.1,0.0,1.0,0.1,"The generated answer fails to address the question or use the context, despite the reference answer providing clear instructions. The response is unhelpful and irrelevant, though it is coherent.",
+What is a patent search report and why is it important?,"Hi, I'm Tepee!
+
+A patent search report is a document prepared as part of the patent application process through USTP TPCO. It includes a title and abstract of your technology, written in the template provided by TPCO. The title should be short, specific (under 15 words), descriptive, and avoid fancy names. The abstract should quickly convey the nature of your technology, not exceed 150 words, and focus on the technical disclosure—whether it’s a modification or a new invention.
+
+The report is important because it helps assess whether your invention meets patentability requirements by identifying prior art—existing patents, publications, or publicly available information that could affect your patent application. This search is typically done before or during the development of your invention or before filing the patent application. It provides insight into what aspects of your invention are already known, helping you refine your application and increase the chances of success.
+
+For assistance with preparing your patent search report, you can reach out to USTP TPCO at ustp.itso@ustp.edu.ph. You can also find templates and guidelines on the [Resources page](resources?tab=templates).","A patent search report identifies prior art (existing patents and publications) relevant to an invention. It is important because it helps determine novelty, assess patentability, identify potential infringement risks, and inform drafting strategy for patent claims. A thorough search saves time and resources by revealing whether an invention is worth patenting.",0.3,0.7,0.8,0.7,"The answer provides relevant details about patent search reports but includes unsupported claims (e.g., USTP TPCO specifics) and omits key aspects like novelty assessment and claim drafting strategy from the ground truth.",
+What is the role of the Technology Promotion and Commercialization Office?,"Hi, I'm Tepee!
+
+The Technology Promotions and Commercialization Office (TPCO) serves as the interface between the talent and technology housed in the academic institute, the industry, and the community. It fosters new relationships and partnerships that result in life-changing innovations, enhanced productivity, and ingenious discoveries that improve the human condition. TPCO also aims to be visibly involved in the innovation landscape.","The Technology Promotions and Commercialization Office (TPCO) serves as the interface between the talent and technology housed in the academic institute, the industry, and the community; fostering new relationships and partnerships resulting in life-changing innovations, enhanced productivity and ingenious discoveries. TPCO manages intellectual property, facilitates technology transfer, provides IP education and training, assists with patent/trademark/copyright applications, and promotes commercialization of university innovations. It was established and approved by the Board of Regents in May 2020.",0.7,0.8,0.9,0.8,"The answer is mostly faithful to the context but misses key details like IP management and establishment date, while being highly relevant, coherent, and helpful.",
+How do I submit a service request to TPCO?,"Hi, I'm Tepee!
+
+To submit a service request to TPCO, you can visit the [Service Request page](https://ustptpco.edu.ph/service-request) to submit your request online. You may also contact TPCO directly through their main office line at (088) 856-1738 Local 1145 or email ustp.tpco@ustp.edu.ph for assistance.","To submit a service request, go to the Services page, find the service you need, and click 'Request This Service' to fill out a service request form. You can also go directly to /service-request?service={slug}. Available service types include ip-protection, technology-licensing, industry-matching, and startup-incubation. Form fields include Full Name (required), Email (required), Phone, Organization, Specific Needs & Requirements, and Preferred Contact Method.",0.3,0.5,0.7,0.6,"The answer provides some relevant contact information but misses key details from the ground truth (e.g., service-specific request process, required form fields, and direct URL structure), reducing faithfulness and helpfulness.",
+What is the difference between a utility model and a patent?,"Hi, I'm Tepee!
+
+Here are the key differences between a utility model and a patent based on USTP TPCO's context:
+
+- **Scope of Claims**: A patent may contain more than one independent claim (e.g., product, process, use), while a utility model allows only one independent genus or generic claim. However, specific variations of the utility model can be included as dependent claims in a single application.
+
+- **Protection Duration**: A utility model is valid for 7 years from the filing date, whereas a patent provides protection for up to 20 years.
+
+- **Examination Process**: Utility models undergo only a formal examination and a registrability report (novelty and industrial applicability test). There is no substantive examination. In contrast, patents typically involve a more rigorous examination process.
+
+- **Requirements**: Both must be new and industrially applicable, but patents require an inventive step, while utility models do not.
+
+- **Rights Conferred**: Granted patents provide exclusive rights (monopoly) over the invention for a set period. Published patent applications do not grant these rights immediately but indicate potential future protection.
+
+For more details on IP processes, visit the [IP Portfolio page](/ip-portfolio).","A patent protects inventions with high inventive step and grants 20 years protection. A utility model (also called petty patent) protects minor improvements with lower inventive requirements and provides 7 years protection. Utility models have simpler application process, lower costs, but no substantive examination. Patents undergo full examination while utility models follow a more streamlined process.",0.9,1.0,0.9,0.9,"The answer is highly relevant and well-structured, covering all key differences between utility models and patents, with only minor deviations from the reference answer (e.g., phrasing of ""scope of claims"" vs. ""inventive step"" requirement).",
+What documents are needed for a patent application?,"Hi, I'm Tepee!
+
+For a patent application through USTP TPCO, you will need to submit the following documents:
+
+- Technology Disclosure Form
+- Patent Search Report
+- Patent Draft (Abstract, Description, Claims, Drawings)
+- IPOPHL Application Forms (Form 100, Form 110)
+- Technology Utilization Plan
+- Accomplished TRL Assessment Form
+- Letter of Intent from industry partners
+
+You can submit these requirements by emailing ustp.itso@ustp.edu.ph with the subject line ""Patent / UM_Title of the work"".
+
+For templates and forms, visit the [Templates page](/resources?tab=templates).","For a patent application through TPCO, you need to email ustp.itso@ustp.edu.ph with the subject line ""Patent / UM_Title of the work"" and include the following documents: Technology Disclosure Form, Patent Search Report, Patent Draft (Abstract, Description, Claims, Drawings), IPOPHL Application Forms (Form 100, Form 110), Technology Utilization Plan, Accomplished TRL Assessment Form, Letter of Intent or Commitment from each industry partner, and Supporting Documents (if applicable). You can also submit an IP application through the Faculty Portal at /faculty/applications/new.",0.8,0.9,0.9,0.9,"The answer is highly relevant and coherent, providing a clear list of required documents, but misses the ""Supporting Documents (if applicable)"" and Faculty Portal submission option mentioned in the ground truth.",
+What is the TRL Assessment Form used for?,"The TRL Assessment Form is used to evaluate the Technology Readiness Level (TRL) of a technology, ensuring it meets the required level (at least TRL 4) before proceeding with utilization planning. It is a supporting document required for the Technology Utilization Plan and is submitted via email to ustp.itso@ustp.edu.ph as part of the process.","The TRL Assessment Form is used to evaluate the Technology Readiness Level of innovations, helping determine their maturity and readiness for commercialization.",0.5,0.7,0.8,0.7,"The answer provides relevant details about the TRL Assessment Form's purpose and submission process but includes extra procedural information not present in the ground truth, slightly reducing faithfulness.",
+Who is the director of TPCO?,"Hi, I'm Tepee!
+
+The director of USTP TPCO is Dr. Venessa A. Garcia.",Dr. Venessa A. Garcia is the TPCO Director of the Technology Promotions and Commercialization Office at USTP. She leads the TPCO office and oversees all technology transfer activities.,1.0,1.0,0.7,0.9,"The answer correctly identifies the director and is fully relevant, but the greeting (""Hi, I'm Tepee!"") slightly disrupts coherence without adding value.",
+What should be included in a software patent specification?,"Hi, I'm Tepee!
+
+For a software patent specification, the context highlights that the specification must fully, clearly, and concisely describe the invention and show every feature of the invention claimed. It must particularly point out and distinctly claim what the applicant regards as the invention. Additionally, the specification should support the claims to allow patentability and serve as a ""sales"" document to demonstrate the value of the invention to an Examiner, potential business partner, or judge.
+
+The specification typically includes:
+- Abstract
+- Description
+- Claims
+- Drawings (if applicable)
+
+For software patents, the description should clearly explain the technical aspects, algorithms, and how the software achieves the desired result. The claims should define the novel and non-obvious aspects of the software invention.
+
+You can find templates and guidelines for drafting patent specifications on the [Templates page](/resources?tab=templates) and [Guidelines page](/resources?tab=guidelines).","A software patent specification should include an abstract, detailed description of the invention, claims defining the scope, and drawings such as flowcharts and system diagrams.",0.1,0.8,0.7,0.7,"The answer provides relevant information about software patent specifications but invents unsupported details (e.g., ""sales document"" role) and lacks grounding in the absent context.",
+What is keyword searching in patent prior art?,"Keyword searching in patent prior art is a process of generating text queries based on the key concepts or essential technical features of an invention. It involves using synonyms and considering legalese and patentese terms to ensure comprehensive coverage. The searchable terms are typically found in the title, abstract, description, or claims of patent documents. This method helps identify relevant prior art that may affect the patentability of an invention.",Keyword searching in patent prior art involves identifying relevant technical terms and classification codes to find existing patents and publications related to an invention.,0.3,0.8,0.9,0.7,"The answer provides a detailed and coherent explanation of keyword searching but lacks grounding in the reference answer, which focuses on technical terms and classification codes rather than query generation and legalese.",
+How do I contact TPCO for inquiries?,"Hi, I'm Tepee!
+
+You can contact TPCO for inquiries through the following:
+
+- **Phone**: (088) 856-1738 Local 1145 (Monday to Friday, 8:00 AM - 5:00 PM)
+- **Email**: ustp.tpco@ustp.edu.ph (primary contact, response within 24 hours)
+- **Visit us**: USTP Technology Transfer Office, Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan, Cagayan de Oro City
+
+For more details, visit the [Contact page](contact).","You can contact TPCO through multiple channels: Phone at (088) 856-1738 Local 1145 (available Monday-Friday, 8:00 AM - 5:00 PM), Email at ustp.tpco@ustp.edu.ph (response within 24 hours), or visit their office at USTP Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan, Cagayan de Oro City, 9000 Misamis Oriental. The Contact page at /contact also shows direct contacts for the Office Director (Dr. Venessa A. Garcia) and the Business Development Manager (Rhea Suzette M. Haguisan).",0.9,1.0,1.0,1.0,"The answer is highly faithful, relevant, coherent, and helpful, with only a minor omission of the office director and business development manager details from the reference answer.",
+What is a Joint Affidavit of Inventorship and Contribution?,"A Joint Affidavit of Inventorship and Contribution is a formal document signed by two or more inventors to attest to their joint contribution to an invention or utility model. It includes the full names and addresses of all inventors, declares their collective inventorship of the titled invention, and affirms their consent and mutual agreement regarding the distribution of credit, authorship, and inventorship. The affidavit is executed to facilitate proper attribution and support the filing of an intellectual property protection application.","A Joint Affidavit of Inventorship and Contribution is a sworn statement executed by co-inventors declaring their contributions to an invention. It establishes each inventor's specific contribution, confirms the collaborative nature of the work, and is required for patent applications with multiple inventors.",0.5,0.8,0.9,0.8,"The answer is mostly relevant and well-structured but includes some details (e.g., ""distribution of credit, authorship"") not present in the reference answer, slightly reducing faithfulness.",
+How do I find information about TPCO events and workshops?,"Hi, I'm Tepee!
+
+You can find information about TPCO events and workshops in two ways:
+
+1. Go to the [Resources page](https://ustp.edu.ph/tpco/resources) and scroll down to the ""Workshops & Events"" section. From there, you can click ""View All Events"" to see all upcoming and past events.
+
+2. You can also access events directly at [/events](https://ustp.edu.ph/tpco/events).","To access Events & Workshops, go to the Resources page by clicking 'Resources' in the navigation bar, then scroll to the 'Workshops & Events' section or click 'View All Events' to see all upcoming and past events. You can also access events directly at /events. You can register for events directly on the page by clicking 'Register Now'.",0.8,0.9,0.9,0.9,"The answer is highly relevant and coherent, providing clear steps to find TPCO events and workshops, though it omits the registration detail from the reference answer, slightly reducing faithfulness.",
+What is copyright registration and how do I apply?,"Hi, I'm Tepee!
+
+Copyright registration is the process of legally protecting original works such as computer programs, literary pieces, artworks, sound recordings, and more. To apply, you need to submit the required documents to the Bureau of Copyright and Related Rights (BCRR) of IPOPHL.
+
+For computer programs, the requirements include:
+- BCRR Form (IPOPHL)
+- BCRR Form - Transaction Form Supplemental Sheet (for co-authors/creators)
+- Accomplished Deed of Assignment (for notarization)
+- Identification Cards of the Authors/Creators
+- Source codes in Word format (soft copy)
+
+The general copyright application process involves:
+1. Online application via email to the Bureau of Copyright and Related Rights
+2. Evaluation of the completeness of requirements/forms
+3. Compliance with findings or submission of incomplete documents
+4. Courier of hard copies
+5. Issuance of Certificate of Registration
+
+For institutional applicants or works involving indigenous knowledge, additional documents like employment contracts or position descriptions may be required.
+
+For more details on copyright registration and other IP processes, visit the [USTP TPCO Resources page](resources?tab=templates).","Copyright registration is the process of formally recording ownership of original works like literary, artistic, musical, and software works. To apply through TPCO, you can submit a service request for IP Protection assistance and TPCO will help prepare and file the application with IPOPHL. The application requires IPOPHL Form 300 (Copyright Application Form), copies of the work, affidavit of ownership, and required fees. Registration provides legal evidence of ownership and enables enforcement against infringement. You can access the service request form at /service-request?service=ip-protection.",0.3,0.7,0.8,0.6,"The answer provides detailed steps and requirements for copyright registration but includes unsupported claims (e.g., BCRR forms, specific documents like Deed of Assignment) that don't align with the ground truth, reducing faithfulness despite being coherent and somewhat relevant.",
+What rights does a patent grant to the inventor?,"Hi, I'm Tepee!
+
+A patent grants the inventor the exclusive right to their invention, which means they can restrain, prohibit, and prevent any unauthorized person or entity from making, using, offering for sale, selling, or importing the patented product. If the patent covers a process, the inventor can prevent others from using the process and from manufacturing, dealing in, using, selling, or importing products obtained directly from the process.","A patent grants the inventor exclusive rights to prevent others from making, using, selling, or importing the patented invention without permission.",0.5,0.9,0.8,0.9,"The answer is highly relevant and helpful, providing a detailed explanation of patent rights, but its faithfulness is limited due to the absence of context. The response is well-structured and coherent.",
+How long does patent protection last?,Patent protection lasts for up to 20 years.,Patent protection lasts for 20 years from the filing date. Utility models are protected for 7 years without renewal.,0.6,0.7,1.0,0.7,"The answer is concise and coherent but omits the ""from the filing date"" detail and the distinction about utility models, which slightly reduces faithfulness and helpfulness.",
+What is the role of IPOPHL in the patent application process?,"Hi, I'm Tepee!
+
+IPOPHL (Intellectual Property Office of the Philippines) is responsible for the formal examination and processing of patent applications after they have been internally approved by USTP TPCO. Once your application reaches the status ""Filed to IPOPHL,"" IPOPHL conducts the examination process, including the substantive examination, to assess the patentability of your invention or utility model. They also issue the Patent Search Report, which includes prior art references and relevant documents considered during the search. IPOPHL handles the official filing, acknowledgment, and publication of patent applications.","IPOPHL (Intellectual Property Office of the Philippines) handles the filing, examination, and registration of patent applications.",0.4,0.8,0.7,0.7,"The answer provides relevant details about IPOPHL's role but includes unsupported claims (e.g., USTP TPCO approval) and omits the registration aspect mentioned in the ground truth.",
+What are patent claims and why are they important?,"Hi, I'm Tepee!
+
+Patent claims are the heart of a patent document. They define the scope of legal protection and demarcate in words the boundary of the invention. Only the technology covered in the claims is protected by the patent.
+
+They are important because they represent the heart of the patent application, define the scope of protection given to an invention, and are usually the first and sometimes the only parts of the patent application actually reviewed by the patent examiner. Claims are also read by lawyers and judges during legal proceedings such as patent invalidation and/or infringement cases, as well as by researchers, competitors, and the public.","Patent claims are the legal definition of the invention's scope of protection. They define the boundaries of what the patent covers and what constitutes infringement. Claims must be clear, supported by the description, and distinguish the invention from prior art. Independent claims stand alone, while dependent claims reference and further limit independent claims.",0.3,0.9,0.8,0.8,"The answer is highly relevant and coherent, providing useful details about patent claims, but lacks grounding in the unavailable context and slightly overstates the examiner's focus on claims alone.",
+What is the trademark classification system?,"Hi, I'm Tepee!
+
+The context provided does not contain specific information about trademark classification systems. It primarily discusses trademarks, their definitions, filing fees, required documents, and general principles related to patents and intellectual property rights.
+
+I don't have that specific information in my knowledge base. Please contact TPCO directly for assistance.","The trademark classification system (Nice Classification) categorizes goods and services into 45 classes for trademark registration. Classes 1-34 cover goods, and classes 35-45 cover services. Trademarks must be registered in specific classes relevant to the business. A single application can cover multiple classes, but fees apply for each class.",0.1,0.1,0.7,0.1,"The answer fails to address the question entirely, lacks grounding in the reference answer, and is unhelpful, though it is coherent in its refusal to speculate.",
+How do I protect my invention before filing a patent?,"Hi, I'm Tepee!
+
+Before filing a patent, you can protect your invention by ensuring it remains confidential as a trade secret. This means avoiding public disclosure, demonstrations, sales, or discussions about your invention until you're ready to file. If you've already disclosed your invention, you still have a one-year grace period from the date of disclosure to file a patent in the Philippines.
+
+To strengthen your protection, you can also prepare a complete specification or sufficient disclosure of your invention. This ensures clarity and completeness so that a person skilled in the art can carry out the invention, which supports your patent claims later on.","Before filing a patent through TPCO, protect your invention by: (1) consulting with TPCO/ITSOS for guidance on IP protection strategy, (2) keeping it confidential through NDAs, (3) documenting the invention process with dated records, (4) avoiding public disclosure which can destroy novelty, and (5) conducting a prior art search with TPCO's assistance. You can reach TPCO by emailing ustp.itso@ustp.edu.ph or submitting a service request at /service-request?service=ip-protection.",0.2,0.6,0.7,0.6,"The answer provides general patent protection advice but lacks grounding in the reference context (TPCO-specific guidance), making it only partially relevant and unfaithful to the ground truth.",
+What is prior art and how does it affect patentability?,"Hi, I'm Tepee!
+
+Prior art refers to any publicly available information—such as patents, publications, or other disclosures—that exists before the filing date of a patent application. It includes anything made available to the public, whether through patents, journal articles, demonstrations, sales, or discussions.
+
+Prior art directly affects patentability because an invention must be new or novel to qualify for a patent. If your invention is already disclosed in prior art, it is no longer considered new, and your patent application may be rejected. The claims in your patent application must overcome the prior art; otherwise, the patent may be deemed invalid. This is why conducting a novelty or patentability search is important—it helps you assess whether your invention meets the novelty requirement before filing.","Prior art refers to any public knowledge existing before a patent filing date, including published patents, journal articles, products, presentations, and public uses. Prior art can destroy novelty, which is a key requirement for patentability. A thorough prior art search before filing helps assess whether an invention is likely to be patentable.",1.0,1.0,0.9,1.0,"The answer is highly faithful to the reference, directly addresses the question with clear relevance, is logically structured, and provides highly useful information. Minor improvement could be made in coherence by slightly tightening phrasing (e.g., ""Hi, I'm Tepee!"" could be omitted for conciseness).",
+What is patent licensing and what are its types?,"Hi, I'm Tepee!
+
+Patent licensing is a contractual agreement where the patent holder (licensor) grants another party (licensee) the right to use, produce, or sell the patented technology, product, or service in exchange for a royalty fee. This allows the licensee to benefit from the patented innovation while the licensor earns revenue through royalties.
+
+A related commercialization mode mentioned in the context is the creation of a spin-off company. This is a newly formed independent business designed to commercialize a product derived from an intellectual property originally owned by a parent entity, such as a university.","Patent licensing is a legal agreement where the patent holder grants permission to another party to use the patented invention. Types include: (1) Exclusive license - sole rights to the licensee, (2) Non-exclusive license - multiple licensees allowed, (3) Sole license - both licensor and licensee can use. Licensing generates revenue and expands technology adoption.",0.3,0.7,0.8,0.6,"The answer provides a general explanation of patent licensing but includes unsupported claims (e.g., spin-off companies) and omits key types of licenses mentioned in the reference answer, reducing faithfulness and helpfulness.",
+What is a deed of assignment in patent applications?,"Hi, I'm Tepee!
+
+A deed of assignment in patent applications is a legal document where the inventor(s) (assignors) transfer their rights, title, and interest in an invention to the assignee, which in this case is the University of Science and Technology of Southern Philippines (USTP). This ensures that the university becomes the exclusive owner of the invention developed during the inventor's tenure or collaboration with USTP. The deed also obligates the inventor(s) to assist the university in applying for patent registration, both locally and internationally, and to execute any additional documents required to secure and transfer the intellectual property rights to the university.","A deed of assignment is a legal document transferring ownership rights of an invention from the inventor to another party, such as an employer or company. It is required when the patent applicant is different from the inventor. The deed establishes the legal chain of ownership and must be submitted with the patent application.",0.3,0.7,0.8,0.6,"The answer provides a detailed but partially incorrect explanation of a deed of assignment, as it incorrectly specifies USTP as the assignee and includes unnecessary obligations not mentioned in the reference answer.",
+What is an abstract in a patent specification?,"An abstract in a patent specification is a concise summary of your technology, written in the ""Abstract"" subsection of the patent search report template. It should:
+
+- Quickly convey the character of the technology
+- Not exceed 150 words
+- For modifications, focus on the technical disclosure of the changes
+- For new inventions, cover the entire disclosure
+
+The abstract should include:
+- Title of the Invention
+- Technical Field/Features
+- Manner of Solving the Technical Problem
+- The Main Use or Uses","An abstract in a patent specification is a brief summary (typically 150 words or less) of the technical disclosure. It provides a quick overview of the invention's field, problem solved, and main features. The abstract helps patent examiners and searchers quickly understand the invention's nature without reading the full specification.",0.3,0.7,0.8,0.7,"The answer provides relevant details about patent abstracts but includes unsupported claims (e.g., ""patent search report template"") and omits key aspects like the abstract's role in patent examiners' quick understanding, as highlighted in the reference answer.",
+What happens if an invention is not new?,"If an invention is not new, it cannot be considered novel, which is a key requirement for patentability. According to the context, an invention must be ""new"" or the first of its kind in the world to qualify for a patent. If it forms part of prior art—meaning it has been made available to the public before the filing date—it fails the novelty test and cannot be patented.
+
+However, there is a one-year grace period in the Philippines. If you have already disclosed or published your invention, you can still file a patent within one year from the date of disclosure or publication. This is called the Grace Period or Non-Prejudicial Disclosure.","If an invention is not new or already forms part of prior art, it cannot be patented. An invention is not considered new if it has been publicly disclosed or published before the filing date.",0.7,0.9,0.9,0.9,"The answer is highly relevant and coherent, providing useful details about patentability and the grace period, though it slightly exceeds the context by mentioning the Philippines specifically.",
+What is the patent examination process in the Philippines?,"Hi, I'm Tepee!
+
+The patent examination process in the Philippines, as outlined in the context, involves several stages:
+
+- The process begins with the submission of a patent application, which includes the IPOPHL Request Form, specifications (Abstract, Description, Claims, Drawings), filing fee, and a Patent Search Report for prior art searching.
+- The application undergoes a formal review phase, as shown in the Patent Application Flow Chart (Formality Phase).
+- After formalities are completed, the application moves to the substantive examination stage.
+- Throughout the process, the Intellectual Property Office of the Philippines (IPOPHL) may request additional supporting documents as needed.
+- The application is subject to periods prior to publication as prescribed in the IP Code and international treaties.
+- The application is deemed completed only upon finishing all stages and requirements, and payment of all required fees.","The Philippine patent examination process includes: (1) Filing with required documents and fees, (2) Formality examination to check completeness, (3) Publication in the IPOPHL e-Gazette after 18 months, (4) Substantive examination assessing novelty, inventive step, and industrial applicability, (5) Office actions requiring responses, and (6) Grant or refusal decision.",0.4,0.7,0.8,0.6,"The answer includes some relevant details about the process but introduces unsupported elements (e.g., ""Patent Search Report,"" ""periods prior to publication"") and omits key steps like publication and office actions present in the ground truth.",
+What is industrial design protection?,"Hi, I'm Tepee!
+
+Industrial design protection safeguards the visual appearance of a functional product, including its lines, colors, or 3D form, which gives it a unique aesthetic or ornamental value. This protection is intended for designs that serve as patterns for industrial products or handicrafts, with a maximum protection period of 15 years from the filing date. The design must have both aesthetic and utilitarian value.
+
+To apply for industrial design protection through USTP TPCO, you can email ustp.itso@ustp.edu.ph with the subject ""Industrial Design_Title of the work"" and include the required documents such as IPOPHL Form 300, IPOPHL Form 110 (if applicable), specifications document, Technology Utilization Plan, and other supporting documents like the TRL Assessment Form and industry partner Letter of Intent.
+
+For more details, you can visit the [IP Portfolio page](/ip-portfolio) to explore available technologies and designs.","Industrial design protection covers the ornamental or aesthetic aspects of an article, including shape, pattern, color, or combination thereof. It protects how a product looks, not how it works. In the Philippines, industrial designs are registered with IPOPHL and protected for 5 years, renewable for two consecutive 5-year periods.",0.3,0.7,0.8,0.6,"The answer provides a general definition of industrial design protection but includes incorrect details (e.g., 15-year protection period, USTP TPCO application process) that contradict the ground truth, while still addressing the core concept.",
+What is a patent validity search?,"Hi, I'm Tepee!
+
+A patent validity search, also known as an enforcement readiness search or opposition search, is undertaken to determine if it is possible to invalidate another’s patent that could pose an infringement risk or when a competitor has accused you of infringing their patent.",A patent validity search (also called invalidity or opposition search) is conducted to determine if a patent can be invalidated by finding prior art that was not considered during examination.,0.5,0.8,0.7,0.8,"The answer is mostly accurate and relevant but includes extra details not in the ground truth, which slightly reduces faithfulness. The greeting is unnecessary.",
+What is the difference between national and international patent filing?,"Hi, I'm Tepee!
+
+Based on the provided context, here's the difference between national and international patent filing:
+
+National patent filing protects your invention only in the jurisdiction where the patent is registered. For example, a patent granted in the Philippines (by IPOPHL) cannot be enforced in other countries. This is based on the principle of territoriality in intellectual property rights.
+
+International patent filing, on the other hand, refers to systems that allow you to seek patent protection in multiple countries through a single application process. While there is no single ""world patent,"" international systems like the Patent Cooperation Treaty (PCT) enable you to file a single international patent application that can later be used as the basis for seeking protection in multiple countries. The International Patent Classification (IPC) system helps classify patents internationally, but it does not grant worldwide protection on its own.
+
+For USTP TPCO's internal processes, you can start by submitting a technology disclosure to ustp.itso@ustp.edu.ph with the required documents for patent assistance.","National patent filing provides protection only in the country where filed. International filing through the PCT (Patent Cooperation Treaty) allows filing a single application that can be pursued in multiple member countries. PCT provides a unified procedure, extended timeline for national phase entry (30-31 months), and centralized search and examination.",0.5,0.8,0.7,0.7,"The answer provides a relevant and coherent explanation of national vs. international patent filing but includes unsupported claims (e.g., IPC not granting protection) and an unrelated internal process note, reducing faithfulness and helpfulness.",
+What are the annual maintenance fees for patents?,"Hi, I'm Tepee!
+
+Here are the annual maintenance fees for patents:
+
+- **First annual fee**: P1,565.50 (Excess Claim: P212.10), due on the expiration of four (4) years from the date of first publication. Payment may be made within 3 months before the due date.
+- **6th year**: P2,020.00 (Excess Claim: P212.00)
+- **7th year**: P2,580.00 (Excess Claim: P210.00)
+- **8th year**: P3,100.00 (Excess Claim: P210.00)
+
+If annual fees are not paid on the due date, the application shall be deemed withdrawn or the patent considered lapsed. A grace period of 6 months is granted if the annual fee is paid with a surcharge of 50% of the annual fee.","Annual maintenance fees (annuities) are payments required to keep a patent in force. In the Philippines, annual fees start from the 5th year after filing. Failure to pay results in patent expiration. Fees increase progressively each year. Small entities may qualify for reduced fees upon submission of proof.",0.3,0.7,0.8,0.7,"The answer provides specific fee details but lacks grounding in the reference context (e.g., no mention of ""annuities"" or small entity discounts), though it is well-structured and directly addresses the question with actionable data.",
+What is a patent specification drawing?,"A patent specification drawing is a technical illustration included in a patent application to visually describe the invention. It supports the detailed description and claims by providing clear visual references, such as flow sheets, diagrams, chemical structures, or mechanical views. These drawings must adhere to specific requirements, such as using upright positions, upright orientation, India ink, proper page numbering, and sequential drawing labels. They may also include elements like lead lines with arrows, broken lines for non-inventive parts, and surface shading for clarity. The drawings serve purposes like enhancing understanding, supporting claims, enabling evaluation, and expediting examination.","Patent specification drawings are visual representations of the invention that illustrate its features and embodiments. They are required when necessary to understand the invention. Drawings must meet formal requirements including proper labeling with reference numerals, clear lines, and consistent numbering.",0.5,0.9,0.9,0.8,"The answer is highly relevant and coherent, providing detailed technical information about patent specification drawings, but it includes some specifics (e.g., ""India ink,"" ""surface shading"") that may not be universally required, slightly reducing faithfulness to the ground truth.",
+What is the role of claims in determining patent scope?,"Hi, I'm Tepee!
+
+Claims define the scope of legal protection for a patent. They demarcate in words the boundary of the invention, and only the technology covered in the claims is protected by the patent. Claims are the heart of a patent document and are considered the most important part of the patent application. They are usually the first and sometimes the only parts of the patent application actually reviewed by the patent examiner. Claims are also read by lawyers and judges during legal proceedings such as patent invalidation and/or infringement cases, as well as by researchers, competitors, and the public.
+
+[IP Portfolio page](/ip-portfolio)","Claims define the legal boundaries of patent protection. Each claim must be read as a whole to determine coverage. Independent claims stand alone, while dependent claims reference and further limit independent claims. Broader claims cover more variations but are more vulnerable to prior art. Narrower claims are harder to invalidate but offer less protection.",0.1,0.7,0.8,0.6,The answer provides relevant general information about patent claims but lacks grounding in the unavailable context and misses key details like claim types and trade-offs between breadth and vulnerability.,
+What is a technology utilization plan?,"Hi, I'm Tepee!
+
+A technology utilization plan is a document that outlines how a technology will be applied, commercialized, or transferred to industry partners. It includes a description of the technology, its readiness level (TRL assessment), and target industry partners who have expressed interest through a letter of intent or commitment. The plan ensures that the technology is ready for utilization and supports the process of filing and registration with IPOPHL.","A technology utilization plan is a strategic document outlining how a technology will be developed, protected, and commercialized. It includes market analysis, IP protection strategy, licensing approach, revenue projections, and implementation timeline. TPCO helps researchers prepare these plans to maximize the impact of their innovations.",0.1,0.6,0.8,0.5,"The answer provides some relevant details about a technology utilization plan but invents unsupported claims (e.g., IPOPHL filing) and omits key elements like market analysis and IP protection strategy present in the ground truth.",
+How can researchers benefit from IP protection?,"Hi, I'm Tepee!
+
+Researchers can benefit from IP protection in several ways based on USTP TPCO's IP system:
+
+IP protection grants researchers exclusive rights to their innovations, allowing them to license or sell their IP, which can create revenue streams. It strengthens their market position and increases negotiating power, especially when collaborating with industries. The university also allows researchers to commercialize their IP assets, giving them opportunities to benefit financially from their work.
+
+Additionally, IP protection helps maintain corporate image and supports promotions and incentives within the university. It ensures that researchers receive recognition and potential financial rewards from their inventions, particularly in projects supported by multiple agencies or GFA scholars.","Researchers benefit from IP protection through: (1) Recognition and credit for innovations, (2) Revenue from licensing agreements, (3) Startup opportunities based on patented technology, (4) Enhanced research funding and partnerships, (5) Technology transfer opportunities, and (6) Career advancement through documented innovation portfolio.",0.1,0.7,0.8,0.6,"The answer is coherent and relevant but lacks grounding in the reference answer and context, making it largely unsupported and less helpful.",
+What is the patent grace period?,"Hi, I'm Tepee!
+
+The patent grace period allows you to file a patent within one (1) year from the date of disclosure or publication of your invention, even if you have already disclosed or published it in a journal, demonstrated, sold, or discussed it in public.","The patent grace period allows inventors to file a patent application within a specified time (typically 6-12 months) after public disclosure without losing novelty. In the Philippines, a 12-month grace period applies for disclosures made by the inventor or derived from them. However, relying on the grace period is risky as rules vary by country.",0.4,0.8,0.9,0.7,"The answer is mostly relevant and coherent but lacks specificity about country-specific variations and the risks of relying on the grace period, which are mentioned in the ground truth.",
+What documentation is needed for copyright registration?,"For copyright registration of computer programs, you will need:
+
+- BCRR Form (IPOPHL)
+- BCRR Form - Transaction Form Supplemental Sheet (for co-authors/creators)
+- Accomplished Deed of Assignment for notarization
+- Identification Cards of the Authors/Creators
+- Source codes in Word format file (soft copy)
+
+For instructional materials, you will need:
+
+- BCRR Form (IPOPHL)
+- BCRR Form - Transaction Form Supplemental Sheet (for co-authors/creators)
+- Deed of Assignment
+- Identification Cards of the Authors/Creators
+- Actual work (soft copy)
+- Endorsement from QAA","For copyright registration through TPCO, you need: (1) Completed IPOPHL Form 300, (2) Two copies of the work (for published works) or deposit copy (for unpublished), (3) Affidavit of ownership or deed of assignment, (4) Proof of publication if applicable, (5) Power of attorney if filed through representative, and (6) Payment of required fees. TPCO assists with the preparation and filing of the copyright application with IPOPHL.",0.2,0.6,0.7,0.5,"The answer provides specific forms and requirements but is largely irrelevant to the ground truth, which focuses on TPCO/IPOPHL procedures, leading to low faithfulness despite some coherence and partial relevance.",
+What services does the ITSOS provide?,"Hi, I'm Tepee!
+
+The ITSOs (Innovation & Technology Support Offices) provide the following services:
+
+- IP Protection & Patent Application
+- Patent Drafting & Prior Art Search
+- Copyright & Trademark Registration
+- Technology Valuation & IP Consultations
+- IP Trainings & Consultancy
+- Assist/Conduct Prior Art Search
+- Assist/Conduct Patent Draft
+- Conduct IP Clinics
+- Process IP Application
+- IP Prosecution and Management
+- IP/Technology Assessment","The Intellectual Property and Technology Support Office (ITSOS) provides services including IP consultations, technology assessment, patent drafting assistance, prior art searches, technology transfer facilitation, and training programs. ITSOS operates under TPCO and serves as the primary contact for researchers seeking IP protection and commercialization support.",0.6,0.8,0.9,0.8,"The answer provides a detailed and well-structured list of services but includes some unsupported claims (e.g., ""IP Protection & Patent Application"" is too broad compared to the reference's ""IP consultations"") and omits key services like ""technology transfer facilitation"" mentioned in the ground truth.",
+What is the difference between copyright and patent for software?,"Hi, I'm Tepee!
+
+Based on the provided context, here's the difference between copyright and patent for software:
+
+Patents protect inventions that provide a new technical solution or way of doing something, such as a novel process or product. For software, this could mean a unique algorithm or method that solves a specific technical problem. A patent grants exclusive rights to the inventor, allowing them to prevent others from making, using, selling, or importing the patented invention for a set period.
+
+Copyright, on the other hand, protects the expression of ideas in a tangible form, such as the actual code of a software program. Copyright registration for computer programs grants rights to the creators of the work, preventing others from copying, distributing, or creating derivative works based on the original software. However, copyright does not protect the functional aspects or ideas behind the software—only the specific expression of those ideas in code.
+
+For software, TPCO can assist with both copyright registration for the code and patent protection for novel technical solutions or processes embedded in the software.","Copyright protects the specific code and expression of software as a literary work, preventing copying but not independent development. Patent protects the underlying technical innovation or method, covering any implementation of the invention. Copyright arises automatically while patents require examination. Patents offer stronger protection but are harder to obtain for software.",0.1,0.8,0.7,0.7,"The answer provides a relevant and coherent explanation of copyright vs. patent for software but is entirely unsupported by the unavailable context, making it unfaithful to any ground truth.",
+What is the mission of USTP TPCO?,"Hi, I'm Tepee!
+
+The mission of USTP TPCO is to create and nurture a working innovation ecosystem that promotes entrepreneurship and commercialization of technologies to contribute to the economic and social development of the community.",The mission of USTP TPCO is to create and nurture a working innovation ecosystem that promotes entrepreneurship and commercialization of technologies to contribute to the economic and social development of the community it services.,1.0,1.0,0.8,0.9,"The answer is highly faithful and relevant, with only minor coherence issues due to the introductory phrase (""Hi, I'm Tepee!""). It is very helpful and closely matches the ground truth.",
+What is the vision of USTP TPCO?,"Hi, I'm Tepee!
+
+The context provided does not include the vision statement of USTP TPCO.","The vision of USTP TPCO is to be on the innovation map, visibly interfacing with stakeholders and creating a significant mark in fostering innovations not just in the academe but in the whole innovation community.",0.1,0.1,0.7,0.1,"The answer fails to address the question due to missing context and provides no useful information, though it is structured in a conversational manner.",
+What are the core values of TPCO?,I don't have that specific information in my knowledge base. Please contact TPCO directly for assistance.,"The core values of TPCO are: (1) Innovation - Fostering creativity and breakthrough thinking, (2) Integrity - Ethical practices in all partnerships, (3) Excellence - Commitment to quality and continuous improvement, and (4) Collaboration - Building meaningful partnerships.",0.1,0.1,1.0,0.1,"The answer fails to address the question entirely and provides no useful information, despite being logically structured.",
+When was TPCO established?,"Hi, I'm Tepee!
+
+TPCO was established in 2018.","TPCO was established and approved by the Board of Regents in May 2020 amidst the challenges of the COVID-19 pandemic in the country. The office was officially launched to the public in August 2020. However, the journey began in 2018 when TPCO was founded as USTP's dedicated technology transfer office.",0.3,0.5,0.7,0.4,"The answer partially addresses the question but oversimplifies the establishment timeline, missing key details from the reference answer.",
+Who manages the Innovation and Technology Support Unit (ITSU)?,"Hi, I'm Tepee!
+
+Engr. Gladdy Christie H. Compasan manages the Innovation and Technology Support Unit (ITSU).","Engr. Gladdy Christie H. Compasan is the Manager of TPCO - Innovation and Technology Support Unit (ITSU). ITSU handles IP protection, patent applications, patent drafting, prior art search, copyright/trademark registration, and technology assessment.",1.0,1.0,0.8,0.9,"The answer is highly faithful and relevant, providing the exact manager's name as in the reference, but could improve coherence by omitting the introductory greeting (""Hi, I'm Tepee!"") for a more professional tone.",
+What are the organizational units of TPCO?,"Hi, I'm Tepee!
+
+The organizational units of TPCO are:
+
+- Innovation and Technology Support Unit (ITSU)
+- Business Development Unit (BDU)
+- Promotions Management Unit (PMU)","TPCO has three organizational units: (1) ITSU (Innovation and Technology Support Unit) - handles IP protection, patent applications, patent drafting, prior art search, copyright/trademark registration, and technology assessment, (2) PMU (Promotions Management Unit) - handles technology promotions, marketing, outreach campaigns, and events, and (3) BDU (Business Development Unit) - handles business partnerships, licensing, commercialization, startup incubation, and investment guidance.",0.5,0.7,0.8,0.6,"The answer lists the correct organizational units but lacks the detailed descriptions provided in the reference, reducing faithfulness and helpfulness.",
+Who manages the Business Development Unit?,"I can only answer questions related to intellectual property, patents, technology transfer, and USTP TPCO operations. Please ask me about patents, IP procedures, technology commercialization, or related topics.","Rhea Suzette M. Haguisan is the Manager of TPCO - Business Development Unit (BDU). The BDU handles business partnerships, licensing, commercialization, startup incubation, and investment guidance.",0.1,0.1,1.0,0.1,"The answer completely ignores the ground truth context, fails to address the question, but is logically structured in its refusal.",
+What is the Technology Licensing service offered by TPCO?,"Hi, I'm Tepee!
+
+The Technology Licensing service is offered by the Business Development Unit (BDU) of TPCO. This service focuses on facilitating the commercialization of USTP technologies by connecting innovators with industry partners. Through technology licensing, TPCO helps transfer research outputs to businesses for further development, production, and market deployment, fostering economic and social impact.
+
+You can learn more about TPCO's services, including Technology Licensing, on the [Services page](/services).","Technology Licensing is a core service that connects researchers with industry partners for technology commercialization and licensing opportunities. Features include Licensing Negotiations, Technology Valuation, Market Analysis, Partnership Facilitation, Due Diligence Support, Contract Management, Royalty Management, and Post-License Support. Timeline is 2-4 months with success-based fees.",0.4,0.7,0.8,0.0,"The answer provides a general overview of TPCO's Technology Licensing service but lacks specific details (e.g., features, timeline, fees) present in the reference answer, reducing faithfulness and helpfulness. However, it is well-structured and relevant to the question.",
+What is the Industry-Academe Matching service?,"Hi, I'm Tepee!
+
+The Industry-Academe Matching service bridges the gap between academic research and industry needs through strategic partnerships. It offers features such as collaboration matching, joint research projects, consulting services, technology transfer, technical consulting, innovation challenges, expert networks, and partnership development. This service typically takes 1 to 3 months to complete and is priced on a project-based arrangement.","Industry-Academe Matching is a core service that bridges the gap between academic research and industry needs through strategic partnerships. Features include Collaboration Matching, Joint Research Projects, Consulting Services, Technology Transfer, Technical Consulting, Innovation Challenges, Expert Networks, and Partnership Development. Timeline is 1-3 months with project-based pricing.",1.0,1.0,0.9,1.0,"The answer is highly faithful to the reference, directly addresses the question with all key details, is logically structured, and provides highly useful information. Minor improvement could be made in coherence by removing the introductory line (""Hi, I'm Tepee!"").",
+What is the Startup Incubation program?,"I can only answer questions related to intellectual property, patents, technology transfer, and USTP TPCO operations. Please ask me about patents, IP procedures, technology commercialization, or related topics.","Startup Incubation is a core service that supports researchers in launching startups through the CDO b.i.t.e.s. incubation program. Features include Business Development, Mentorship Programs, Funding Assistance, Market Entry Support, Product Development, Regulatory Guidance, Investor Connections, and Scale-up Support. Timeline is 6-12 months with equity participation pricing.",0.1,0.1,1.0,0.1,"The answer completely ignores the question and context, providing an irrelevant refusal instead of addressing the query, despite being logically structured.",
+What is the 4-step service process at TPCO?,I don't have that specific information in my knowledge base. Please contact TPCO directly for assistance.,"TPCO follows a 4-step service process: (1) Initial Consultation, (2) Documentation & Filing, (3) Review & Processing, and (4) Commercialization.",0.1,0.1,1.0,0.1,"The answer fails to address the question entirely and provides no useful information, despite being logically structured.",
+How much does IP Training & Workshops cost?,"Hi, I'm Tepee!
+
+The IP Training & Workshops offered by USTP TPCO cost between ₱15,000 and ₱45,000.","IP Training & Workshops costs ₱15,000 - ₱45,000 and runs for 1-3 days. Features include Patent Application Workshop, IP Strategy Development, Technology Commercialization, Prior Art Search Training, IP Portfolio Management, Licensing Negotiations, Market Analysis Techniques, and Legal Compliance Guidelines.",1.0,0.7,0.9,0.8,"The answer is highly faithful and coherent, directly addressing the cost question with a clear range, though it misses additional details (duration, features) present in the reference answer, slightly reducing relevancy and helpfulness.",
+What does the Technology Assessment service include?,"Hi, I'm Tepee!
+
+The Technology Assessment service includes a thorough evaluation of technology readiness levels, commercial potential, market viability, and competitive landscape. This assessment typically takes 2-4 weeks to complete and is priced between ₱25,000 to ₱75,000. The features of this service include:
+
+- TRL Assessment
+- Market Potential Analysis
+- Competitive Landscape Mapping
+- IP Position Evaluation
+- Commercial Viability Study
+- Risk Assessment & Mitigation
+- Scalability Analysis
+- Investment Requirements Estimation","Technology Assessment is a 2-4 week service costing ₱25,000 - ₱75,000. It includes TRL Assessment, Market Potential Analysis, Competitive Landscape Mapping, IP Position Evaluation, Commercial Viability Study, Risk Assessment & Mitigation, Scalability Analysis, and Investment Requirements Estimation. The process follows: Technology Documentation Review → Market Research & Analysis → Expert Evaluation & Testing → Comprehensive Report Delivery.",1.0,1.0,0.9,1.0,"The answer is highly faithful to the reference, directly addresses the question with comprehensive details, is logically structured, and provides highly useful information. Minor improvement could be made in coherence by slightly refining the introductory sentence.",
+How much does Market Research service cost and what does it cover?,"Hi, I'm Tepee!
+
+The Market Research service costs between ₱35,000 and ₱100,000. It covers Market Size & Growth Analysis, Customer Needs Assessment, Competitive Intelligence, Industry Trend Analysis, Pricing Strategy Research, Distribution Channel Analysis, Regulatory Environment Study, and Go-to-Market Strategy Development.
+
+[Service Request page](/service-request)","Market Research costs ₱35,000 - ₱100,000 and takes 3-6 weeks. It covers Market Size & Growth Analysis, Customer Needs Assessment, Competitive Intelligence, Industry Trend Analysis, Pricing Strategy Research, Distribution Channel Analysis, Regulatory Environment Study, and Go-to-Market Strategy Development.",0.9,1.0,0.9,0.9,"The answer is highly relevant and coherent, covering all requested details about cost and coverage, with only a minor omission of the timeframe (3-6 weeks) slightly reducing faithfulness.",
+What are the success stories of TPCO partnerships?,"Hi, I'm Tepee!
+
+TPCO has achieved significant milestones in partnerships and commercialization, including:
+
+- **2020**: Launched the Industry Partnership Program, establishing a formal industry-academe collaboration framework.
+- **2021**: Established a strategic alliance with CDO b.i.t.e.s. for startup incubation.
+- **2022**: Reached a milestone of 15 patents granted with an active licensing program.
+
+For more details on TPCO's success stories and partnerships, visit the [Services page with success stories](/services#success-stories).","TPCO has 3 success stories: (1) AgriTech Soil Enhancement with GreenGrow Solutions - Bio-Organic Fertilizer System achieving 35% yield increase and ₱2M annual revenue, transforming 500 hectares of farmland; (2) Smart Construction Materials with BuildSmart Inc. - Concrete Additive Technology achieving 20% cost reduction across 15 projects; (3) Food Preservation Innovation with FreshPack Solutions - Natural Packaging Technology achieving 50% shelf life extension and export to 3 ASEAN countries.",0.1,0.3,0.7,0.4,"The answer lacks grounding in the ground truth context, only partially addresses the question with generic partnership milestones, and omits specific success stories entirely.",
+Where can I find the IP Portfolio on the website?,"Hi, I'm Tepee!
+
+You can find the IP Portfolio by clicking ""Our IP"" in the navigation bar. There you can browse, search, and filter patents and technologies available for licensing and commercialization.","The IP Portfolio can be accessed by clicking 'Our IP' in the navigation bar, or by going to /ip-portfolio. It features a comprehensive collection of patents, technologies, and innovations available for licensing and commercialization, with full-text search, filters by Field and Status, and portfolio analytics including status distribution and patent type charts.",0.8,0.9,0.9,0.8,"The answer is highly relevant and coherent, providing clear instructions, but misses some details (like the direct URL) present in the reference answer, slightly reducing faithfulness and helpfulness.",
+What technology fields are available in the IP Portfolio?,"Hi, I'm Tepee!
+
+The context provided does not specify the exact technology fields available in the IP Portfolio. However, you can explore the full collection of patents, technologies, and innovations available for licensing and commercialization on the [IP Portfolio page](/ip-portfolio).","The IP Portfolio covers 6 technology fields: Agriculture, Materials Science, Food Technology, Environmental Technology, Energy Technology, and Information Technology. Patents can also be filtered by status: Filed, Registered, Commercialized, Licensed, Pending, Available, and IP in Application.",0.1,0.3,0.8,0.2,"The answer fails to provide any specific information from the context (which is unavailable here) and instead directs the user to an external page, resulting in low faithfulness and helpfulness despite being coherent and somewhat relevant.",
+How do I license a technology from USTP?,"Hi, I'm Tepee!
+
+To license a technology from USTP, follow these steps:
+
+1. **Identify Technology** – Browse the [IP Portfolio page](/ip-portfolio) to find technologies that align with your business needs.
+2. **Contact Us** – Reach out to the TPCO licensing team to discuss your interest and requirements. You can contact them via the [Contact Us page](/contact).
+3. **Negotiate Terms** – Work with the team to establish licensing terms that benefit both parties.
+
+For more details on TPCO services, visit the [Services page](/services).","To license a technology from USTP, follow the 3-step guide: (1) Identify Technology - Browse the IP Portfolio at /ip-portfolio to find technologies that align with your business needs, (2) Contact Us - Reach out to the licensing team to discuss your interest and requirements, (3) Negotiate Terms - Work with the team to establish licensing terms that benefit both parties.",1.0,1.0,0.9,1.0,"The answer is highly faithful to the reference, directly addresses the question with clear steps, is logically structured, and provides highly actionable information. Minor improvement could be made in conciseness (e.g., removing the introductory greeting).",
+What is on the homepage of the TPCO website?,"Hi, I'm Tepee!
+
+The context provided does not include specific details about the homepage content of the TPCO website. I don't have that information in my knowledge base. Please contact TPCO directly for assistance.","The homepage includes: Hero section with dynamic title and 3 stats counters (Patents Granted, Industry Partners, Technologies Developed), Featured Technologies showing recommended patents from the IP Portfolio, Services Overview with 4 core services and a 4-Step Process infographic, Impact Statistics showing 6 key metrics (Patents Granted, Startups Incubated, Industry Partners, Technologies Developed, Regional Economic Impact, Success Rate), Latest News showing 3 most recent articles, and Quick Actions with 'Explore Our IP Portfolio' and 'Partner With Us' buttons.",0.1,0.1,0.7,0.1,"The answer fails to address the question entirely (irrelevant) and provides no grounded information (unfaithful), though it is structured coherently.",
+What impact statistics are displayed on the homepage?,"Hi, I'm Tepee!
+
+The homepage displays three impact statistics: Patents Granted, Industry Partners, and Technologies Developed.","The homepage displays 6 impact statistics loaded from the admin panel: (1) Patents Granted - 24+ (+6 this year), (2) Startups Incubated - 12 (+4 this year), (3) Industry Partners - 50+ (+15 this year), (4) Technologies Developed - 8+ (+25 this year), (5) Regional Economic Impact - ₱15M (+₱5M this year), (6) Success Rate - 85% (Industry partnerships). These values are editable by admin through the admin panel.",0.3,0.5,0.8,0.4,"The answer partially addresses the question but misses key details (e.g., number of statistics, specific metrics, and admin-editable nature) and includes an unsupported claim (""Hi, I'm Tepee!"").",
+Who are the strategic partners of USTP TPCO?,"Hi, I'm Tepee!
+
+Based on the context provided, one of the strategic partners of USTP TPCO is the **CDO b.i.t.e.s. Partnership**, which was established in 2021 for startup incubation.","USTP TPCO collaborates with 15 strategic partners including: Oro Chamber of Commerce and Industry, Ateneo Innovation and Patent Office (IPO), DOST Region X, DTI Misamis Oriental, CDO b.i.t.e.s., IPOPhil, USAID, RTI International, Food Innovation Center (Northern Mindanao), OROBEST Innovation, DOST-PCIEERD, Best Friend Goodies, Bukidnon State University, European Chamber of Commerce of the Philippines (ECCP), and Asian Development Bank.",0.3,0.5,0.7,0.4,"The answer partially addresses the question but misses most strategic partners and includes an unnecessary introduction, reducing its faithfulness and helpfulness.",
+What is CDO b.i.t.e.s.?,"I can only answer questions related to intellectual property, patents, technology transfer, and USTP TPCO operations. Please ask me about patents, IP procedures, technology commercialization, or related topics.","CDO b.i.t.e.s. stands for Cagayan de Oro business innovation technology e-startup. It is a premier startup incubator and innovation hub in Cagayan de Oro, and a strategic partner of USTP TPCO. The partnership was established in 2021. TPCO's Startup Incubation program operates through CDO b.i.t.e.s., offering Business Development, Mentorship Programs, Funding Assistance, Market Entry Support, and more.",0.1,0.1,1.0,0.1,"The answer completely ignores the question and context, providing an irrelevant refusal instead of addressing the query about CDO b.i.t.e.s.",
+What are the company milestones of TPCO?,"Hi, I'm Tepee!
+
+Here are the key milestones of USTP TPCO:
+
+2018 - TPCO Establishment: Founded as USTP's dedicated technology transfer office
+
+2019 - First Patent Grant: Achieved first successful patent registration for USTP innovation
+
+2020 - Industry Partnership Program: Launched formal industry-academe collaboration framework
+
+2021 - CDO b.i.t.e.s. Partnership: Established strategic alliance for startup incubation
+
+2022 - IP Portfolio Milestone: Reached 15 patents granted with active licensing program",TPCO's key milestones: 2018 - TPCO Establishment as USTP's dedicated technology transfer office; 2019 - First Patent Grant for USTP innovation; 2020 - Industry Partnership Program launched; 2021 - CDO b.i.t.e.s. Partnership established; 2022 - IP Portfolio Milestone of 15 patents granted; 2023 - Regional Recognition as Outstanding Technology Transfer Office in Mindanao; 2024 - Innovation Hub Launch for technology commercialization.,0.6,0.7,0.8,0.7,"The answer is mostly relevant and coherent but misses two key milestones (2023 and 2024) from the ground truth, reducing faithfulness and completeness.",
+How do I register for a TPCO event?,"Hi, I'm Tepee!
+
+To register for a TPCO event, go to the [Events page](/events). Click ""Register Now"" on any event with open registration and fill out the registration form with your details.","To register for a TPCO event, go to the Resources page and scroll to the 'Workshops & Events' section, or go to /events. Click 'Register Now' on any event with open registration. Fill out the registration form with: Full Name (required), Email (required), Phone, Organization, Position, Dietary Requirements, and Special Requests. Duplicate registrations are prevented (same email for same event).",0.6,0.8,0.9,0.0,"The answer is mostly relevant and coherent but misses key details (like required form fields) and omits the Resources page mention from the ground truth, reducing faithfulness.",
+What types of events does TPCO organize?,"Hi, I'm Tepee!
+
+Based on the context provided, TPCO organizes events related to intellectual property, innovation, research, licensing, copyright, and partnerships. You can find details about upcoming events on the [Events page](/events).","TPCO organizes several types of events including Workshops, Seminars, Training sessions, Networking events, and IP awareness programs. Events are loaded from the admin_events table in Supabase. Only published upcoming events with open registration are shown on the Resources page.",0.3,0.5,0.7,0.4,"The answer partially addresses the question but invents unsupported event types (e.g., ""intellectual property, innovation"") and omits key details like ""Workshops"" or ""Networking events"" from the ground truth.",
+What are the quick stats on the About page?,"Hi, I'm Tepee!
+
+The quick stats on the USTP TPCO About page are:
+- 6 Years of Excellence
+- 10 Expert Team Members
+- 3 Specialized Units
+- 4+ Core Services Offered","The About page displays 4 quick stats: 6 Years of Excellence, 10 Expert Team Members, 3 Specialized Units, and 4+ Core Services Offered.",1.0,1.0,1.0,1.0,"The generated answer perfectly matches the reference answer in all aspects, demonstrating complete faithfulness, relevancy, coherence, and helpfulness.",
+What is the Faculty IP Portal?,"Hi, I'm Tepee!
+
+The Faculty IP Portal is a secure online platform accessible to faculty members with a faculty role. It serves as a dashboard for managing IP applications, allowing you to create and edit IP applications, track their status through the filing process, and view notifications. The portal provides application statuses such as Draft, Submitted for Internal Review, Under Internal Review, Needs Revision, Approved for IPOPHL Filing, Filed to IPOPHL, Under IPOPHL Examination, Published, Granted, and Rejected. You can access it through the Faculty IP Portal page at /faculty after logging in.","The Faculty IP Portal at /faculty is a dashboard for faculty members to manage IP applications after logging in with a faculty role. Features include creating/editing IP applications, tracking application status through the IPOPHL filing process, and viewing notifications. Applications go through statuses from Draft to Granted/Rejected.",1.0,1.0,0.9,1.0,"The answer is highly faithful to the reference, directly addresses the question with comprehensive details, and is well-structured and useful, though slightly less concise than the reference.",
+What are the statuses for IP applications in the Faculty Portal?,"Hi, I'm Tepee!
+
+The statuses for IP applications in the Faculty Portal are:
+
+Draft
+Submitted for Internal Review
+Under Internal Review
+Needs Revision
+Approved for IPOPHL Filing
+Filed to IPOPHL
+Under IPOPHL Examination
+Published
+Granted
+Rejected","IP applications go through these statuses: (1) Draft, (2) Submitted for Internal Review, (3) Under Internal Review, (4) Needs Revision, (5) Approved for IPOPHL Filing, (6) Filed to IPOPHL, (7) Under IPOPHL Examination, (8) Published, (9) Granted, (10) Rejected.",1.0,1.0,1.0,1.0,"The answer perfectly matches the reference, is fully relevant, logically structured, and highly useful.",
+What information is needed for a new IP application?,"Hi, I'm Tepee!
+
+For a new IP application, the following information is needed:
+
+- IP type
+- Title of the invention
+- Applicant information
+- Abstract
+- Detailed description
+- Field of technology
+- Background of the invention
+- Summary of the invention
+- Co-inventors
+
+You can submit this through the Faculty IP Portal by logging in via the Admin portal. Visit the [Services page](services) for more details on TPCO's support.","A new IP application requires: IP Type (Patent, Utility Model, Industrial Design, Copyright), Title, Applicant Information (name, address, nationality, phone, email), Abstract, Detailed Description, Field of Technology, Background of Invention, Summary of Invention, and Co-Inventors. The form is available at /faculty/applications/new.",0.8,0.9,0.9,0.8,"The answer is highly relevant and coherent, covering most required fields, but lacks some details (e.g., applicant contact fields) and includes an incorrect submission method compared to the reference.",
+What is the AI chat assistant on the TPCO website?,"Hi, I'm Tepee! The AI chat assistant on the USTP TPCO website is named Tepee, the TPCO mascot. It's available on all pages in the bottom-right corner and is powered by a MISTRAL RAG Pipeline with a Python FastAPI backend.","The website features an AI chat assistant named Tepee (the TPCO mascot), available on all pages in the bottom-right corner. It greets users with 'Hi, I'm Tepee!' and helps navigate the website and answer questions about USTP TPCO. It is powered by a MISTRAL RAG Pipeline (Python FastAPI backend) using Retrieval-Augmented Generation with Mistral AI and ChromaDB vector database.",1.0,1.0,1.0,1.0,"The generated answer perfectly matches the reference answer in all aspects, providing a complete and accurate response to the question.",
+What is Tepee?,"Hi, I'm Tepee! I'm the friendly AI mascot of USTP TPCO who helps users with questions about our services, intellectual property, patents, technology transfer, and website navigation.","Tepee is the AI chat mascot of USTP TPCO. It is available on all pages of the website in the bottom-right corner and greets users with 'Hi, I'm Tepee!'. Tepee helps users navigate the website and answer common questions about USTP TPCO. It is powered by a MISTRAL RAG Pipeline using Retrieval-Augmented Generation technology.",0.8,0.9,1.0,0.9,"The answer is highly relevant and coherent, providing a clear introduction to Tepee, but slightly expands beyond the ground truth by mentioning specific services (intellectual property, patents, etc.) without explicit context support.",
+What are the news categories on the TPCO website?,"Hi, I'm Tepee!
+
+The news categories on the TPCO website include Patent, Innovation, Research, Licensing, Copyright, Events, Partnerships, Education, and Announcements. You can explore these categories on the [Latest News page](/latest-news).","News articles on the website can be categorized as: Patent, Innovation, Research, Licensing, Copyright, Events, Partnerships, Education, and Announcements. Each category has a different colored badge. Articles are loaded from admin_news table, showing only published articles, and the homepage displays 3 latest articles with featured/regular card layout.",1.0,1.0,0.9,1.0,"The answer is highly faithful to the reference, directly addresses the question with a complete list of categories, is logically structured, and provides a helpful link for further exploration. Only minor improvement could be made in coherence by removing the introductory greeting.",
+How do I access guidelines on the Resources page?,"Hi, I'm Tepee!
+
+To access guidelines on the Resources page, go to the [Resources page](resources) and click on the ""Guidelines"" tab. There you'll find comprehensive research guidelines and best practices for IP management and technology transfer.","To access guidelines, go to the Resources page and click on the 'Guidelines' tab. You can also navigate directly to /resources?tab=guidelines. The Guidelines tab contains Research Guidelines & Best Practices that are downloadable, loaded dynamically from the resources table (category: Guidelines). Each resource shows title, description, and last updated date.",0.7,0.8,0.9,0.8,"The answer is mostly faithful to the context but misses the direct URL navigation option and dynamic loading details, while being highly relevant, coherent, and helpful.",
+What is the AgriTech Soil Enhancement success story?,"Hi, I'm Tepee!
+
+The AgriTech Soil Enhancement success story involves a partnership with GreenGrow Solutions. The technology is a Bio-Organic Fertilizer System that led to a 35% yield increase and ₱2M annual revenue within 6 months from licensing to market. The challenge was traditional fertilizers degrading soil quality and becoming expensive, and the solution was a bio-organic fertilizer system using locally-sourced agricultural waste that enriched soil while reducing costs by 40%.
+
+[Services page with Success Stories](/services#success-stories)",The AgriTech Soil Enhancement success story features GreenGrow Solutions with their Bio-Organic Fertilizer System. The technology achieved a 35% yield increase and ₱2M annual revenue. The challenge was traditional fertilizers degrading soil quality and becoming expensive. The solution was a bio-organic fertilizer system using locally-sourced agricultural waste that enriches soil while reducing costs by 40%. It transformed 500 hectares of farmland and created sustainable revenue for farming communities.,1.0,1.0,0.9,1.0,"The answer is highly faithful to the reference, directly addresses the question with all key details, is logically structured, and provides highly useful information. Minor improvement could be made in coherence by removing the introductory line (""Hi, I'm Tepee!"").",
+What is the Smart Construction Materials success story?,"Hi, I'm Tepee!
+
+The Smart Construction Materials success story involves BuildSmart Inc. and their Concrete Additive Technology. This innovation uses volcanic ash-based concrete additive to improve strength while reducing costs. The technology led to a 20% cost reduction and was implemented in 15 major construction projects. The development took 8 months, addressing challenges like high construction costs and environmental concerns with traditional concrete. The outcome included improved safety standards in these projects.
+
+You can explore more success stories and technology transfer partnerships on the [Services page](/services#success-stories).",The Smart Construction Materials success story features BuildSmart Inc. with their Concrete Additive Technology. It achieved a 20% cost reduction across 15 projects implemented. The challenge was high construction costs and environmental concerns with traditional concrete. The solution used volcanic ash-based concrete additive that improves strength while reducing costs. The outcome was 15 major construction projects completed with improved safety standards.,1.0,1.0,0.9,0.9,"The answer is highly faithful to the reference, directly addresses the question with all key details, is logically structured, and provides valuable information—only minor improvements in coherence could be made.",
+What is the Food Preservation Innovation success story?,"Hi, I'm Tepee!
+
+The Food Preservation Innovation success story involves FreshPack Solutions and their Natural Packaging Technology. This innovation extended shelf life by 50%, enabling successful entry into international markets with exports to 3 ASEAN countries. The pilot took 4 months to scale up commercially, and the solution created 50 new jobs. The challenge was limited shelf life preventing export expansion, which was solved using plant-based antimicrobial packaging.","The Food Preservation Innovation success story features FreshPack Solutions with their Natural Packaging Technology. It achieved a 50% shelf life extension and enabled export market entry. The challenge was limited shelf life preventing export market expansion. The solution was plant-based antimicrobial packaging that naturally preserves food. The outcome was successful entry into international markets, exports to 3 ASEAN countries, and 50 new jobs created.",1.0,1.0,0.9,1.0,"The answer is highly faithful to the reference, directly addresses the question with all key details, is logically structured, and provides comprehensive, actionable information. Minor improvement could be made in coherence by slightly refining the phrasing for smoother flow.",
+What is the Shared Service Facility at USTP?,I don't have that specific information in my knowledge base. Please contact TPCO directly for assistance.,"The Shared Service Facility (SSF) and facility booking features have been removed from the USTP TPCO website. The Resources page now only provides Templates and Guidelines tabs. For inquiries about SSF or facility access, please contact TPCO directly at ustp.tpco@ustp.edu.ph or call (088) 856-1738 Local 1145.",0.1,0.1,1.0,0.1,"The answer fails to address the question or reference the context, offering no useful information despite being logically structured.",
+Who is the Promotions Management Unit manager?,"I can only answer questions related to intellectual property, patents, technology transfer, and USTP TPCO operations. Please ask me about patents, IP procedures, technology commercialization, or related topics.","The Promotions Management Unit (PMU) handles technology promotions, marketing, outreach campaigns, and events. (Note: PMU currently does not have a dedicated manager listed on the About page; PMU activities are overseen by the TPCO Director.)",0.1,0.1,1.0,0.1,"The answer completely ignores the question and context, providing an irrelevant response while failing to address the query about the PMU manager.",
+Who are the technical experts in the ITSU?,"I can only answer questions related to intellectual property, patents, technology transfer, and USTP TPCO operations. Please ask me about patents, IP procedures, technology commercialization, or related topics.","The ITSU (Innovation and Technology Support Unit) has two Technical Experts: Engr. Clark Darwin Gozon and Fatimah Nasra P. Hamoy. Both provide technical expertise for innovation support. The unit is managed by Engr. Gladdy Christie H. Compasan, with Noreza P. Aleño serving as Administrative Staff.",0.1,0.1,1.0,0.1,"The answer completely ignores the context and fails to address the question, despite being coherent and well-structured.",
+What is the Technology Promotions Officer's role?,"Hi, I'm Tepee!
+
+Based on the context provided, the Technology Promotions Officer's role is to handle technology promotions activities.",Engr. Jodie Rey D. Fernandez serves as the Technology Promotions Officer at TPCO. His role involves handling technology promotions activities.,0.1,0.5,0.7,0.3,"The answer is partially relevant but lacks grounding in the context (Faithfulness score 1) and omits the officer's name, reducing its helpfulness despite being coherent.",
+What is the contact email of TPCO?,"Hi, I'm Tepee!
+
+The contact email of TPCO is ustp.tpco@ustp.edu.ph.","The primary contact email of TPCO is ustp.tpco@ustp.edu.ph, with a response time within 24 hours.",1.0,1.0,0.7,1.0,"The answer is fully correct and directly addresses the question, but the introductory phrase (""Hi, I'm Tepee!"") slightly reduces coherence without affecting accuracy or usefulness.",
+What is the phone number of TPCO?,"Hi, I'm Tepee!
+
+The phone number for USTP TPCO is (088) 856-1738 Local 1145.","The primary phone number of TPCO is (088) 856-1738 Local 1145, available Monday to Friday, 8:00 AM - 5:00 PM.",1.0,1.0,0.8,0.9,"The answer is fully faithful to the reference and directly addresses the question with the correct phone number, though it includes an unnecessary greeting (""Hi, I'm Tepee!"") which slightly reduces coherence. The additional operational hours detail in the reference makes the generated answer slightly less helpful but still highly practical.",
+Where is the USTP TPCO office located?,"Hi, I'm Tepee!
+
+The USTP TPCO office is located at the University of Science and Technology of Southern Philippines, Claro M. Recto Ave, Lapasan, Cagayan de Oro City, 9000 Misamis Oriental, Philippines.","The USTP TPCO office is located at the University of Science and Technology of Southern Philippines, Cagayan de Oro Campus, Claro M. Recto Ave, Lapasan, Cagayan de Oro City, 9000 Misamis Oriental, Philippines. The Google Maps location is available at https://maps.app.goo.gl/QADDEJs8reyJs9959",0.5,0.8,0.7,0.7,"The answer provides a mostly accurate location but omits the ""Cagayan de Oro Campus"" detail from the ground truth, slightly reducing faithfulness, though it remains relevant and coherent.",
+What are the office hours of TPCO?,"Hi, I'm Tepee!
+
+TPCO's office hours are Monday to Friday, 8:00 AM to 5:00 PM. Walk-in consultations are welcome, but appointments are recommended.","TPCO office hours are Monday through Friday, 8:00 AM - 5:00 PM. Walk-in consultations are welcome, though appointments are recommended.",1.0,1.0,0.9,1.0,"The answer is highly faithful to the reference, directly addresses the question with clear and relevant information, and is well-structured and helpful, with only minor stylistic differences (""Hi, I'm Tepee!"" could be omitted for conciseness).",
+What IP types can be applied for through the Faculty Portal?,"Hi, I'm Tepee!
+
+The context provided does not specify the exact IP types that can be applied for through the Faculty Portal. However, faculty members can submit IP applications through the Faculty IP Portal, which includes fields for IP type, title, applicant info, abstract, detailed description, field of technology, background of invention, summary of invention, and co-inventors.
+
+For assistance with specific IP types, you may contact TPCO directly. You can also visit the [IP Portfolio page](/ip-portfolio) to explore available technologies and innovations.","Through the Faculty IP Portal, faculty can apply for four IP types: Patent, Utility Model, Industrial Design, and Copyright. The application form is available at /faculty/applications/new.",0.1,0.3,0.7,0.4,"The answer fails to provide the specific IP types (faithfulness), only partially addresses the question (relevancy), is logically structured but vague (coherence), and offers limited practical value (helpfulness).",
+What portfolio analytics are available on the IP Portfolio page?,"The IP Portfolio page includes these portfolio analytics:
+
+- Status Distribution (visual breakdown of patents by status: Filed, Registered, Commercialized, Licensed, IP in Application)
+- Patent Types (visual breakdown of patents by technology field/category)
+- Licensed Revenue (total revenue from licensed technologies)
+- Total Patents count (all non-Draft patents in the portfolio)
+
+[IP Portfolio page](/ip-portfolio)","The IP Portfolio page includes a Portfolio Overview analytics section with: 6 Statistics Cards (Filed, Registered, Commercialized, Licensed, Licensed Revenue in ₱, IP in Application), Total Patents in Portfolio count, Status Distribution pie chart (Filed, Registered, Commercialized, Licensed, IP in Application), and Patent Types pie chart (breakdown by technology field/category). Data is sourced from admin_patents and ip_applications tables in Supabase.",0.7,0.9,0.9,0.8,"The answer is mostly faithful to the reference but misses some details (e.g., ""6 Statistics Cards"" and data sources), though it remains highly relevant, coherent, and helpful.",
+How many items are shown per page in the IP Portfolio?,10 items per page,The IP Portfolio page displays 10 items per page with page navigation for browsing through the full collection of patents and technologies.,1.0,1.0,1.0,1.0,"The answer is perfectly faithful to the reference, directly addresses the question, is clear and concise, and provides highly useful information.",
+What is DOST-PCIEERD and how is it related to TPCO?,"Hi, I'm Tepee!
+
+DOST-PCIEERD is a government agency called the Philippine Council for Industry, Energy and Emerging Technology Research and Development. Based on the context provided, it is listed as a partner entity, which suggests that TPCO collaborates with DOST-PCIEERD in fostering innovation, research, and technology development initiatives.","DOST-PCIEERD stands for Department of Science and Technology - Philippine Council for Industry, Energy and Emerging Technology Research and Development. It is a government agency and strategic partner of USTP TPCO that supports research funding and technology development.",0.3,0.7,0.8,0.6,"The answer correctly identifies DOST-PCIEERD but lacks precise context about TPCO's relationship, making it partially faithful and moderately helpful despite being coherent and relevant.",
+What is the Additional Services page on the website?,"Hi, I'm Tepee!
+
+The Additional Services page on the website provides detailed information about specialized services offered by USTP TPCO beyond the core services. Currently, it features IP Training & Workshops, which are structured sessions (1-3 days) priced between ₱15,000 to ₱45,000. These workshops cover topics such as Patent Application Workshop, IP Strategy Development, Technology Commercialization, Prior Art Search Training, IP Portfolio Management, Licensing Negotiations, Market Analysis Techniques, and Legal Compliance Guidelines.
+
+You can access this page by clicking ""View All Additional Services"" on the Services page.","The Additional Services page at /additional-services provides detailed information on 3 additional services: IP Training & Workshops (1-3 days, ₱15,000-₱45,000), Technology Assessment (2-4 weeks, ₱25,000-₱75,000), and Market Research (3-6 weeks, ₱35,000-₱100,000). Each service has 4 tabs: Overview, Features, Process, Benefits. The page also includes service request forms and an FAQ section.",0.6,0.7,0.8,0.7,"The answer is mostly faithful but misses key details (Technology Assessment, Market Research, tabs, forms, FAQ) from the reference, while still being relevant and coherent. It provides useful but incomplete information.",
+How do I access the admin panel?,"Hi, I'm Tepee!
+
+To access the admin panel, click the ""Login"" button in the navigation bar and log in to the admin dashboard.","The admin panel can be accessed at /admin by clicking the 'Login' button in the navigation bar. It requires authentication and allows managing patents, services, news, events, resources, homepage content, dashboard stats, and service requests.",0.5,0.7,0.8,0.6,"The answer is partially faithful to the reference (missing the ""/admin"" path and admin capabilities), relevant but incomplete, well-structured, and somewhat helpful but lacks critical details.",
+What service request form fields are required?,"The required fields for the service request form are:
+
+- Full Name
+- Email","The service request form has these fields: Full Name (required), Email (required), Phone (optional), Organization (optional), Specific Needs & Requirements (optional), and Preferred Contact Method (Email, Phone Call, Video Meeting, In-person Meeting). Submissions are saved to the admin_service_requests table in Supabase.",0.5,0.5,0.8,0.6,"The answer partially addresses the question by listing some required fields but omits several others present in the ground truth, reducing its faithfulness and helpfulness despite being logically structured.",
+What patent statuses are hidden from public view in the IP Portfolio?,Draft and Under Review statuses are hidden from public view in the IP Portfolio.,"Draft and Under Review patents are hidden from public view in the IP Portfolio. The data source is the admin_patents table in Supabase, which serves as the single source of truth. Only non-Draft patents are shown to the public.",0.8,0.9,1.0,0.9,"The answer is highly relevant and coherent, accurately addressing the question with minor deviation from the ground truth (omitting ""patents"" in the first clause).",
+What is the GreenGrow Solutions partnership about?,"Hi, I'm Tepee!
+
+The GreenGrow Solutions partnership involves the commercialization of a Bio-Organic Fertilizer System developed by USTP. This technology addresses the challenge of traditional fertilizers degrading soil quality and becoming expensive by using locally-sourced agricultural waste to create a bio-organic fertilizer system. The partnership resulted in a 35% yield increase, ₱2M annual revenue, and a 40% cost reduction. The technology was licensed to GreenGrow Solutions and reached the market within 6 months.","GreenGrow Solutions is a TPCO industry partner in the AgriTech Soil Enhancement success story. They developed a Bio-Organic Fertilizer System that uses locally-sourced agricultural waste to enrich soil while reducing costs by 40%. The technology achieved a 35% yield increase and ₱2M annual revenue, transforming 500 hectares of farmland and creating sustainable revenue for farming communities. The timeline was 6 months from licensing to market.",1.0,1.0,0.9,1.0,"The answer is highly faithful to the reference, directly addresses the question with all key details, is logically structured, and provides highly useful information. Minor improvement could be made in coherence by slightly refining phrasing for smoother flow.",
+What technology does the Advanced Materials Testing Lab have?,I don't have that specific information in my knowledge base. Please contact TPCO directly for assistance.,"The Advanced Materials Testing Lab and Shared Service Facility (SSF) booking features have been removed from the USTP TPCO website. The Resources page now only provides Templates and Guidelines tabs. For information about lab equipment or facility access, please contact TPCO directly at ustp.tpco@ustp.edu.ph or call (088) 856-1738 Local 1145.",0.1,0.1,1.0,0.1,"The answer fails to address the question entirely and lacks grounding in the provided context, though it is logically structured.",
+What is the IPOPHL and what is its role in IP protection?,"Hi, I'm Tepee!
+
+The Intellectual Property Office of the Philippines (IPOPHL) is the lead government agency responsible for the protection of intellectual property rights in the Philippines. It operates under the Republic Act 8293, also known as the Intellectual Property Code of the Philippines, which provides the legal framework for IP protection and enforcement.
+
+IPOPHL handles the filing, examination, and registration of various types of intellectual property, including patents, utility models, industrial designs, and trademarks. It receives applications, conducts examinations, and issues certificates of registration for IP assets. Additionally, IPOPHL manages the IP Depot platform, where IP assets can be posted, and reserves the right to terminate the posting of works if deemed detrimental to its interests or prejudicial to the objectives of the platform.","IPOPHL (Intellectual Property Office of the Philippines) is the official government agency responsible for IP registration and protection in the country. It is also a strategic partner of USTP TPCO. IPOPHL handles the filing, examination, and registration of patent, trademark, copyright, and industrial design applications. They provide the official forms (Form 100 for patents, Form 300 for copyright, Form 400 for trademarks) and process all IP applications in the Philippines.",0.6,0.9,0.8,0.8,"The answer is highly relevant and coherent, providing useful details about IPOPHL's role, but it includes some unsupported claims (e.g., IP Depot platform) and omits copyright registration (present in the reference answer), slightly reducing faithfulness.",

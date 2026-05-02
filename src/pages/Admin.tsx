@@ -1139,6 +1139,7 @@ const Admin = () => {
     capacity: '',
     description: '',
     image: null as File | null,
+    imageUrl: null as string | null,
     registrationOpen: true
   });
 
@@ -1964,17 +1965,18 @@ const Admin = () => {
       
       const rowId = (rowData[0] as any).id;
       
+      // Ensure all values are non-null before updating
       const { error } = await supabase
         .from('admin_dashboard_stats')
         .update({
-          total_patents: updatedStats.totalPatents,
-          patents_this_month: updatedStats.patentsThisMonth,
-          published_news: updatedStats.publishedNews,
-          news_this_week: updatedStats.newsThisWeek,
-          upcoming_events: updatedStats.upcomingEvents,
-          next_event_date: updatedStats.nextEventDate,
-          service_requests_count: updatedStats.serviceRequests,
-          pending_requests: updatedStats.pendingRequests,
+          total_patents: updatedStats.totalPatents || 0,
+          patents_this_month: updatedStats.patentsThisMonth || 0,
+          published_news: updatedStats.publishedNews || 0,
+          news_this_week: updatedStats.newsThisWeek || 0,
+          upcoming_events: updatedStats.upcomingEvents || 0,
+          next_event_date: updatedStats.nextEventDate || null,
+          service_requests_count: updatedStats.serviceRequests || 0,
+          pending_requests: updatedStats.pendingRequests || 0,
         })
         .eq('id', rowId);
       
@@ -1994,7 +1996,8 @@ const Admin = () => {
     }
 
     try {
-    let imageUrl = null;
+    // For editing: preserve existing image if no new image is uploaded
+    let imageUrl = editingNews?.cover_image_url || null;
     
     if (newsForm.image) {
       try {
@@ -2108,7 +2111,8 @@ const Admin = () => {
     }
 
     try {
-    let imageUrl = null;
+    // For editing: preserve existing image if no new image is uploaded
+    let imageUrl = editingNews?.cover_image_url || null;
     
     if (newsForm.image) {
       try {
@@ -2219,7 +2223,7 @@ const Admin = () => {
       date: article.date,
       excerpt: article.excerpt,
       content: article.content,
-      image: null,
+      image: null, // Will only be set if user uploads a new image
       contentImages: [],
       youtubeUrl: article.youtube_url || ''
     });
@@ -2261,7 +2265,7 @@ const Admin = () => {
     if (!deleteNewsTarget) return;
     const articleId = deleteNewsTarget.id;
     const title = deleteNewsTarget.title;
-    const article = news.find(a => a.id === articleId);
+    const article = news.find(a => a.id === articleId) || draftNews.find(a => a.id === articleId);
     const wasPublished = article?.status === 'Published';
     
     const { error } = await supabase
@@ -2280,7 +2284,8 @@ const Admin = () => {
     
     if (wasPublished) {
       await updateDashboardStats({
-        publishedNews: Math.max(0, dashboardStats.publishedNews - 1)
+        publishedNews: Math.max(0, dashboardStats.publishedNews - 1),
+        newsThisWeek: Math.max(0, dashboardStats.newsThisWeek - 1)
       });
     }
     
@@ -3035,7 +3040,7 @@ const Admin = () => {
     }
 
     // Process image if provided
-    let imageUrl = null;
+    let imageUrl = eventForm.imageUrl; // Keep existing image by default
     if (eventForm.image) {
       try {
         const reader = new FileReader();
@@ -3102,6 +3107,7 @@ const Admin = () => {
       capacity: '',
       description: '',
       image: null,
+      imageUrl: null,
       registrationOpen: true
     });
     setEditingEvent(null);
@@ -3122,6 +3128,7 @@ const Admin = () => {
       capacity: event.capacity ? event.capacity.toString() : '',
       description: event.description || '',
       image: null,
+      imageUrl: event.image_url || null,
       registrationOpen: event.registrationOpen !== undefined ? event.registrationOpen : true
     });
     setShowEventModal(true);
@@ -6295,6 +6302,16 @@ const Admin = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="modal-news-image" className="ml-2">Featured Image</Label>
+              {editingNews && editingNews.cover_image_url && !newsForm.image && (
+                <div className="ml-2 mb-2">
+                  <p className="text-xs text-muted-foreground mb-1">Current image:</p>
+                  <img 
+                    src={editingNews.cover_image_url} 
+                    alt="Current featured image" 
+                    className="max-w-xs h-auto rounded border"
+                  />
+                </div>
+              )}
               <Input 
                 id="modal-news-image" 
                 type="file" 
@@ -6302,6 +6319,9 @@ const Admin = () => {
                 className="ml-2 mr-2"
                 onChange={(e) => setNewsForm({...newsForm, image: e.target.files?.[0] || null})}
               />
+              <p className="text-xs text-muted-foreground ml-2">
+                {editingNews ? 'Upload a new image to replace the current one, or leave empty to keep existing image.' : 'Upload a featured image for this article.'}
+              </p>
             </div>
             
             {/* YouTube URL in Modal */}
@@ -6955,17 +6975,6 @@ const Admin = () => {
                   }}
                 >
                   <Users className="h-4 w-4 mr-1" />View Registrations
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    await handleArchiveEvent(selectedArchivedEvent.id, false);
-                    setShowArchivedEventDetailModal(false);
-                    setSelectedArchivedEvent(null);
-                  }}
-                >
-                  <Clock className="h-4 w-4 mr-1" />Restore to Active
                 </Button>
               </div>
             </div>

@@ -58,10 +58,10 @@
   {
     "id": "eval_008",
     "question": "How can I book facilities or equipment at USTP?",
-    "ground_truth": "You can book facilities and equipment through the Facility Booking page at /facility-booking, which is accessible from the Resources page. The Shared Service Facility (SSF) includes the Advanced Materials Testing Lab with state-of-the-art equipment for materials characterization and testing, capacity of 10 researchers, and an hourly rate of ₱500.",
+    "ground_truth": "Facility booking and Shared Service Facility (SSF) services have been removed from the USTP TPCO website. The Resources page now only provides access to Templates and Guidelines tabs. For facility-related inquiries, please contact TPCO directly at ustp.tpco@ustp.edu.ph or call (088) 856-1738 Local 1145.",
     "category": "navigation",
-    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt", "DPM-USTP-TPCO-001-ITSU.pdf"],
-    "metadata": {"difficulty": "easy", "domain": "facility_booking"}
+    "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
+    "metadata": {"difficulty": "easy", "domain": "website_navigation"}
   },
   {
     "id": "eval_009",
@@ -650,10 +650,10 @@
   {
     "id": "eval_082",
     "question": "What is the Shared Service Facility at USTP?",
-    "ground_truth": "The Shared Service Facility (SSF) at USTP includes the Advanced Materials Testing Lab with state-of-the-art equipment for materials characterization and testing. It has a capacity of 10 researchers and an hourly rate of ₱500. The facility can be booked at /facility-booking, accessible from the Resources page.",
-    "category": "services",
+    "ground_truth": "The Shared Service Facility (SSF) and facility booking features have been removed from the USTP TPCO website. The Resources page now only provides Templates and Guidelines tabs. For inquiries about SSF or facility access, please contact TPCO directly at ustp.tpco@ustp.edu.ph or call (088) 856-1738 Local 1145.",
+    "category": "navigation",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
-    "metadata": {"difficulty": "easy", "domain": "facilities"}
+    "metadata": {"difficulty": "easy", "domain": "website_navigation"}
   },
   {
     "id": "eval_083",
@@ -786,10 +786,10 @@
   {
     "id": "eval_099",
     "question": "What technology does the Advanced Materials Testing Lab have?",
-    "ground_truth": "The Advanced Materials Testing Lab at USTP has state-of-the-art equipment for materials characterization and testing. It is a Shared Service Facility (SSF) with a capacity of 10 researchers and an hourly rate of ₱500. The facility can be booked through /facility-booking on the website.",
-    "category": "services",
+    "ground_truth": "The Advanced Materials Testing Lab and Shared Service Facility (SSF) booking features have been removed from the USTP TPCO website. The Resources page now only provides Templates and Guidelines tabs. For information about lab equipment or facility access, please contact TPCO directly at ustp.tpco@ustp.edu.ph or call (088) 856-1738 Local 1145.",
+    "category": "navigation",
     "expected_sources": ["USTP_TPCO_Website_Knowledge_Base.txt"],
-    "metadata": {"difficulty": "easy", "domain": "facilities"}
+    "metadata": {"difficulty": "easy", "domain": "website_navigation"}
   },
   {
     "id": "eval_100",

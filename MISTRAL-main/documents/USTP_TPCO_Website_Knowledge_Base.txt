@@ -105,10 +105,7 @@ MAIN PAGES AND HOW TO ACCESS THEM:
    - Navigation: Click "Browse All Resources" on the Resources page
    - Content: Full catalog of resources available for browsing
 
-8. FACILITY BOOKING (SSF)
-   - URL: /facility-booking
-   - Navigation: Available from Resources page
-   - Content: Shared Service Facility booking
+NOTE: Facility booking and Shared Service Facility (SSF) features have been removed from the website. The Resources page now only provides Templates and Guidelines tabs.
 
 9. EVENTS & WORKSHOPS
    - URL: /events
@@ -609,10 +606,7 @@ GUIDELINES (Research Guidelines & Best Practices):
 - Each resource shows title, description, and last updated date
 
 SHARED SERVICE FACILITIES (SSF):
-- Available from the Resources page or /facility-booking
-- Advanced Materials Testing Lab: State-of-the-art equipment for materials characterization and testing
-- Capacity: 10 researchers
-- Hourly Rate: ₱500
+NOTE: SSF and facility booking features have been removed from the website. For facility-related inquiries, contact TPCO directly.
 
 ================================================================================
 SECTION 11: HOMEPAGE IMPACT STATISTICS
