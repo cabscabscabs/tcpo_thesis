@@ -38,6 +38,22 @@ export default function FacultyDashboard() {
       navigate('/admin');
       return;
     }
+
+    // Defense-in-depth: Google OAuth users must be on @ustp.edu.ph.
+    // The `hd` parameter on signInWithOAuth enforces this at Google's consent screen,
+    // but we re-check here in case a session was minted outside that flow.
+    const isGoogleUser = session.user.app_metadata?.provider === 'google';
+    const userEmailLower = (session.user.email || '').toLowerCase();
+    if (isGoogleUser && !userEmailLower.endsWith('@ustp.edu.ph')) {
+      toast({
+        title: "Access Denied",
+        description: "Please use your USTP university email (@ustp.edu.ph) to sign in.",
+        variant: "destructive"
+      });
+      await supabase.auth.signOut();
+      navigate('/admin');
+      return;
+    }
     
     // Check if user has faculty role
     const { data: profile } = await supabase

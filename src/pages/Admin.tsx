@@ -196,6 +196,15 @@ const Admin = () => {
             .single();
           
           if (!error && profile && (profile.role === 'admin' || profile.role === 'faculty')) {
+            // Defense-in-depth: Google OAuth users must always be on @ustp.edu.ph,
+            // even if a faculty profile already exists for this auth.users id.
+            const isGoogleUser = session.user.app_metadata?.provider === 'google';
+            const userEmailLower = (session.user.email || '').toLowerCase();
+            if (isGoogleUser && !userEmailLower.endsWith('@ustp.edu.ph')) {
+              setLoginError('Please use your USTP university email (@ustp.edu.ph) to sign in.');
+              await supabase.auth.signOut();
+              return;
+            }
             // User has a valid role
             if (profile.role === 'faculty') {
               navigate('/faculty');
@@ -3760,6 +3769,10 @@ const Admin = () => {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
+            // Restrict Google account picker to @ustp.edu.ph (Google Workspace) accounts.
+            // This is enforced by Google on the consent screen. The post-sign-in guard
+            // below (checkSession + FacultyDashboard.checkAuth) provides defense in depth.
+            hd: 'ustp.edu.ph',
           },
         },
       });
