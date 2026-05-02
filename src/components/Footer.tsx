@@ -18,6 +18,7 @@ const Footer = () => {
           .from('admin_events' as any)
           .select('*')
           .eq('published', true)
+          .or('archived.is.null,archived.eq.false')
           .gte('date', currentDate)
           .order('date', { ascending: true })
           .limit(1);

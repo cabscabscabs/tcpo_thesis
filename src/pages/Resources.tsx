@@ -243,6 +243,7 @@ const Resources = () => {
           .from('admin_events' as any)
           .select('*')
           .eq('published', true)
+          .or('archived.is.null,archived.eq.false')
           .order('date', { ascending: true });
         
         if (data) {
@@ -282,6 +283,7 @@ const Resources = () => {
           .from('admin_events' as any)
           .select('*')
           .eq('published', true)
+          .or('archived.is.null,archived.eq.false')
           .order('date', { ascending: true });
         
         if (data && !error) {

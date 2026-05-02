@@ -1107,6 +1107,8 @@ const Admin = () => {
   const [showNewsModal, setShowNewsModal] = useState(false);
   const [editingNews, setEditingNews] = useState<any>(null);
   const [existingContentImages, setExistingContentImages] = useState<string[]>([]);
+  // Prevents duplicate news submissions from rapid clicks
+  const [isSubmittingNews, setIsSubmittingNews] = useState(false);
 
   // Delete confirmation dialog state
   const [showDeleteNewsDialog, setShowDeleteNewsDialog] = useState(false);
@@ -1234,6 +1236,7 @@ const Admin = () => {
   // Modal state for event management
   const [showEventModal, setShowEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [isSubmittingEvent, setIsSubmittingEvent] = useState(false);
 
   // Load saved data on component mount from Supabase
   useEffect(() => {
@@ -1990,14 +1993,17 @@ const Admin = () => {
 
   // News Management Functions
   const handlePublishNews = async () => {
+    if (isSubmittingNews) return; // Guard against duplicate submissions
     if (!newsForm.title || !newsForm.content || !newsForm.category) {
       toast({ title: 'Validation Error', description: 'Please fill in all required fields (Title, Content, Category).', variant: 'destructive' });
       return;
     }
 
+    setIsSubmittingNews(true);
     try {
     // For editing: preserve existing image if no new image is uploaded
-    let imageUrl = editingNews?.cover_image_url || null;
+    // editingNews.image holds the existing cover_image_url (mapped in loadNews)
+    let imageUrl = editingNews?.image || editingNews?.cover_image_url || null;
     
     if (newsForm.image) {
       try {
@@ -2101,18 +2107,23 @@ const Admin = () => {
     } catch (error: any) {
       console.error('Unexpected error in handlePublishNews:', error);
       toast({ title: 'Error', description: `Unexpected error: ${error?.message || 'Unknown error'}`, variant: 'destructive' });
+    } finally {
+      setIsSubmittingNews(false);
     }
   };
 
   const handleSaveDraft = async () => {
+    if (isSubmittingNews) return; // Guard against duplicate submissions
     if (!newsForm.title || !newsForm.content) {
       toast({ title: 'Notice', description: 'Please fill in Title and Content to save as draft.' })
       return;
     }
 
+    setIsSubmittingNews(true);
     try {
     // For editing: preserve existing image if no new image is uploaded
-    let imageUrl = editingNews?.cover_image_url || null;
+    // editingNews.image holds the existing cover_image_url (mapped in loadNews)
+    let imageUrl = editingNews?.image || editingNews?.cover_image_url || null;
     
     if (newsForm.image) {
       try {
@@ -2211,6 +2222,8 @@ const Admin = () => {
     } catch (error: any) {
       console.error('Unexpected error in handleSaveDraft:', error);
       toast({ title: 'Error', description: `Unexpected error: ${error?.message || 'Unknown error'}`, variant: 'destructive' });
+    } finally {
+      setIsSubmittingNews(false);
     }
   };
 
@@ -3034,86 +3047,94 @@ const Admin = () => {
 
   // Event Management Functions
   const handleCreateEvent = async () => {
+    // Guard against double/triple submissions from rapid clicks
+    if (isSubmittingEvent) return;
+
     if (!eventForm.title || !eventForm.date) {
       toast({ title: 'Validation Error', description: 'Please fill in all required fields (Event Title, Event Date).', variant: 'destructive' });
       return;
     }
 
-    // Process image if provided
-    let imageUrl = eventForm.imageUrl; // Keep existing image by default
-    if (eventForm.image) {
-      try {
-        const reader = new FileReader();
-        imageUrl = await new Promise<string>((resolve, reject) => {
-          reader.onload = (e) => resolve(e.target?.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(eventForm.image!);
-        });
-      } catch (error) {
-        console.error('Failed to process image:', error);
-        toast({ title: 'Warning', description: 'Failed to process image. Event will be saved without image.', variant: 'destructive' })
+    setIsSubmittingEvent(true);
+    try {
+      // Process image if provided
+      let imageUrl = eventForm.imageUrl; // Keep existing image by default
+      if (eventForm.image) {
+        try {
+          const reader = new FileReader();
+          imageUrl = await new Promise<string>((resolve, reject) => {
+            reader.onload = (e) => resolve(e.target?.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(eventForm.image!);
+          });
+        } catch (error) {
+          console.error('Failed to process image:', error);
+          toast({ title: 'Warning', description: 'Failed to process image. Event will be saved without image.', variant: 'destructive' })
+        }
       }
-    }
 
-    const eventData = {
-      title: eventForm.title,
-      type: eventForm.type,
-      date: eventForm.date,
-      time: eventForm.time,
-      location: eventForm.location,
-      capacity: eventForm.capacity ? parseInt(eventForm.capacity) : null,
-      description: eventForm.description,
-      registration_open: eventForm.registrationOpen,
-      status: 'Upcoming',
-      published: true,
-      image_url: imageUrl,
-    };
+      const eventData = {
+        title: eventForm.title,
+        type: eventForm.type,
+        date: eventForm.date,
+        time: eventForm.time,
+        location: eventForm.location,
+        capacity: eventForm.capacity ? parseInt(eventForm.capacity) : null,
+        description: eventForm.description,
+        registration_open: eventForm.registrationOpen,
+        status: 'Upcoming',
+        published: true,
+        image_url: imageUrl,
+      };
 
-    if (editingEvent) {
-      const { error } = await supabase
-        .from('admin_events')
-        .update(eventData)
-        .eq('id', editingEvent.id);
+      if (editingEvent) {
+        const { error } = await supabase
+          .from('admin_events')
+          .update(eventData)
+          .eq('id', editingEvent.id);
+        
+        if (error) {
+          console.error('Error updating event:', error);
+          toast({ title: 'Error', description: 'Error updating event', variant: 'destructive' })
+          return;
+        }
+        // Note: Activity is logged automatically by database trigger
+      } else {
+        const { error } = await supabase
+          .from('admin_events')
+          .insert([eventData]);
+        
+        if (error) {
+          console.error('Error creating event:', error);
+          toast({ title: 'Error', description: 'Error creating event', variant: 'destructive' })
+          return;
+        }
+        // Note: Activity is logged automatically by database trigger
+      }
+
+      // Await reload so state reflects the newly-saved image_url before user can re-open the edit modal
+      await loadEvents();
+      window.dispatchEvent(new Event('storage'));
+      setEventForm({
+        id: null,
+        title: '',
+        type: 'workshop',
+        date: '',
+        time: '',
+        location: '',
+        capacity: '',
+        description: '',
+        image: null,
+        imageUrl: null,
+        registrationOpen: true
+      });
+      setEditingEvent(null);
+      setShowEventModal(false);
       
-      if (error) {
-        console.error('Error updating event:', error);
-        toast({ title: 'Error', description: 'Error updating event', variant: 'destructive' })
-        return;
-      }
-      // Note: Activity is logged automatically by database trigger
-    } else {
-      const { error } = await supabase
-        .from('admin_events')
-        .insert([eventData]);
-      
-      if (error) {
-        console.error('Error creating event:', error);
-        toast({ title: 'Error', description: 'Error creating event', variant: 'destructive' })
-        return;
-      }
-      // Note: Activity is logged automatically by database trigger
+      toast({ title: 'Success', description: `Event ${editingEvent ? 'updated' : 'created'} successfully!` })
+    } finally {
+      setIsSubmittingEvent(false);
     }
-
-    loadEvents();
-    window.dispatchEvent(new Event('storage'));
-    
-    setEventForm({
-      id: null,
-      title: '',
-      type: 'workshop',
-      date: '',
-      time: '',
-      location: '',
-      capacity: '',
-      description: '',
-      image: null,
-      imageUrl: null,
-      registrationOpen: true
-    });
-    setEditingEvent(null);
-    setShowEventModal(false);
-    
-    toast({ title: 'Success', description: `Event ${editingEvent ? 'updated' : 'created'} successfully!` })
   };
 
   const handleEditEvent = (event: any) => {
@@ -3128,7 +3149,8 @@ const Admin = () => {
       capacity: event.capacity ? event.capacity.toString() : '',
       description: event.description || '',
       image: null,
-      imageUrl: event.image_url || null,
+      // event.image holds the mapped image_url from loadEvents; fall back to image_url for unmapped objects
+      imageUrl: event.image || event.image_url || null,
       registrationOpen: event.registrationOpen !== undefined ? event.registrationOpen : true
     });
     setShowEventModal(true);
@@ -4514,7 +4536,9 @@ const Admin = () => {
                     onChange={(e) => setEventForm({...eventForm, image: e.target.files?.[0] || null})}
                   />
                 </div>
-                <Button variant="ustp" onClick={handleCreateEvent}>Create Event</Button>
+                <Button variant="ustp" onClick={handleCreateEvent} disabled={isSubmittingEvent}>
+                  {isSubmittingEvent ? 'Creating...' : 'Create Event'}
+                </Button>
               </CardContent>
             </Card>
 
@@ -6302,11 +6326,11 @@ const Admin = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="modal-news-image" className="ml-2">Featured Image</Label>
-              {editingNews && editingNews.cover_image_url && !newsForm.image && (
+              {editingNews && (editingNews.image || editingNews.cover_image_url) && !newsForm.image && (
                 <div className="ml-2 mb-2">
                   <p className="text-xs text-muted-foreground mb-1">Current image:</p>
                   <img 
-                    src={editingNews.cover_image_url} 
+                    src={editingNews.image || editingNews.cover_image_url} 
                     alt="Current featured image" 
                     className="max-w-xs h-auto rounded border"
                   />
@@ -6339,29 +6363,29 @@ const Admin = () => {
           </div>
           
           <DialogFooter className="flex-shrink-0 border-t pt-4 mt-2">
-            <Button variant="outline" onClick={() => {
+            <Button variant="outline" disabled={isSubmittingNews} onClick={() => {
               setShowNewsModal(false);
               setExistingContentImages([]);
             }}>
               Cancel
             </Button>
-            <Button variant="ustp" onClick={() => {
+            <Button variant="ustp" disabled={isSubmittingNews} onClick={() => {
               if (editingNews) {
                 handlePublishNews();
               } else {
                 handlePublishNews();
               }
             }}>
-              {editingNews ? 'Update Article' : 'Publish Article'}
+              {isSubmittingNews ? (editingNews ? 'Updating...' : 'Publishing...') : (editingNews ? 'Update Article' : 'Publish Article')}
             </Button>
-            <Button variant="outline" onClick={() => {
+            <Button variant="outline" disabled={isSubmittingNews} onClick={() => {
               if (editingNews) {
                 handleSaveDraft();
               } else {
                 handleSaveDraft();
               }
             }}>
-              {editingNews ? 'Save Changes as Draft' : 'Save as Draft'}
+              {isSubmittingNews ? 'Saving...' : (editingNews ? 'Save Changes as Draft' : 'Save as Draft')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -6860,6 +6884,27 @@ const Admin = () => {
                 onChange={(e) => setEventForm({...eventForm, description: e.target.value})}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="modal-event-image">Event Image</Label>
+              {eventForm.imageUrl && (
+                <div className="mb-2">
+                  <img
+                    src={eventForm.imageUrl}
+                    alt="Current event"
+                    className="h-32 w-auto rounded-md border object-cover"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Current image. Upload a new file to replace it.
+                  </p>
+                </div>
+              )}
+              <Input
+                id="modal-event-image"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setEventForm({...eventForm, image: e.target.files?.[0] || null})}
+              />
+            </div>
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -6876,8 +6921,10 @@ const Admin = () => {
             <Button variant="outline" onClick={() => setShowEventModal(false)}>
               Cancel
             </Button>
-            <Button variant="ustp" onClick={handleCreateEvent}>
-              {editingEvent ? 'Update Event' : 'Create Event'}
+            <Button variant="ustp" onClick={handleCreateEvent} disabled={isSubmittingEvent}>
+              {isSubmittingEvent
+                ? (editingEvent ? 'Updating...' : 'Creating...')
+                : (editingEvent ? 'Update Event' : 'Create Event')}
             </Button>
           </DialogFooter>
         </DialogContent>

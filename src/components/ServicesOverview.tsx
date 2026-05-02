@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import servicesImage from "@/assets/services-bg.jpg";
 
+
 // Icon mapping kept in sync with src/pages/Services.tsx
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const iconMap: Record<string, any> = {
