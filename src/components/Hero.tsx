@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Award, Users, Lightbulb } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import heroImage from "@/assets/hero-image.jpg";
 import { supabase } from "@/integrations/supabase/client";
 
 const Hero = () => {
@@ -71,12 +70,16 @@ const Hero = () => {
   }, []);
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroContent.heroImage || heroImage})` }}
-      >
-        <div className="absolute inset-0 bg-primary/80"></div>
+      {/* Background */}
+      <div className="absolute inset-0 bg-primary">
+        {heroContent.heroImage && (
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${heroContent.heroImage})` }}
+          >
+            <div className="absolute inset-0 bg-primary/80"></div>
+          </div>
+        )}
       </div>
 
       {/* Content */}
