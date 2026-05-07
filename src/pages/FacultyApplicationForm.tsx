@@ -188,6 +188,7 @@ export default function FacultyApplicationForm() {
       classification_other: "",
       trademark_goods_services: "",
       trademark_mark_description: "",
+      industrial_design_brief_description: "",
     },
     mode: "onChange",
   });
@@ -365,6 +366,27 @@ export default function FacultyApplicationForm() {
           }
         }
 
+        // Industrial Design brief description text field
+        if (ipType === 'Industrial Design') {
+          const briefDesc = (values.industrial_design_brief_description || '').trim();
+          if (!briefDesc) {
+            toast({
+              title: "Brief Description Required",
+              description: "Please provide a brief description of the industrial design.",
+              variant: "destructive",
+            });
+            return false;
+          }
+          if (countWords(briefDesc) > 150) {
+            toast({
+              title: "Word Limit Exceeded",
+              description: "Brief Description is limited to 150 words.",
+              variant: "destructive",
+            });
+            return false;
+          }
+        }
+
         // Validate co-inventor emails (must be @ustp.edu.ph if provided)
         const coInvs = (values.co_inventors || []) as any[];
         for (let i = 0; i < coInvs.length; i++) {
@@ -498,6 +520,7 @@ export default function FacultyApplicationForm() {
         classification_other: formData.classification_other || null,
         trademark_goods_services: formData.trademark_goods_services || null,
         trademark_mark_description: formData.trademark_mark_description || null,
+        industrial_design_brief_description: formData.industrial_design_brief_description || null,
         declaration_confirmed: formData.declaration_ownership && formData.declaration_accuracy && formData.declaration_ustp,
       };
 
@@ -667,6 +690,7 @@ export default function FacultyApplicationForm() {
         classification_other: data.classification_other || null,
         trademark_goods_services: data.trademark_goods_services || null,
         trademark_mark_description: data.trademark_mark_description || null,
+        industrial_design_brief_description: data.industrial_design_brief_description || null,
         declaration_confirmed: true,
         declaration_date: new Date().toISOString(),
         submitted_at: new Date().toISOString(),

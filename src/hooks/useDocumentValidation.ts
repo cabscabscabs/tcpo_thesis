@@ -73,15 +73,9 @@ const DOCUMENT_REQUIREMENTS: Record<IPType, DocumentRequirement[]> = {
       required: true,
       formats: ['.pdf', '.jpg', '.jpeg', '.png'],
       maxSizeMB: 20
-    },
-    {
-      id: 'description',
-      name: 'Brief Description',
-      description: 'Brief description of the design',
-      required: true,
-      formats: ['.pdf', '.doc', '.docx'],
-      maxSizeMB: 20
     }
+    // Brief Description is captured as a text field in the form,
+    // not as a file upload, so it is intentionally omitted here.
   ],
   // Trademark required inputs are captured as text fields in the form,
   // not as file uploads, so the checklist is intentionally empty.

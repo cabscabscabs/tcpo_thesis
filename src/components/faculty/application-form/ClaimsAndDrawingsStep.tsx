@@ -39,6 +39,7 @@ export function ClaimsAndDrawingsStep() {
   const classificationOther = watch("classification_other") as string | undefined;
   const goodsServices = (watch("trademark_goods_services") as string | undefined) || "";
   const markDescription = (watch("trademark_mark_description") as string | undefined) || "";
+  const industrialBriefDescription = (watch("industrial_design_brief_description") as string | undefined) || "";
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'drawing' | 'document') => {
     const files = event.target.files;
@@ -110,6 +111,7 @@ export function ClaimsAndDrawingsStep() {
 
   const goodsServicesWordCount = countWords(goodsServices);
   const markDescriptionWordCount = countWords(markDescription);
+  const industrialBriefWordCount = countWords(industrialBriefDescription);
 
   return (
     <div className="space-y-6">
@@ -238,6 +240,43 @@ export function ClaimsAndDrawingsStep() {
                     />
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Industrial Design text field — replaces file upload */}
+          {ipType === 'Industrial Design' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileTextIcon className="h-5 w-5 text-blue-600" />
+                  Industrial Design Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="industrial_design_brief_description">
+                      Brief Description <span className="text-red-500">*</span>
+                    </Label>
+                    <span
+                      className={`text-xs ${
+                        industrialBriefWordCount > WORD_LIMIT ? 'text-red-500' : 'text-gray-500'
+                      }`}
+                    >
+                      {industrialBriefWordCount} / {WORD_LIMIT} words
+                    </span>
+                  </div>
+                  <Textarea
+                    id="industrial_design_brief_description"
+                    placeholder="Provide a brief description of the industrial design (max 150 words)"
+                    rows={4}
+                    {...register("industrial_design_brief_description")}
+                  />
+                  <p className="text-xs text-gray-500">
+                    Describe the ornamental or aesthetic aspects of the design. No file upload needed.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}

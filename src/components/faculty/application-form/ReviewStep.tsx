@@ -231,6 +231,26 @@ export function ReviewStep() {
         </Card>
       )}
 
+      {/* Industrial Design Brief Description */}
+      {formData.ip_type === 'Industrial Design' && formData.industrial_design_brief_description && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Industrial Design Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Brief Description</p>
+              <p className="text-sm text-gray-800 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg">
+                {formData.industrial_design_brief_description}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Claims */}
       {formData.claims?.length > 0 && (
         <Card>

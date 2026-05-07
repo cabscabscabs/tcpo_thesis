@@ -99,6 +99,7 @@ export default function FacultyApplicationDetail() {
         classification_other: appData.classification_other || null,
         trademark_goods_services: appData.trademark_goods_services || null,
         trademark_mark_description: appData.trademark_mark_description || null,
+        industrial_design_brief_description: appData.industrial_design_brief_description || null,
         version: appData.current_version || 1,
         is_current_version: true,
         previous_version_id: null,
@@ -425,6 +426,20 @@ export default function FacultyApplicationDetail() {
                           <p className="text-gray-700 whitespace-pre-wrap">{application.trademark_mark_description}</p>
                         </div>
                       )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {application.ip_type === 'Industrial Design' && application.industrial_design_brief_description && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Industrial Design Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-500 mb-1">Brief Description</p>
+                        <p className="text-gray-700 whitespace-pre-wrap">{application.industrial_design_brief_description}</p>
+                      </div>
                     </CardContent>
                   </Card>
                 )}

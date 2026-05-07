@@ -1391,17 +1391,17 @@ const Admin = () => {
       const { data, error } = await supabase
         .rpc('get_dashboard_stats');
       
-      if (data && !error) {
+      if (data && !error && data.length > 0) {
         const stats = data[0] as any;
         setDashboardStats({
-          totalPatents: stats.total_patents,
-          patentsThisMonth: stats.patents_this_month,
-          publishedNews: stats.published_news,
-          newsThisWeek: stats.news_this_week,
-          upcomingEvents: stats.upcoming_events,
-          nextEventDate: stats.next_event_date,
-          serviceRequests: stats.service_requests_count,
-          pendingRequests: stats.pending_requests,
+          totalPatents: stats.total_patents ?? 0,
+          patentsThisMonth: stats.patents_this_month ?? 0,
+          publishedNews: stats.published_news ?? 0,
+          newsThisWeek: stats.news_this_week ?? 0,
+          upcomingEvents: stats.upcoming_events ?? 0,
+          nextEventDate: stats.next_event_date || 'No upcoming events',
+          serviceRequests: stats.service_requests_count ?? 0,
+          pendingRequests: stats.pending_requests ?? 0,
         });
         // Also load licensed revenue
         if (stats.licensed_revenue !== undefined) {
@@ -1415,26 +1415,77 @@ const Admin = () => {
           .order('id', { ascending: true })
           .limit(1);
         
-        if (staticData && !staticError) {
-          const stats = staticData as any;
+        if (staticData && !staticError && staticData.length > 0) {
+          const stats = staticData[0] as any;
           setDashboardStats({
-            totalPatents: stats.total_patents,
-            patentsThisMonth: stats.patents_this_month,
-            publishedNews: stats.published_news,
-            newsThisWeek: stats.news_this_week,
-            upcomingEvents: stats.upcoming_events,
-            nextEventDate: stats.next_event_date,
-            serviceRequests: stats.service_requests_count,
-            pendingRequests: stats.pending_requests,
+            totalPatents: stats.total_patents ?? 0,
+            patentsThisMonth: stats.patents_this_month ?? 0,
+            publishedNews: stats.published_news ?? 0,
+            newsThisWeek: stats.news_this_week ?? 0,
+            upcomingEvents: stats.upcoming_events ?? 0,
+            nextEventDate: stats.next_event_date || 'No upcoming events',
+            serviceRequests: stats.service_requests_count ?? 0,
+            pendingRequests: stats.pending_requests ?? 0,
           });
           // Also load licensed revenue
           if (stats.licensed_revenue !== undefined) {
             setLicensedRevenue(String(stats.licensed_revenue));
           }
+        } else {
+          // Last resort: compute stats directly from individual tables
+          await computeDashboardStatsFromTables();
         }
       }
     } catch (error) {
       console.error('Error loading dashboard stats:', error);
+      // Try computing from tables as last resort
+      await computeDashboardStatsFromTables();
+    }
+  };
+
+  const computeDashboardStatsFromTables = async () => {
+    try {
+      const [patentsRes, newsRes, eventsRes, requestsRes] = await Promise.all([
+        supabase.from('admin_patents').select('id, created_at', { count: 'exact', head: false }),
+        supabase.from('admin_news').select('id, status, date', { count: 'exact', head: false }),
+        supabase.from('admin_events').select('id, date', { count: 'exact', head: false }),
+        supabase.from('admin_service_requests').select('id, status', { count: 'exact', head: false }),
+      ]);
+
+      const totalPatents = patentsRes.count ?? (patentsRes.data?.length ?? 0);
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const patentsThisMonth = patentsRes.data?.filter((p: any) => p.created_at >= monthStart).length ?? 0;
+
+      const publishedNewsArr = newsRes.data?.filter((n: any) => n.status === 'Published') ?? [];
+      const publishedNews = publishedNewsArr.length;
+      const weekStart = new Date();
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+      const weekStartStr = weekStart.toISOString().split('T')[0];
+      const newsThisWeek = publishedNewsArr.filter((n: any) => n.date >= weekStartStr).length;
+
+      const today = new Date().toISOString().split('T')[0];
+      const upcomingEventsArr = eventsRes.data?.filter((e: any) => e.date >= today) ?? [];
+      const upcomingEvents = upcomingEventsArr.length;
+      const nextEventDate = upcomingEventsArr.length > 0
+        ? new Date(upcomingEventsArr.sort((a: any, b: any) => a.date.localeCompare(b.date))[0].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        : 'No upcoming events';
+
+      const serviceRequests = requestsRes.data?.length ?? 0;
+      const pendingRequests = requestsRes.data?.filter((r: any) => r.status === 'Pending').length ?? 0;
+
+      setDashboardStats({
+        totalPatents,
+        patentsThisMonth,
+        publishedNews,
+        newsThisWeek,
+        upcomingEvents,
+        nextEventDate,
+        serviceRequests,
+        pendingRequests,
+      });
+    } catch (err) {
+      console.error('Error computing dashboard stats from tables:', err);
     }
   };
 
@@ -4057,8 +4108,8 @@ const Admin = () => {
                   <CardTitle className="text-lg">Total Patents</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-ustp-blue">{dashboardStats.totalPatents}</div>
-                  <p className="text-sm text-muted-foreground">+{dashboardStats.patentsThisMonth} this month</p>
+                  <div className="text-3xl font-bold text-ustp-blue">{patents.length}</div>
+                  <p className="text-sm text-muted-foreground">+{patents.filter((p: any) => { const d = new Date(p.created_at || p.createdAt || p.filed_date); const now = new Date(); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); }).length} this month</p>
                 </CardContent>
               </Card>
               <Card>
@@ -4066,8 +4117,8 @@ const Admin = () => {
                   <CardTitle className="text-lg">Published News</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-ustp-blue">{dashboardStats.publishedNews}</div>
-                  <p className="text-sm text-muted-foreground">+{dashboardStats.newsThisWeek} this week</p>
+                  <div className="text-3xl font-bold text-ustp-blue">{news.length}</div>
+                  <p className="text-sm text-muted-foreground">+{news.filter((n: any) => { const d = n.date; if (!d) return false; const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay()); return d >= weekStart.toISOString().split('T')[0]; }).length} this week</p>
                 </CardContent>
               </Card>
               <Card>
@@ -4075,8 +4126,8 @@ const Admin = () => {
                   <CardTitle className="text-lg">Upcoming Events</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-ustp-blue">{dashboardStats.upcomingEvents}</div>
-                  <p className="text-sm text-muted-foreground">Next: {dashboardStats.nextEventDate}</p>
+                  <div className="text-3xl font-bold text-ustp-blue">{events.length}</div>
+                  <p className="text-sm text-muted-foreground">Next: {events.length > 0 ? new Date([...events].sort((a: any, b: any) => a.date.localeCompare(b.date))[0].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No upcoming events'}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -4084,8 +4135,8 @@ const Admin = () => {
                   <CardTitle className="text-lg">Service Requests</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-ustp-blue">{dashboardStats.serviceRequests}</div>
-                  <p className="text-sm text-muted-foreground">{dashboardStats.pendingRequests} pending</p>
+                  <div className="text-3xl font-bold text-ustp-blue">{serviceRequests.length}</div>
+                  <p className="text-sm text-muted-foreground">{serviceRequests.filter((r: any) => r.status === 'Pending').length} pending</p>
                 </CardContent>
               </Card>
             </div>
@@ -8202,6 +8253,14 @@ const Admin = () => {
                       <p className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg">{selectedIpApp.trademark_mark_description}</p>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Industrial Design brief description */}
+              {selectedIpApp.ip_type === 'Industrial Design' && selectedIpApp.industrial_design_brief_description && (
+                <div>
+                  <h4 className="font-medium mb-1">Brief Description</h4>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg">{selectedIpApp.industrial_design_brief_description}</p>
                 </div>
               )}
 

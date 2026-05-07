@@ -48,6 +48,9 @@ export interface IPApplication {
   trademark_goods_services?: string | null;
   trademark_mark_description?: string | null;
 
+  // Industrial Design text field (replaces file upload)
+  industrial_design_brief_description?: string | null;
+
   // Version control
   version: number;
   is_current_version: boolean;
@@ -154,11 +157,12 @@ export interface IPApplicationFormData {
   detailed_description: string;
   co_inventors: CoInventor[];
 
-  // Classification / Trademark text fields
+  // Classification / Trademark / Industrial Design text fields
   classification?: string;
   classification_other?: string;
   trademark_goods_services?: string;
   trademark_mark_description?: string;
+  industrial_design_brief_description?: string;
 
   // Step 3: Claims & Drawings
   claims: IPClaim[];
