@@ -5,6 +5,30 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Resolves the base URL used for auth redirects (Google OAuth, password reset).
+// Priority:
+//   1. VITE_SITE_URL env var (explicit override — use when tunneling via ngrok, Cloudflare, etc.)
+//   2. window.location.origin (default — whatever origin the browser is currently on)
+// NOTE: Whatever value this returns must also be added to Supabase Dashboard →
+// Authentication → URL Configuration → Redirect URLs, otherwise Supabase will
+// silently fall back to the configured Site URL (e.g. http://localhost:8080).
+export function getSiteUrl(): string {
+  const envUrl = (import.meta as any)?.env?.VITE_SITE_URL as string | undefined;
+  if (envUrl && envUrl.trim().length > 0) {
+    return envUrl.replace(/\/$/, "");
+  }
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin;
+  }
+  return "";
+}
+
+export function buildRedirectUrl(path: string): string {
+  const base = getSiteUrl();
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${normalizedPath}`;
+}
+
 // Status color mapping
 export function getStatusColor(status: string): string {
   const statusColors: Record<string, string> = {

@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trash2, Edit, Plus, Eye, EyeOff, Users, Mail, Phone, Building, Calendar, CheckCircle, XCircle, Clock, Download, FileText, Video, BookOpen, Wrench, Upload, Loader2, Search, Filter, X, Bell, Check, BellOff, FileUp, FileDown, EyeIcon, MessageSquare, AlertCircle, ChevronRight, Send, DollarSign, Award } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { formatDate, buildRedirectUrl } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { PatentAnalyticsCard } from "@/components/admin/PatentAnalyticsCard";
@@ -3792,7 +3792,7 @@ const Admin = () => {
   const handleResetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/reset-password'
+        redirectTo: buildRedirectUrl('/reset-password')
       });
 
       if (error) {
@@ -3813,10 +3813,19 @@ const Admin = () => {
     setLoginError(null);
     
     try {
+      // IMPORTANT: the value of `redirectTo` must be listed in
+      // Supabase Dashboard → Authentication → URL Configuration → Redirect URLs.
+      // If the URL is not on the allowlist, Supabase silently falls back to the
+      // project's Site URL (e.g. http://localhost:8080) — which is why ngrok
+      // sessions can end up bouncing back to localhost. Set VITE_SITE_URL in
+      // `.env` (or add your ngrok URL to the allowlist) to fix this.
+      const redirectUrl = buildRedirectUrl('/admin');
+      // eslint-disable-next-line no-console
+      console.info('[GoogleSignIn] redirectTo =', redirectUrl);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/admin',
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

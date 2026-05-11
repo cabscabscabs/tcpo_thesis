@@ -12,6 +12,15 @@ export default defineConfig(({ mode }) => {
     server: {
       host: "::",
       port: 8080,
+      // Allow ngrok / Cloudflare Tunnel / etc. to reach the dev server.
+      // Without this, Vite 5+ rejects the Host header for unknown domains.
+      allowedHosts: [
+        'localhost',
+        '127.0.0.1',
+        '.ngrok-free.dev',
+        '.ngrok-free.app',
+        '.ngrok.io',
+      ],
       proxy: {
         '/api': {
           target: 'http://localhost:3001',
